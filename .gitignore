@@ -1,0 +1,202 @@
+# Job OS: keep source, migrations, dependency lockfiles, and sanitized examples.
+# Store private runtime data in the ignored directories below.
+# Ignore rules do not remove files that Git already tracks.
+
+# Python / FastAPI: bytecode, packaging, test and analysis caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+.eggs/
+pip-wheel-metadata/
+.Python
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.pyre/
+.tox/
+.nox/
+.hypothesis/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+.ipynb_checkpoints/
+
+# Virtual environments / Conda (keep environment.yml and dependency lockfiles)
+.venv/
+venv/
+env/
+ENV/
+envs/
+.conda/
+conda-env/
+conda-meta/
+
+# Node.js / React / frontend tooling
+node_modules/
+.npm/
+.pnpm-store/
+.yarn/cache/
+.yarn/unplugged/
+.yarn/install-state.gz
+.yarn/build-state.yml
+.pnp.*
+.vite/
+.vite-temp/
+.next/
+.nuxt/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+coverage/
+playwright-report/
+test-results/
+
+# Rust / Tauri (keep Cargo.lock, Cargo.toml, and Tauri configuration)
+target/
+**/src-tauri/gen/schemas/
+*.rs.bk
+
+# Build output and general caches
+build/
+dist/
+out/
+.cache/
+.turbo/
+*.whl
+
+# VS Code: ignore personal settings; permit shared, reviewed project files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+*.code-workspace
+.history/
+
+# Windows / editor temporary files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.stackdump
+~$*
+*.swp
+*.swo
+*~
+*.tmp
+*.temp
+tmp/
+temp/
+
+# Environment variables / credentials
+# Only these exact example names are allowed; they must contain placeholders.
+.env
+.env.*
+!.env.example
+!.env.template
+.envrc
+.npmrc
+.pypirc
+.netrc
+_netrc
+secrets/
+.secrets/
+credentials/
+.credentials/
+secrets.json
+secrets.*.json
+credentials.json
+credentials.*.json
+client_secret*.json
+token.json
+tokens.json
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+
+# SQLite databases and their journals / WAL / shared-memory sidecars
+*.db
+*.db-*
+*.db3
+*.db3-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Logs, process files, and local backups
+*.log
+*.log.*
+logs/
+*.pid
+*.pid.lock
+*.bak
+backups/
+
+# Private Job OS data: candidate profiles, emails, CVs, and application exports
+# Keep personal files in these locations, not alongside source or public docs.
+private/
+.private/
+.local/
+/data/
+/storage/
+/uploads/
+/exports/
+/documents/
+/resumes/
+/cvs/
+/cover_letters/
+/emails/
+/backend/data/
+/backend/storage/
+/backend/uploads/
+/backend/exports/
+
+# Local AI model storage (do not ignore source directories named models)
+/models/
+/local-models/
+model_weights/
+weights/
+.huggingface/
+.hf_cache/
+.ollama/
+*.gguf
+*.ggml
+*.safetensors
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.h5
+*.hdf5
+pytorch_model*.bin
+adapter_model*.bin
+*.pkl
+*.pickle
+*.joblib
+
+# Local datasets / checkpoints / experiment output
+# Keep training scripts, configs, evaluation code, and experiments trackable.
+/datasets/
+/training/data/
+/training/datasets/
+/training/models/
+/training/outputs/
+/training/artifacts/
+checkpoints/
+checkpoint-*/
+runs/
+wandb/
+mlruns/
+mlartifacts/
+lightning_logs/
+events.out.tfevents.*
