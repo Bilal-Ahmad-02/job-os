@@ -114,6 +114,7 @@ secrets.json
 secrets.*.json
 credentials.json
 credentials.*.json
+*.phc
 client_secret*.json
 token.json
 tokens.json

@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "main",
+  "description": "Oracle's local main window can authenticate and request a guarded liveness check.",
+  "windows": ["main"],
+  "permissions": ["allow-oracle-access"]
+}

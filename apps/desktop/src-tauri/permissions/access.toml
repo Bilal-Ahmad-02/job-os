@@ -1,0 +1,4 @@
+[[permission]]
+identifier = "allow-oracle-access"
+description = "Allow password setup, lock/unlock, and the native session-guarded health check."
+commands.allow = ["auth_status", "create_password", "unlock", "lock", "check_health"]

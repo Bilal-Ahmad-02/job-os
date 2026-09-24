@@ -1,0 +1,371 @@
+@font-face {
+  font-family: "Oracle System";
+  src: local("Segoe UI");
+}
+
+:root {
+  font-family: "Oracle System", "Segoe UI", sans-serif;
+  color: #233830;
+  background: #f7f7f2;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  min-width: 560px;
+  overflow: hidden;
+}
+button {
+  font: inherit;
+}
+.app-shell {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 224px 1fr;
+}
+.sidebar {
+  background: #182f2b;
+  color: #edf1e8;
+  padding: 35px 23px 24px;
+  display: flex;
+  flex-direction: column;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -1px;
+}
+.sidebar-caption {
+  color: #a9bbb3;
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  margin: 58px 12px 16px;
+}
+.current-view {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 13px 15px;
+  border-radius: 6px;
+  background: #2a4239;
+  border: 1px solid #3c5145;
+  font-size: 14px;
+}
+.view-symbol {
+  color: #c3d2a7;
+  font-size: 20px;
+}
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 40px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  color: #bdc9c2;
+}
+.local-dot {
+  width: 6px;
+  height: 6px;
+  border: 1px solid #bdc9c2;
+  border-radius: 50%;
+}
+main {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-y: auto;
+}
+.page-header {
+  min-height: 78px;
+  padding: 0 42px;
+  border-bottom: 1px solid #e3e6dc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  color: #667168;
+  font-size: 12px;
+}
+.stage-label {
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  color: #68705f;
+}
+.workspace {
+  padding: 40px 42px 28px;
+  max-width: 890px;
+  width: 100%;
+  margin: 0 auto;
+}
+.eyebrow {
+  color: #697959;
+  font-size: 10px;
+  letter-spacing: 2px;
+  font-weight: 600;
+  margin: 0 0 21px;
+}
+h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(34px, 4.1vw, 46px);
+  font-weight: 400;
+  line-height: 1.13;
+  letter-spacing: -1.6px;
+  margin: 0 0 20px;
+}
+.intro {
+  color: #626e64;
+  font-size: 14px;
+  line-height: 1.8;
+  max-width: 470px;
+  margin: 0 0 26px;
+}
+.connection-card {
+  background: #fffefa;
+  border: 1px solid #dce1d5;
+  border-radius: 10px;
+  padding: 23px 25px 0;
+}
+.card-heading {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-heading h2 {
+  font-size: 13px;
+  font-weight: 600;
+  margin: 0;
+}
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border-radius: 20px;
+  padding: 6px 10px;
+  font-size: 11px;
+  background: #f0f1e8;
+  color: #666d56;
+}
+.status-badge.connected {
+  background: #e8f0de;
+  color: #35542b;
+}
+.status-badge.unavailable {
+  background: #f7ecdf;
+  color: #805623;
+}
+.status-dot {
+  height: 6px;
+  width: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.connection-copy {
+  min-height: 120px;
+  padding: 24px 0 20px;
+}
+.connection-copy h3 {
+  margin: 0 0 9px;
+  font-size: 19px;
+  font-weight: 500;
+  letter-spacing: -0.3px;
+}
+.connection-copy p {
+  margin: 0;
+  max-width: 475px;
+  font-size: 13px;
+  color: #657065;
+  line-height: 1.75;
+}
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 17px 0;
+  border-top: 1px solid #e8ebe2;
+}
+.last-checked {
+  color: #727b6e;
+  font-size: 11px;
+}
+button {
+  border: 1px solid #233d30;
+  border-radius: 5px;
+  background: #233d30;
+  color: #f6f7f1;
+  min-height: 38px;
+  padding: 8px 13px;
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 18px;
+  align-items: center;
+}
+button:hover:not(:disabled) {
+  background: #34553f;
+}
+button:focus-visible {
+  outline: 3px solid #8b9c54;
+  outline-offset: 3px;
+}
+button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+.workspace-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-top: 29px;
+  max-width: 470px;
+}
+.note-line {
+  width: 22px;
+  height: 1px;
+  background: #9fa98c;
+  flex-shrink: 0;
+  margin-top: 9px;
+}
+.workspace-note h2 {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.workspace-note p {
+  color: #6d776a;
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 0;
+}
+.page-footer {
+  margin-top: auto;
+  padding: 20px 42px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 10px;
+  color: #727d6d;
+}
+.page-footer span:first-child {
+  letter-spacing: 2px;
+}
+
+@media (max-width: 800px) {
+  .app-shell {
+    grid-template-columns: 170px 1fr;
+  }
+  .sidebar {
+    padding: 28px 14px 20px;
+  }
+  .brand {
+    font-size: 23px;
+  }
+  .sidebar-caption {
+    font-size: 8px;
+    margin-left: 8px;
+  }
+  .sidebar-footer {
+    font-size: 10px;
+  }
+  .workspace {
+    padding: 36px 24px;
+  }
+  .page-header,
+  .page-footer {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+  .stage-label {
+    display: none;
+  }
+  .connection-card {
+    padding-left: 19px;
+    padding-right: 19px;
+  }
+  .card-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+.access-page {
+  height: 100vh;
+  padding: 40px 24px;
+  background: #182f2b;
+  align-items: center;
+}
+.access-card {
+  width: min(100%, 480px);
+  margin: auto;
+  padding: 36px;
+  border-radius: 12px;
+  background: #f7f7f2;
+}
+.access-card .brand {
+  margin-bottom: 30px;
+}
+.access-card h1 {
+  font-size: 36px;
+}
+.access-description {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #626e64;
+}
+.access-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 24px;
+}
+.access-card label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.access-card input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #99a894;
+  border-radius: 5px;
+  font: inherit;
+  background: #fffefa;
+  color: #233830;
+}
+.access-card input:focus-visible {
+  outline: 3px solid #8b9c54;
+  outline-offset: 2px;
+}
+.access-card button {
+  margin-top: 12px;
+  justify-content: center;
+  min-height: 44px;
+}
+.input-help,
+.access-footnote {
+  color: #626e64;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.input-help {
+  margin: 0 0 10px;
+}
+.access-footnote {
+  margin: 24px 0 0;
+}
+.access-error {
+  color: #8e3028;
+  font-size: 13px;
+  line-height: 1.5;
+}

@@ -1,0 +1,7 @@
+{
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true, "root": "../.." },
+  "files": { "includes": ["src/**", "*.ts", "*.json", "index.html", "!package-lock.json"] },
+  "formatter": { "enabled": true, "indentStyle": "space", "lineWidth": 100 },
+  "linter": { "enabled": true, "rules": { "preset": "recommended" } },
+  "assist": { "actions": { "source": { "organizeImports": "on" } } }
+}
