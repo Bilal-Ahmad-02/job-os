@@ -1,8 +1,11 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+mod applications;
 mod auth;
 mod commands;
 mod health;
+#[cfg(windows)]
+mod windows_icon;
 
 use std::sync::{Arc, Mutex};
 use tauri::{webview::NewWindowResponse, Manager, WebviewWindowBuilder};
@@ -29,21 +32,29 @@ fn main() {
             commands::unlock,
             commands::lock,
             commands::check_health,
+            commands::applications,
         ])
         .setup(|app| {
             let path = app.path().app_local_data_dir()?.join("password.phc");
             app.manage(Arc::new(Mutex::new(auth::Access::new(path))));
+            app.manage(applications::ApplicationStore(Arc::new(Mutex::new(
+                applications::Workspace::new(
+                    app.path().app_local_data_dir()?.join("oracle.sqlite3"),
+                ),
+            ))));
             let config = app
                 .config()
                 .app
                 .windows
                 .first()
                 .ok_or("Oracle window configuration is missing")?;
-            WebviewWindowBuilder::from_config(app, config)?
+            let window = WebviewWindowBuilder::from_config(app, config)?
                 .on_navigation(navigation_allowed)
                 .on_new_window(|_, _| NewWindowResponse::Deny)
                 .on_download(|_, _| false)
                 .build()?;
+            #[cfg(windows)]
+            windows_icon::configure(&window)?;
             Ok(())
         })
         .run(tauri::generate_context!())

@@ -2225,6 +2225,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tempfile",
+ "windows",
  "zeroize",
 ]
 

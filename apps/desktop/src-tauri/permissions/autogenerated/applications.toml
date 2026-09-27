@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-applications"
+description = "Enables the applications command without any pre-configured scope."
+commands.allow = ["applications"]
+
+[[permission]]
+identifier = "deny-applications"
+description = "Denies the applications command without any pre-configured scope."
+commands.deny = ["applications"]

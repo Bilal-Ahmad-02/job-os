@@ -4,7 +4,9 @@ Oracle is a local-first Windows desktop application in development for managing 
 
 The project will begin with a job and application tracker, followed by evidence-grounded AI assistance and optional automation. It is both a personal tool and a portfolio project focused on maintainable software, data, and AI engineering.
 
-See [the project context](docs/PROJECT_CONTEXT.md) for the long-term goals, intended architecture, privacy rules, and development principles.
+Read [the current Oracle context](docs/ORACLE_CONTEXT.md) for the expanded personal-AI vision,
+planned Windows/WSL2 direction, privacy rules, and scope constraints. Job OS is Oracle's first major
+module. The [original Job OS context](docs/PROJECT_CONTEXT.md) is preserved as the historical plan.
 
 ## Current scope
 
@@ -12,8 +14,17 @@ The backend foundation exposes only `GET /health`, returning `{"status":"ok"}`.
 This confirms the process is responding; it does not check a database or AI provider.
 The Tauri/React desktop shell displays connection status with a manual retry and refreshes when
 the window regains focus. A native password lock gates the workspace and its connection check.
-First launch asks you to create your password; later launches require it. Job persistence and AI
-integrations are not implemented yet. See [backup and restore](docs/BACKUP.md) for recovering the
+First launch asks you to create your password; later launches require it. The application tracker
+supports searching, adding, and editing records in a local SQLite database, with a one-time Excel
+import and preserved source details. Workspace identity and explicit initialization prevent a missing
+database from silently becoming an empty history. An interactive maintenance command now creates
+encrypted, versioned backups and verifies staged recovery; OneDrive setup requires a separate local
+backup password. Scheduling and automatic sync verification are not implemented. AI integrations are
+not implemented yet.
+The source document register preserves original PDFs privately in SQLite and displays their metadata
+inside the locked workspace. Extracted qualifications and a reviewed candidate profile are future
+work; see [private source documents](docs/DOCUMENTS.md).
+See [application storage and import](docs/APPLICATIONS.md) and [backup and restore](docs/BACKUP.md) for recovering the
 source code on another computer; local personal data is not uploaded to GitHub.
 See [desktop setup and security](docs/DESKTOP.md) to run Oracle's Windows app.
 

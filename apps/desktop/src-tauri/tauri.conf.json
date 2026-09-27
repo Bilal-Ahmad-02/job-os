@@ -14,6 +14,8 @@
     "windows": [{
       "label": "main",
       "title": "Oracle",
+      "theme": "Dark",
+      "backgroundColor": "#050807",
       "create": false,
       "width": 1100,
       "height": 760,

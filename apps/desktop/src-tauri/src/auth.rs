@@ -35,7 +35,16 @@ impl Access {
     fn stored_hash(&self) -> Result<Option<String>, &'static str> {
         let file = match File::open(&self.path) {
             Ok(file) => file,
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                // A missing credential beside existing personal data is a recovery
+                // problem, never permission to set a replacement password.
+                let database = self.path.with_file_name("oracle.sqlite3");
+                let marker = self.path.with_file_name("oracle.workspace-id");
+                match (database.try_exists(), marker.try_exists()) {
+                    (Ok(false), Ok(false)) => return Ok(None),
+                    _ => return Err(STORAGE_ERROR),
+                }
+            }
             Err(_) => return Err(STORAGE_ERROR),
         };
         let mut value = String::new();

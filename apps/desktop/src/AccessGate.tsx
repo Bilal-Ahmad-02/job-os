@@ -1,10 +1,13 @@
 import { invoke } from "@tauri-apps/api/core";
 import { type FormEvent, useEffect, useState } from "react";
 import App from "./App";
+import Icon from "./Icon";
+import OracleMark from "./OracleMark";
 
 type Status = "loading" | "setup" | "locked" | "unlocked" | "error";
 
 const safeErrors = new Set([
+  "Password created, but workspace setup failed. Close and reopen Oracle to check recovery.",
   "Oracle cannot read its password settings. Access remains locked.",
   "Please wait up to 30 seconds before trying again.",
   "Incorrect password. Wait a moment and try again.",
@@ -76,13 +79,20 @@ export default function AccessGate() {
 
   return (
     <main className="access-page">
+      <div className="access-identity" aria-hidden="true">
+        <p className="eyebrow">LOCAL / PERSONAL OPERATIONS</p>
+        <OracleMark />
+        <div className="access-wordmark">
+          ORACLE<span>OPERATOR INTERFACE / 01</span>
+        </div>
+      </div>
       <section className="access-card" aria-labelledby="access-title">
         <div className="brand">
-          <img src="/oracle.svg" width="38" height="38" alt="" />
+          <img src="/oracle.png" width="38" height="38" alt="" />
           <span>Oracle</span>
         </div>
-        <p className="eyebrow">YOUR PERSONAL WORKSPACE</p>
-        <h1 id="access-title">{status === "setup" ? "Make it yours." : "Welcome back."}</h1>
+        <p className="eyebrow">IDENT / OPERATOR</p>
+        <h1 id="access-title">{status === "setup" ? "INITIALIZE_" : "ACCESS.SEALED"}</h1>
         {status === "loading" ? (
           <p role="status">Checking access…</p>
         ) : status === "error" ? (
@@ -137,6 +147,7 @@ export default function AccessGate() {
                 </p>
               ) : null}
               <button type="submit" disabled={busy}>
+                <Icon name="lock" />
                 {busy
                   ? "Please wait…"
                   : status === "setup"

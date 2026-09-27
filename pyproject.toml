@@ -9,6 +9,11 @@ description = "Local backend for the Job OS Windows desktop application"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
+    "pypdf>=6.19,<7",
+    "sqlalchemy>=2.0,<2.1",
+    "alembic>=1.16,<2",
+    "openpyxl>=3.1.5,<3.2",
+    "defusedxml>=0.7.1,<0.8",
     "fastapi>=0.141,<0.142",
     "pydantic>=2.10,<3",
     "pydantic-settings>=2.7,<3",

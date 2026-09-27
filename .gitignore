@@ -115,6 +115,8 @@ secrets.*.json
 credentials.json
 credentials.*.json
 *.phc
+*.workspace-id
+*.sqlite3.partial
 client_secret*.json
 token.json
 tokens.json
@@ -145,6 +147,7 @@ backups/
 
 # Private Job OS data: candidate profiles, emails, CVs, and application exports
 # Keep personal files in these locations, not alongside source or public docs.
+/Oracle additions.txt
 private/
 .private/
 .local/
