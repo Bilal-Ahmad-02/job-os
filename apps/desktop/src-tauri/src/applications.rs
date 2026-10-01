@@ -21,6 +21,8 @@ pub struct ApplicationStore(pub Arc<Mutex<Workspace>>);
 pub struct Workspace {
     path: PathBuf,
     prepared: bool,
+    linux: Option<crate::wsl::Runtime>,
+    unavailable: bool,
 }
 
 impl Workspace {
@@ -28,21 +30,66 @@ impl Workspace {
         Self {
             path,
             prepared: false,
+            linux: None,
+            unavailable: false,
+        }
+    }
+
+    pub fn from_app_data(directory: &Path) -> Result<Self, &'static str> {
+        let mut workspace = Self::new(directory.join("oracle.sqlite3"));
+        workspace.linux = crate::wsl::Runtime::load(directory)?;
+        Ok(workspace)
+    }
+
+    #[cfg(test)]
+    pub(crate) fn synthetic_linux() -> Self {
+        Self {
+            path: PathBuf::new(),
+            prepared: false,
+            linux: Some(crate::wsl::synthetic_runtime()),
+            unavailable: false,
         }
     }
 
     pub fn initialize(&mut self) -> Result<(), &'static str> {
+        if self.linux.is_some() {
+            return Err("Linux workspaces require a verified restore before activation.");
+        }
         maintenance(&self.path, "initialize")?;
         self.prepared = true;
         Ok(())
     }
 
     pub fn request(&mut self, payload: Value) -> Result<Value, &'static str> {
+        if self.unavailable {
+            return Err("Oracle's runtime stopped unexpectedly. Close and reopen Oracle before checking the last operation. It was not retried.");
+        }
+        if self.linux.is_some() {
+            if !self.prepared {
+                self.linux_request("prepare", Vec::new())?;
+                self.prepared = true;
+            }
+            let bytes = serde_json::to_vec(&payload).map_err(|_| FAILED)?;
+            if bytes.len() > MAX_REQUEST {
+                return Err("Application details are too large.");
+            }
+            return self.linux_request("request", bytes);
+        }
         if !self.prepared {
             maintenance(&self.path, "prepare")?;
             self.prepared = true;
         }
         request(&self.path, payload)
+    }
+
+    fn linux_request(&mut self, operation: &str, bytes: Vec<u8>) -> Result<Value, &'static str> {
+        match self.linux.as_ref().ok_or(FAILED)?.invoke(operation, bytes) {
+            Ok(data) => decode(&data),
+            Err(error) => {
+                self.unavailable = true;
+                Err(error)
+            }
+        }
     }
 }
 
@@ -113,7 +160,7 @@ fn run(mut command: Command, bytes: Vec<u8>, timeout: Duration) -> Result<Value,
     decode(&data)
 }
 
-fn terminate(child: &mut std::process::Child) {
+pub(crate) fn terminate(child: &mut std::process::Child) {
     if matches!(child.try_wait(), Ok(Some(_))) {
         return;
     }
@@ -122,17 +169,29 @@ fn terminate(child: &mut std::process::Child) {
         use std::os::windows::process::CommandExt;
         // The Windows venv launcher may own a second Python process. Killing
         // only the launcher leaves its child (and pipes) alive after a timeout.
-        let _ = Command::new(concat!(env!("SystemRoot"), "\\System32\\taskkill.exe"))
-            .args(["/PID", &child.id().to_string(), "/T", "/F"])
-            .creation_flags(0x08000000)
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .status();
+        if let Ok(mut killer) =
+            Command::new(concat!(env!("SystemRoot"), "\\System32\\taskkill.exe"))
+                .args(["/PID", &child.id().to_string(), "/T", "/F"])
+                .creation_flags(0x08000000)
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .spawn()
+        {
+            let deadline = std::time::Instant::now() + Duration::from_secs(2);
+            while std::time::Instant::now() < deadline {
+                if matches!(killer.try_wait(), Ok(Some(_))) {
+                    break;
+                }
+                thread::sleep(Duration::from_millis(20));
+            }
+            let _ = killer.kill();
+            let _ = killer.wait();
+        }
     }
     let _ = child.kill();
 }
 
-fn decode(data: &[u8]) -> Result<Value, &'static str> {
+pub(crate) fn decode(data: &[u8]) -> Result<Value, &'static str> {
     let response: Value = serde_json::from_slice(data).map_err(|_| FAILED)?;
     let envelope = response.as_object().ok_or(FAILED)?;
     if response.get("protocol_version").and_then(Value::as_u64) != Some(1) || envelope.len() != 3 {

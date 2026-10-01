@@ -1,4 +1,4 @@
-import { invoke } from "@tauri-apps/api/core";
+﻿import { invoke } from "@tauri-apps/api/core";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AccessGate from "./AccessGate";
@@ -14,40 +14,90 @@ vi.mock("./App", () => ({
     </div>
   ),
 }));
-
+function native(status: unknown = "locked", configured = true) {
+  vi.mocked(invoke).mockImplementation(async (command) => {
+    if (command === "auth_status") return status;
+    if (command === "rotation_status") return configured;
+    return undefined;
+  });
+}
+async function recovery() {
+  fireEvent.click(await screen.findByRole("button", { name: "Password recovery" }));
+  fireEvent.change(screen.getByLabelText("Password"), {
+    target: { value: "test-only passphrase" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Unlock Oracle" }));
+}
+function turns() {
+  const dial = screen.getByRole("slider", { name: "Rotation dial" });
+  for (const key of ["ArrowRight", "ArrowLeft", "ArrowRight", "ArrowLeft"]) {
+    fireEvent.keyDown(dial, { key });
+    fireEvent.keyDown(dial, { key: " " });
+  }
+}
 beforeEach(() => {
   vi.mocked(invoke).mockReset();
+  native();
 });
-
-describe("Oracle access gate", () => {
-  it("does not render the workspace until the native unlock succeeds", async () => {
-    vi.mocked(invoke).mockResolvedValueOnce("locked").mockResolvedValueOnce(undefined);
+describe("Oracle circular access gate", () => {
+  it("starts sealed without a password form and only opens after native verification and expansion", async () => {
     render(<AccessGate />);
+    await screen.findByRole("button", { name: "Unseal" });
+    expect(screen.queryByLabelText("Password")).not.toBeInTheDocument();
     expect(screen.queryByText("Private workspace")).not.toBeInTheDocument();
-    fireEvent.change(await screen.findByLabelText("Password"), {
-      target: { value: "test-only passphrase" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Unlock Oracle" }));
+    turns();
+    fireEvent.click(screen.getByRole("button", { name: "Unseal" }));
     expect(await screen.findByText("Private workspace")).toBeVisible();
-    expect(invoke).toHaveBeenCalledWith("unlock", { password: "test-only passphrase" });
+    expect(invoke).toHaveBeenCalledWith("unlock_rotation", { steps: [1, -1, 1, -1] });
+    expect(invoke).toHaveBeenCalledWith("shell_mode", { workspace: true });
   });
-
-  it("clears the password on failure and only displays approved error messages", async () => {
-    vi.mocked(invoke)
-      .mockResolvedValueOnce("locked")
-      .mockRejectedValueOnce("sensitive internal details");
+  it("preserves password recovery and clears its input on failure without leaking errors", async () => {
+    vi.mocked(invoke).mockImplementation(async (command) => {
+      if (command === "auth_status") return "locked";
+      if (command === "rotation_status") return true;
+      throw "sensitive internal details";
+    });
     render(<AccessGate />);
-    const field = await screen.findByLabelText("Password");
-    fireEvent.change(field, { target: { value: "test-only passphrase" } });
-    fireEvent.click(screen.getByRole("button", { name: "Unlock Oracle" }));
+    await recovery();
     expect(await screen.findByRole("alert")).toHaveTextContent("Oracle could not unlock");
-    expect(field).toHaveValue("");
+    expect(screen.getByLabelText("Password")).toHaveValue("");
     expect(screen.queryByText("Private workspace")).not.toBeInTheDocument();
     expect(screen.queryByText("sensitive internal details")).not.toBeInTheDocument();
   });
-
-  it("requires matching passwords on first launch", async () => {
-    vi.mocked(invoke).mockResolvedValueOnce("setup");
+  it("uses the existing password for recovery", async () => {
+    render(<AccessGate />);
+    await recovery();
+    expect(await screen.findByText("Private workspace")).toBeVisible();
+    expect(invoke).toHaveBeenCalledWith("unlock", { password: "test-only passphrase" });
+  });
+  it("enrolls only after password authentication and a repeated sequence, then requires a real unlock", async () => {
+    native("locked", false);
+    render(<AccessGate />);
+    await recovery();
+    fireEvent.click(await screen.findByRole("button", { name: "Set rotation key" }));
+    turns();
+    fireEvent.click(screen.getByRole("button", { name: "Record sequence" }));
+    await screen.findByText("REPEAT YOUR SEQUENCE");
+    turns();
+    fireEvent.click(screen.getByRole("button", { name: "Save rotation key" }));
+    await screen.findByRole("button", { name: "Unseal" });
+    expect(invoke).toHaveBeenCalledWith("enroll_rotation", {
+      steps: [1, -1, 1, -1],
+      confirmation: [1, -1, 1, -1],
+    });
+    expect(invoke).toHaveBeenCalledWith("lock");
+    expect(screen.queryByText("Private workspace")).not.toBeInTheDocument();
+  });
+  it("permits postponing enrollment without changing the password", async () => {
+    native("locked", false);
+    render(<AccessGate />);
+    await recovery();
+    fireEvent.click(await screen.findByRole("button", { name: "Set up later / open workspace" }));
+    expect(await screen.findByText("Private workspace")).toBeVisible();
+    expect(invoke).not.toHaveBeenCalledWith("enroll_rotation", expect.anything());
+  });
+  it("requires matching recovery passwords on first installation", async () => {
+    native("setup", false);
     render(<AccessGate />);
     fireEvent.change(await screen.findByLabelText("Create password"), {
       target: { value: "test-only passphrase" },
@@ -55,39 +105,41 @@ describe("Oracle access gate", () => {
     fireEvent.change(screen.getByLabelText("Confirm password"), {
       target: { value: "different passphrase" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Create password & open Oracle" }));
+    fireEvent.click(screen.getByRole("button", { name: "Create recovery password" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("do not match");
-    expect(invoke).toHaveBeenCalledTimes(1);
-    vi.mocked(invoke).mockResolvedValueOnce(undefined);
-    fireEvent.change(screen.getByLabelText("Confirm password"), {
-      target: { value: "test-only passphrase" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Create password & open Oracle" }));
-    expect(await screen.findByText("Private workspace")).toBeVisible();
-    expect(invoke).toHaveBeenCalledWith("create_password", { password: "test-only passphrase" });
+    expect(invoke).not.toHaveBeenCalledWith("create_password", expect.anything());
   });
-
-  it.each(["unexpected", null])("fails closed for an invalid native status %s", async (status) => {
-    vi.mocked(invoke).mockResolvedValueOnce(status);
+  it.each(["unexpected", null])("fails closed for invalid native status %s", async (status) => {
+    native(status);
     render(<AccessGate />);
     expect(await screen.findByRole("alert")).toHaveTextContent("Access remains locked");
     expect(screen.queryByText("Private workspace")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Create password")).not.toBeInTheDocument();
   });
-
-  it("fails closed when password storage cannot be read", async () => {
-    vi.mocked(invoke).mockRejectedValueOnce("file inaccessible");
+  it("does not mount records while native unlock is pending or rejected", async () => {
+    let reject: (reason: string) => void = () => {};
+    vi.mocked(invoke).mockImplementation(async (command) => {
+      if (command === "auth_status") return "locked";
+      if (command === "rotation_status") return true;
+      if (command === "unlock_rotation")
+        return new Promise((_, fail) => {
+          reject = fail;
+        });
+    });
     render(<AccessGate />);
-    expect(await screen.findByRole("alert")).toHaveTextContent("Access remains locked");
+    await screen.findByRole("button", { name: "Unseal" });
+    turns();
+    fireEvent.click(screen.getByRole("button", { name: "Unseal" }));
+    expect(screen.queryByText("Private workspace")).not.toBeInTheDocument();
+    reject("Sequence not recognized. Wait a moment and try again.");
+    expect(await screen.findByRole("alert")).toHaveTextContent("Sequence not recognized");
+    expect(invoke).not.toHaveBeenCalledWith("shell_mode", { workspace: true });
+    expect(screen.getByRole("button", { name: "Unseal" })).toBeDisabled();
   });
-
-  it("hides the workspace immediately while the native lock is pending", async () => {
-    vi.mocked(invoke)
-      .mockResolvedValueOnce("unlocked")
-      .mockImplementationOnce(() => new Promise(() => {}));
+  it("hides records immediately when locking and returns to a circle", async () => {
+    native("unlocked");
     render(<AccessGate />);
     fireEvent.click(await screen.findByRole("button", { name: "Lock Oracle" }));
     await waitFor(() => expect(screen.queryByText("Private workspace")).not.toBeInTheDocument());
-    expect(invoke).toHaveBeenCalledWith("lock");
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith("shell_mode", { workspace: false }));
   });
 });

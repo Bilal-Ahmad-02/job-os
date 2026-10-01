@@ -143,6 +143,8 @@ def execute(engine: Engine, request: ListRequest | GetRequest | SaveRequest) -> 
         result = list_applications(engine, request)
     elif isinstance(request, GetRequest):
         result = get_application(engine, request)
-    else:
+    elif isinstance(request, SaveRequest):
         result = save_application(engine, request)
+    else:
+        raise ValueError("Unsupported application operation")
     return result.model_dump(mode="json")

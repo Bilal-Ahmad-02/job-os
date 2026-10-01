@@ -1,0 +1,57 @@
+.task-create {
+  border: 1px solid var(--border);
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.task-create fieldset {
+  margin-top: 16px;
+  border: 0;
+  padding: 0;
+}
+.task-create legend {
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.task-source {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  overflow-wrap: anywhere;
+}
+.task-source input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+.task-list {
+  display: grid;
+  gap: 16px;
+}
+.task-record {
+  border: 1px solid var(--border);
+  padding: 18px;
+}
+.task-record header {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+}
+.task-record h2 {
+  font-size: 14px;
+  margin: 0 0 14px;
+}
+.task-record header span {
+  color: var(--accent);
+  font-size: 11px;
+}
+.task-record progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--accent);
+}
+.task-record p,
+.task-record details {
+  font-size: 12px;
+}

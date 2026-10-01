@@ -1,6 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 import { integer, keys, object, text, uuid } from "./wire";
 
+export const APPLICATION_PAGE_SIZE = 50;
+
 export const fields = [
   ["title", "Job title"],
   ["company", "Company"],
@@ -128,7 +130,7 @@ export async function listApplications(query: string, offset: number): Promise<A
     !keys(value, ["total", "items"]) ||
     !integer(value.total) ||
     !Array.isArray(value.items) ||
-    value.items.length > 50 ||
+    value.items.length > APPLICATION_PAGE_SIZE ||
     value.items.length > value.total ||
     !value.items.every(
       (item: unknown) =>

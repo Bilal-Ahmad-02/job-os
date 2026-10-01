@@ -5,10 +5,27 @@ import { checkHealth } from "./api/health";
 
 vi.mock("./api/health", () => ({ checkHealth: vi.fn() }));
 
+function renderConsole() {
+  const view = render(<App />);
+  fireEvent.click(screen.getByRole("button", { name: "System status" }));
+  return view;
+}
+
 describe("Oracle connection panel", () => {
+  it("returns focus to the system toggle after closing the drawer", () => {
+    vi.mocked(checkHealth).mockResolvedValue(undefined);
+    renderConsole();
+    fireEvent.click(screen.getByRole("button", { name: "Close system" }));
+    expect(screen.getByRole("button", { name: "System status" })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "System status" })).toHaveAttribute(
+      "aria-expanded",
+      "false",
+    );
+    expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
+  });
   it("shows connected after a successful health check", async () => {
     vi.mocked(checkHealth).mockResolvedValue(undefined);
-    render(<App />);
+    renderConsole();
     expect(await screen.findByText("Connected")).toBeVisible();
     expect(screen.getByRole("button", { name: "Check again" })).toBeEnabled();
   });
@@ -17,7 +34,7 @@ describe("Oracle connection panel", () => {
     vi.mocked(checkHealth)
       .mockRejectedValueOnce(new Error("private error details"))
       .mockResolvedValueOnce(undefined);
-    render(<App />);
+    renderConsole();
     expect(await screen.findByText("Unavailable")).toBeVisible();
     expect(screen.queryByText("private error details")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
@@ -26,7 +43,7 @@ describe("Oracle connection panel", () => {
 
   it("disables retry while a request is pending and cancels on unmount", () => {
     vi.mocked(checkHealth).mockImplementation(() => new Promise(() => {}));
-    const view = render(<App />);
+    const view = renderConsole();
     expect(screen.getByRole("button", { name: "Checking…" })).toBeDisabled();
     const signal = vi.mocked(checkHealth).mock.calls.at(-1)?.[0];
     view.unmount();
@@ -43,7 +60,7 @@ describe("Oracle connection panel", () => {
           }),
       )
       .mockRejectedValueOnce(new Error("Backend stopped"));
-    render(<App />);
+    renderConsole();
     fireEvent.focus(window);
     await waitFor(() => expect(screen.getByText("Unavailable")).toBeVisible());
     await act(async () => {

@@ -1,4 +1,4 @@
 [[permission]]
 identifier = "allow-oracle-access"
 description = "Allow password access and session-guarded health and application operations."
-commands.allow = ["auth_status", "create_password", "unlock", "lock", "check_health", "applications"]
+commands.allow = ["auth_status", "create_password", "unlock", "lock", "check_health", "applications", "provider_settings", "rotation_status", "enroll_rotation", "unlock_rotation", "shell_mode", "shell_action"]

@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import App from "./App";
 import Applications from "./Applications";
 import {
   type ApplicationRecord,
@@ -15,6 +16,8 @@ vi.mock("./api/applications", async (original) => ({
   listApplications: vi.fn(),
   saveApplication: vi.fn(),
 }));
+vi.mock("./api/documents", () => ({ listDocuments: vi.fn().mockResolvedValue([]) }));
+vi.mock("./api/health", () => ({ checkHealth: vi.fn().mockResolvedValue(undefined) }));
 
 let record: ApplicationRecord;
 beforeEach(() => {
@@ -49,6 +52,62 @@ beforeEach(() => {
 });
 
 describe("Application history", () => {
+  it("keeps an unsaved dossier when switching modules and does not hijack the vault keyboard", async () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "NEW.DOSSIER" }));
+    fireEvent.change(screen.getByLabelText("Job title"), {
+      target: { value: "Draft stays private" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Source documents" }));
+    expect(screen.getByLabelText("Job title")).not.toBeVisible();
+    const event = new KeyboardEvent("keydown", { key: "k", ctrlKey: true, cancelable: true });
+    window.dispatchEvent(event);
+    expect(event.defaultPrevented).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Applications" }));
+    expect(screen.getByLabelText("Job title")).toBeVisible();
+    expect(screen.getByLabelText("Job title")).toHaveValue("Draft stays private");
+    expect(saveApplication).not.toHaveBeenCalled();
+  });
+
+  it("clears an applied search and returns to the full first page", async () => {
+    render(<Applications />);
+    await screen.findByRole("button", { name: /Example company/ });
+    fireEvent.change(screen.getByLabelText("Search by company or job title"), {
+      target: { value: "Example" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "EXEC" }));
+    await waitFor(() => expect(listApplications).toHaveBeenLastCalledWith("Example", 0));
+    fireEvent.click(screen.getByRole("button", { name: "Clear query" }));
+    await waitFor(() => expect(listApplications).toHaveBeenLastCalledWith("", 0));
+    expect(screen.getByLabelText("Search by company or job title")).toHaveValue("");
+    expect(screen.getByLabelText("Search by company or job title")).toHaveFocus();
+  });
+
+  it("recovers when a refresh leaves the current page outside the result set", async () => {
+    const first = {
+      total: 51,
+      items: [
+        {
+          id: record.id,
+          title: "",
+          company: "Example company",
+          status: "Unspecified",
+          resume_sent: "",
+        },
+      ],
+    };
+    vi.mocked(listApplications)
+      .mockResolvedValueOnce(first)
+      .mockResolvedValueOnce(first)
+      .mockResolvedValueOnce({ total: 1, items: [] });
+    render(<Applications />);
+    fireEvent.click(await screen.findByRole("button", { name: "Next" }));
+    await waitFor(() => expect(listApplications).toHaveBeenLastCalledWith("", 50));
+    await waitFor(() => expect(screen.getByRole("button", { name: "REFRESH" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "REFRESH" }));
+    await waitFor(() => expect(listApplications).toHaveBeenLastCalledWith("", 0));
+    expect(await screen.findByRole("button", { name: /Example company/ })).toBeVisible();
+  });
   it("focuses the query with Ctrl+K without issuing a request or interfering with an open draft", async () => {
     const view = render(<Applications />);
     await screen.findByRole("button", { name: /Example company/ });
@@ -152,7 +211,7 @@ describe("Application history", () => {
     vi.mocked(listApplications).mockRejectedValueOnce("secret SQLite path");
     render(<Applications />);
     expect(await screen.findByRole("alert")).not.toHaveTextContent("secret SQLite path");
-    fireEvent.click(screen.getByRole("button", { name: "SYNC" }));
+    fireEvent.click(screen.getByRole("button", { name: "REFRESH" }));
     await waitFor(() =>
       expect(screen.getByRole("button", { name: /Example company/ })).toBeVisible(),
     );

@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-enroll-rotation"
+description = "Enables the enroll_rotation command without any pre-configured scope."
+commands.allow = ["enroll_rotation"]
+
+[[permission]]
+identifier = "deny-enroll-rotation"
+description = "Denies the enroll_rotation command without any pre-configured scope."
+commands.deny = ["enroll_rotation"]

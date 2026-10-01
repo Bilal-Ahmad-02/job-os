@@ -1,0 +1,11 @@
+# Automatically generated - DO NOT EDIT!
+
+[[permission]]
+identifier = "allow-shell-mode"
+description = "Enables the shell_mode command without any pre-configured scope."
+commands.allow = ["shell_mode"]
+
+[[permission]]
+identifier = "deny-shell-mode"
+description = "Denies the shell_mode command without any pre-configured scope."
+commands.deny = ["shell_mode"]

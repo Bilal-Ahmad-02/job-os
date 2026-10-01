@@ -8,8 +8,8 @@ from sqlalchemy import Connection, Engine, create_engine, event, text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.pool import NullPool
 
-SCHEMA_VERSION = "0003"
-SUPPORTED_REVISIONS = ("0001", "0002", SCHEMA_VERSION)
+SCHEMA_VERSION = "0008"
+SUPPORTED_REVISIONS = ("0001", "0002", "0003", "0004", "0005", "0006", "0007", SCHEMA_VERSION)
 APPLICATION_ID = 0x4F52434C
 
 
@@ -69,7 +69,7 @@ def check_revision(connection: Connection) -> str:
 def validate_identity(
     connection: Connection, expected: str, revision: str = SCHEMA_VERSION
 ) -> None:
-    if revision not in ("0002", SCHEMA_VERSION) or check_revision(connection) != revision:
+    if revision not in SUPPORTED_REVISIONS[1:] or check_revision(connection) != revision:
         raise WorkspaceError("workspace_schema")
     if connection.exec_driver_sql("PRAGMA application_id").scalar() != APPLICATION_ID:
         raise WorkspaceError("workspace_identity")

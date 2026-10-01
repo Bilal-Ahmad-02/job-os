@@ -1,0 +1,22 @@
+.provider-workspace {
+  max-width: 980px;
+  display: grid;
+  gap: 1rem;
+}
+.provider-workspace > p {
+  color: var(--muted);
+  line-height: 1.6;
+}
+.provider-controls {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: #030b07;
+}
+.provider-controls legend {
+  padding: 0 0.5rem;
+  color: var(--accent);
+}
+.provider-controls p {
+  line-height: 1.6;
+}

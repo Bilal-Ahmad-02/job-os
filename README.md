@@ -10,6 +10,11 @@ module. The [original Job OS context](docs/PROJECT_CONTEXT.md) is preserved as t
 
 ## Current scope
 
+**Launch Oracle:** use its Start menu entry, desktop shortcut or taskbar icon. The installed Windows
+desktop starts its pinned Ubuntu backend automatically, independently of the development checkouts.
+See [runtime releases](docs/RUNTIME_RELEASES.md) for deployment and recovery. Ubuntu WSL2, its system
+Python and WebView2 remain prerequisites; no development terminal is needed for normal use.
+
 The backend foundation exposes only `GET /health`, returning `{"status":"ok"}`.
 This confirms the process is responding; it does not check a database or AI provider.
 The Tauri/React desktop shell displays connection status with a manual retry and refreshes when
@@ -19,14 +24,32 @@ supports searching, adding, and editing records in a local SQLite database, with
 import and preserved source details. Workspace identity and explicit initialization prevent a missing
 database from silently becoming an empty history. An interactive maintenance command now creates
 encrypted, versioned backups and verifies staged recovery; OneDrive setup requires a separate local
-backup password. Scheduling and automatic sync verification are not implemented. AI integrations are
-not implemented yet.
-The source document register preserves original PDFs privately in SQLite and displays their metadata
-inside the locked workspace. Extracted qualifications and a reviewed candidate profile are future
-work; see [private source documents](docs/DOCUMENTS.md).
+backup password. Scheduling and automatic sync verification are not implemented. AI generation and
+automated AI tasks are not implemented yet.
+The source document register preserves original PDFs and explicit version histories privately in SQLite.
+Document extraction and an owner-review screen link draft profile entries to document/page evidence;
+approval remains an explicit user action. See [private source documents](docs/DOCUMENTS.md) and
+[candidate profiles](docs/PROFILE.md).
 See [application storage and import](docs/APPLICATIONS.md) and [backup and restore](docs/BACKUP.md) for recovering the
 source code on another computer; local personal data is not uploaded to GitHub.
 See [desktop setup and security](docs/DESKTOP.md) to run Oracle's Windows app.
+
+Provider connection setup is available in **05 / CONTROL**: native Windows key entry, default-denied
+network permission and an explicit key-only OpenAI connection test. It does not enable AI tasks or
+share private records. See [provider configuration and privacy](docs/PROVIDER_SETTINGS.md).
+
+**03 / IDENTITY > Saved profile > Job preferences** captures search scope and explicit employer
+and listing-phrase exclusions. These remain local choices for upcoming ingestion and matching;
+saving never starts a search. See [profile and search preferences](docs/PROFILE.md).
+
+## Backend development in Linux
+
+Use the Ubuntu WSL2 checkout at `~/projects/oracle` for backend development and tests. See
+[Linux setup and the runtime transition](docs/WSL_DEVELOPMENT.md). Since 2026-09-30, the installed
+Windows desktop invokes Ubuntu workers and the active database lives at
+`/home/lethargic/.local/share/oracle/oracle.sqlite3`. Windows retains the desktop build tools and
+password gate. Run backend tests in Linux; the Windows Python instructions below describe the
+legacy development environment and maintenance tooling, not the active record runtime.
 
 ## Windows development setup
 

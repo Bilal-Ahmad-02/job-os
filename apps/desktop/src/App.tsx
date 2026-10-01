@@ -1,163 +1,162 @@
-﻿import Applications from "./Applications";
+import { useRef, useState } from "react";
+import Applications from "./Applications";
 import Documents from "./Documents";
 import { useBackendHealth } from "./hooks/useBackendHealth";
 import Icon from "./Icon";
-import OracleMark from "./OracleMark";
+import ProfileWorkspace from "./ProfileWorkspace";
+import ProviderSettings from "./ProviderSettings";
+import SystemPanel from "./SystemPanel";
+import Tasks from "./Tasks";
 
-const connectionCopy = {
-  checking: {
-    label: "Checking connection",
-    code: "PROBING",
-    description: "Awaiting local service response.",
+type View = "applications" | "documents" | "profile" | "tasks" | "providers";
+const views = {
+  providers: {
+    code: "05 / CONTROL",
+    label: "Provider settings",
+    title: "CONNECTION.CONTROL",
+    detail: "Credentials / explicit permission",
   },
-  connected: { label: "Connected", code: "LINK.UP", description: "Local service responding." },
-  unavailable: {
-    label: "Unavailable",
-    code: "NO.CARRIER",
-    description: "Start the Oracle backend, then retry the link.",
+  tasks: {
+    code: "04 / TASKS",
+    label: "Background tasks",
+    title: "TASK.CONTROL",
+    detail: "Local work / explicit authority",
   },
-};
+  applications: {
+    code: "01 / ACQ",
+    label: "Applications",
+    title: "ACQUISITION",
+    detail: "Your application dossiers",
+  },
+  documents: {
+    code: "02 / VAULT",
+    label: "Source documents",
+    title: "SOURCE.VAULT",
+    detail: "Originals and evidence",
+  },
+  profile: {
+    code: "03 / IDENTITY",
+    label: "Profile review",
+    title: "IDENTITY.CORE",
+    detail: "Saved profile / source review",
+  },
+} as const;
+const linkCode = { checking: "PROBING", connected: "LINK.UP", unavailable: "NO.CARRIER" };
 
 export default function App({ onLock }: { onLock?: () => void }) {
-  const { state, lastChecked, refresh } = useBackendHealth();
-  const copy = connectionCopy[state];
+  const [view, setView] = useState<View>("applications");
+  const [profileOpened, setProfileOpened] = useState(false);
+  const [tasksOpened, setTasksOpened] = useState(false);
+  const [systemOpen, setSystemOpen] = useState(false);
+  const systemButton = useRef<HTMLButtonElement>(null);
+  const health = useBackendHealth();
   return (
     <div className="console-shell">
       <header className="console-header">
         <div className="console-brand">
           <img src="/oracle.png" width="32" height="32" alt="" />
-          <span>
-            ORACLE<span className="brand-divider"> / </span>
-            <small>OPERATOR TERMINAL</small>
-          </span>
+          <span>ORACLE</span>
+          <small>PERSONAL OPERATIONS</small>
         </div>
-        <span className="operator-id">{"OPERATOR // LOCAL"}</span>
-        {onLock ? (
-          <button className="seal-button" type="button" onClick={onLock} title="Lock Oracle">
-            <Icon name="lock" />
-            Lock Oracle
+        <div className="header-actions">
+          <button
+            type="button"
+            className="quiet-button"
+            aria-label="System status"
+            ref={systemButton}
+            aria-expanded={systemOpen}
+            aria-controls="system-panel"
+            onClick={() => setSystemOpen(!systemOpen)}
+          >
+            <span className={`status-dot ${health.state}`} aria-hidden="true" />
+            {linkCode[health.state]}
           </button>
-        ) : null}
-      </header>
-      <aside className="module-rail" aria-label="Active module">
-        <div className="rail-index">01</div>
-        <div className="rail-module" aria-current="page" title="ACQ / Job application dossiers">
-          <Icon name="applications" />
-          <span>ACQ</span>
+          {onLock ? (
+            <button className="quiet-button" type="button" onClick={onLock}>
+              <Icon name="lock" />
+              Lock Oracle
+            </button>
+          ) : null}
         </div>
-        <span className="rail-track" aria-hidden="true" />
-        <span className="rail-coordinate">JOB.OS / ACQUISITION</span>
-      </aside>
-      <main className="console-main">
+      </header>
+      <nav className="module-navigation" aria-label="Workspace modules">
+        {(["applications", "documents", "profile", "tasks", "providers"] as View[]).map((key) => (
+          <button
+            key={key}
+            type="button"
+            aria-label={views[key].label}
+            aria-current={view === key ? "page" : undefined}
+            onClick={() => {
+              setView(key);
+              if (key === "profile") setProfileOpened(true);
+              if (key === "tasks") setTasksOpened(true);
+            }}
+          >
+            {views[key].code}
+          </button>
+        ))}
+        <span className="module-caption">JOB.OS / LOCAL</span>
+      </nav>
+      <main className="console-main" data-system-open={systemOpen}>
         <section className="operations-pane" aria-labelledby="workspace-title">
           <header className="sector-heading">
             <div>
-              <p className="eyebrow">SECTOR.01 / JOB.OS</p>
+              <p className="eyebrow">{views[view].detail}</p>
               <h1 id="workspace-title">
-                ACQUISITION
+                {views[view].title}
                 <span className="sector-cursor" aria-hidden="true">
                   _
                 </span>
               </h1>
             </div>
-            <span className="sector-stamp">
-              PRIVATE
-              <br />
-              DOSSIER TERMINAL
-            </span>
+            <span className="sector-stamp">OPERATOR / LOCAL</span>
           </header>
-          <Documents />
-          <Applications />
+          {/* Keep drafts in memory when changing modules; locking unmounts the workspace. */}
+          <div hidden={view !== "applications"}>
+            <Applications active={view === "applications"} />
+          </div>
+          {profileOpened && (
+            <div hidden={view !== "profile"}>
+              <ProfileWorkspace />
+            </div>
+          )}
+          {tasksOpened && (
+            <div hidden={view !== "tasks"}>
+              <Tasks />
+            </div>
+          )}
+          {view === "providers" && <ProviderSettings />}
+          <div hidden={view !== "documents"}>
+            <Documents />
+          </div>
         </section>
-        <aside className="core-pane" aria-label="Oracle system console">
-          <div className="panel-caption">
-            <span>O / CORE</span>
-            <span>LOCAL</span>
-          </div>
-          <OracleMark />
-          <div className="core-identity">
-            <strong>ORACLE</strong>
-            <span>PERSONAL OPERATIONS INTERFACE</span>
-          </div>
-          <dl className="system-registers">
-            <div>
-              <dt>HOST</dt>
-              <dd>THIS MACHINE</dd>
-            </div>
-            <div>
-              <dt>CONTROL</dt>
-              <dd>MANUAL</dd>
-            </div>
-            <div>
-              <dt>AI MODEL</dt>
-              <dd>NOT CONNECTED</dd>
-            </div>
-            <div>
-              <dt>DOMAIN</dt>
-              <dd>JOB.OS</dd>
-            </div>
-          </dl>
-          <section className="link-panel" aria-labelledby="connection-heading">
-            <div className="panel-caption">
-              <h2 id="connection-heading">LINK / BACKEND</h2>
-              <span className={`link-code ${state}`}>{copy.code}</span>
-            </div>
-            <p className={`status-badge ${state}`}>
-              <span className="status-dot" aria-hidden="true" />
-              {copy.label}
-            </p>
-            <p className="link-copy" role="status" aria-live="polite" aria-atomic="true">
-              {copy.description}
-            </p>
-            <div className="link-actions">
-              <span className="last-checked">
-                {lastChecked
-                  ? lastChecked.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-                  : "--:--"}
-              </span>
-              <button type="button" disabled={state === "checking"} onClick={() => void refresh()}>
-                <Icon name="refresh" />
-                {state === "checking"
-                  ? "Checking…"
-                  : state === "unavailable"
-                    ? "Try again"
-                    : "Check again"}
-              </button>
-            </div>
-          </section>
-          <details className="console-lexicon">
-            <summary>PROTOCOL / KEY</summary>
-            <dl>
-              <div>
-                <dt>ACQ</dt>
-                <dd>Job operations</dd>
-              </div>
-              <div>
-                <dt>DOSSIER</dt>
-                <dd>Application record</dd>
-              </div>
-              <div>
-                <dt>INGRESS</dt>
-                <dd>Source and discovery</dd>
-              </div>
-              <div>
-                <dt>TRACE</dt>
-                <dd>Original imported evidence</dd>
-              </div>
-            </dl>
-            <p>
-              <kbd>Ctrl</kbd> + <kbd>K</kbd> focuses the dossier query when the index is open.
-            </p>
-          </details>
-        </aside>
+        {systemOpen ? (
+          <SystemPanel
+            health={health}
+            onClose={() => {
+              setSystemOpen(false);
+              systemButton.current?.focus();
+            }}
+          />
+        ) : null}
       </main>
       <footer className="console-footer">
         <span>
           <span className="status-dot" aria-hidden="true" />
-          LOCAL WORKSPACE
+          PRIVATE WORKSPACE
         </span>
-        <span>ACQ / RECORDS STAY ON THIS MACHINE</span>
-        <span>{"ORACLE // 01"}</span>
+        <span>
+          {view === "applications"
+            ? "CTRL K / QUERY INDEX"
+            : view === "tasks"
+              ? "TASKS / COOPERATIVE EXECUTION"
+              : view === "providers"
+                ? "CONNECTIONS / EXPLICIT PERMISSION"
+                : view === "profile"
+                  ? "EVIDENCE / OWNER REVIEW"
+                  : "SOURCE MATERIAL / UNREVIEWED"}
+        </span>
+        <span>ORACLE / 01</span>
       </footer>
     </div>
   );

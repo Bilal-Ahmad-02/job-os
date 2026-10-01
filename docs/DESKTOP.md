@@ -1,5 +1,11 @@
 # Oracle desktop foundation
 
+For normal use, open **Oracle** through Start, its desktop shortcut or its taskbar icon. Since
+2026-10-01 these launch a versioned installed executable outside the repository, using a separately
+installed Linux backend. No development terminal is required. See [runtime releases](RUNTIME_RELEASES.md)
+for prerequisites, updates and recovery. The setup instructions below are for development and the
+historical Windows backend; they are not required to launch the installed app.
+
 Oracle is the Windows desktop app for the Job OS project. This milestone provides a password-protected local
 window, application tracking, and a connection check. See [application storage and import](APPLICATIONS.md).
 
@@ -35,6 +41,10 @@ The first native build downloads crates and may take several minutes. Vite runs 
 `127.0.0.1:1420` only and fails if that port is occupied. It is a development asset server for
 the desktop window; no frontend server is required by the built executable.
 
+**05 / CONTROL** manages the first provider connection's native key entry and explicit testing
+permission. Keys stay in Windows Credential Manager and never pass through the WebView or Linux.
+Saving a key does not enable inference or contact the provider. See [provider settings](PROVIDER_SETTINGS.md).
+
 The native shell checks the fixed endpoint `http://127.0.0.1:8000/health` after unlock. Use backend
 port 8000 for this milestone. The renderer cannot directly contact the HTTP backend; its CSP permits
 only Tauri IPC (plus the Vite WebSocket in development). The backend CORS development opt-in is
@@ -56,9 +66,32 @@ Open that executable; application tracking starts Python workers automatically. 
 backend separately only if you need its health check. The artifact is unsigned and
 requires WebView2; it is not yet a self-contained installer. Do not publish it as a complete app.
 
-The next packaging work is to choose how to bundle Python and manage startup/shutdown, readiness,
-port conflicts for future HTTP features, and an authenticated HTTP channel. The current application
-tracker uses password-gated native pipes. An installer, auto-start, and updater remain future work.
+The selected production backend is now installed separately in Ubuntu, with bounded startup and
+shutdown over password-gated native pipes. Follow RUNTIME_RELEASES.md to deploy a build; editing
+the checkout does not change installed code. New-machine installation, auto-start and automatic
+updates remain future work. Normal record access requires no HTTP service or listening port.
+
+## Frontend structure and interactions
+
+The 2026-09-28 frontend cleanup separates ACQ (applications) and VAULT (source documents) with
+compact module navigation. The previous permanent decorative side panel is replaced by an
+on-demand system drawer. Its health indicator describes the optional HTTP health service, not
+whether private database operations are available. It never claims that an AI model is connected.
+
+Switching modules keeps the application editor mounted so drafts survive navigation; locking the
+workspace still unmounts all private views. Ctrl+K only acts in the active dossier index. Clearing
+a query returns to the first page, and refresh recovers when a result set shrinks beyond the current
+page. Document filtering is local; full checksums appear only inside the file-integrity disclosure.
+Record editing uses named field groups, a persistent save bar, and explicit discard controls.
+
+Frontend responsibilities are separated into workspace shell, system status, dossier index/editor,
+source provenance, and document register. Component styles live under `src/styles/`, with shared
+tokens and focus/error treatment in `base.css`. The unused rail icon and obsolete sidebar styles
+were removed. Master icon artwork is retained intentionally for future icon regeneration.
+
+The frontend tests cover navigation/draft preservation, query/pagination recovery, error redaction,
+source filtering, and existing access/save behavior. The automated desktop/browser capture tools
+were unavailable during this change; live visual review is still needed.
 
 ## Windows icon maintenance
 
@@ -187,3 +220,64 @@ packages in `Cargo.lock` returned these upstream findings:
 These findings are not silently suppressed or resolved by the app's CSP. Track Tauri dependency
 updates and recheck before distribution or adding sensitive capabilities. The checks above are
 a point-in-time advisory review, not a penetration test or a guarantee of security.
+
+## Identity review
+
+Open **03 / IDENTITY** after unlocking Oracle to review the extracted candidate draft. Select an
+entry, compare the document/page excerpts, correct fields, and approve or reject it explicitly. Each
+approval saves immediately. Pending requests disable review controls; conflicts preserve corrections
+and require reloading the latest state before retrying. Approved entries remain owner assertions,
+not verified credentials. See [PROFILE.md](PROFILE.md) for storage, recovery, and review limitations.
+
+## Document version history
+
+**02 / VAULT** now groups latest documents with earlier originals under **Version history**.
+Search includes older filenames. Profile citations show their version and warn if a newer original
+exists. New versions are imported through the explicit maintenance command in
+[DOCUMENTS.md](DOCUMENTS.md#explicit-versions-step-6-schema-0007); an in-app import picker is not
+implemented. Replacing a source never silently changes reviewed profile claims.
+
+## WSL development boundary
+
+The installed desktop now invokes Ubuntu workers through its explicit WSL adapter. Production
+cutover completed on 2026-09-30; the live database is private to Linux, while the existing password
+gate and hash remain on Windows. Windows Python remains available for legacy maintenance and tests
+of the Windows transport, but it no longer owns the active records. Runtime configuration and
+transition markers fail closed instead of falling back to stale Windows data.
+See [WSL_DEVELOPMENT.md](WSL_DEVELOPMENT.md) for exact paths, validation, and recovery constraints.
+
+## Circular launcher and rotation key (2026-09-30)
+
+Oracle now starts as a 560-logical-pixel circular Windows window. Native window-region clipping
+removes the corners from both drawing and mouse interaction. The existing green emblem is a dial;
+the ORACLE label moves the window, and the small minus/cross controls minimize/close it. Successful
+native authentication expands the same window into the normal decorated, resizable workspace.
+Locking unmounts records immediately and returns to the circle. The Linux runtime is unchanged.
+
+On first use, choose **Initialize rotation key**, enter the existing Oracle password, then choose
+**Set rotation key**. Make 4–8 alternating clockwise/counterclockwise turns, releasing after each.
+Each turn is a signed relative distance of 1–24 stops; 12 stops make a revolution. Starting position
+and timing are not part of the key. Repeat the sequence to confirm it; Oracle then locks so the first
+unlock also proves the saved key works. **Clear turns** restarts entry. With keyboard focus on the
+dial, Left/Right move one stop and Space/Enter commits a turn. Cancelled drags are discarded.
+
+The owner chooses the actual sequence privately in the application, never in chat or a fixture.
+Enrollment can be postponed. **Password recovery** retains the existing password and opens the
+workspace even if the rotation hash is damaged. This version creates a key once; changing an already
+saved key is not yet exposed. Do not delete credentials to reset them.
+
+The native layer checks bounds, alternating direction, confirmation, and authenticated enrollment;
+it stores only a salted Argon2id hash in private Windows AppData `rotation.phc`. Password and dial
+attempts share the existing session-local retry delay. Closing/reopening resets that delay. Short
+or predictable sequences are weaker than long passwords; this is a local access gate, not database
+encryption or protection against an attacker controlling the Windows account. Credentials stay out
+of Git, Linux, and record backups. Missing password storage alongside WSL runtime markers fails
+closed instead of allowing replacement-password setup.
+
+Validation: 52 frontend tests and 24 native tests passed, along with TypeScript, Biome, Clippy and
+the Windows production build. Two unchanged WSL integration probes were not rerun for this
+desktop-only change. Frontend tests cover enrollment, recovery, rejected/pending unlock, keyboard and pointer
+input, cancellation, and locking. Native tests cover hash persistence, throttling, enrollment
+authorization, migration recovery, and actual Windows region clipping/scaling/removal on a synthetic
+hidden window. The computer-use helper could not connect (`native pipe unavailable`), so visual
+inspection of the live window and the complete mouse-to-native unlock transition remain unverified.

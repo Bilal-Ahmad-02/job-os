@@ -5,6 +5,7 @@ import getpass
 import hashlib
 import json
 import os
+import platform
 import sys
 from pathlib import Path
 
@@ -13,6 +14,7 @@ from app.services.encrypted_backup import ResticBackup, validate_password
 
 RESTIC_VERSION = "0.19.1"
 RESTIC_WINDOWS_SHA256 = "b0dd1fd21eea5d8fe1325f55f7118213c21f36de8a261e04c0624a5ab9fd7830"
+RESTIC_LINUX_SHA256 = "20d4142678d0d95ec11a4759def1b73fd9190abc9ca19e4b62d067c0b387e639"
 
 
 def read_password(*, confirm: bool) -> str:
@@ -30,17 +32,25 @@ def read_password(*, confirm: bool) -> str:
 
 
 def default_tool() -> Path:
+    if os.name == "nt":
+        filename = f"restic_{RESTIC_VERSION}_windows_amd64.exe"
+        expected = RESTIC_WINDOWS_SHA256
+    elif sys.platform == "linux" and platform.machine() == "x86_64":
+        filename = f"restic_{RESTIC_VERSION}_linux_amd64"
+        expected = RESTIC_LINUX_SHA256
+    else:
+        raise BackupError("backup_tool_missing")
     path = (
         Path(__file__).resolve().parents[2]
         / ".cache"
         / "tools"
         / f"restic-{RESTIC_VERSION}"
-        / f"restic_{RESTIC_VERSION}_windows_amd64.exe"
+        / filename
     )
-    if os.name != "nt" or not path.is_file():
+    if not path.is_file():
         raise BackupError("backup_tool_missing")
     with path.open("rb") as stream:
-        if hashlib.file_digest(stream, "sha256").hexdigest() != RESTIC_WINDOWS_SHA256:
+        if hashlib.file_digest(stream, "sha256").hexdigest() != expected:
             raise BackupError("backup_tool_checksum")
     return path
 

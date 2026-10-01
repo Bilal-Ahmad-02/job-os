@@ -41,6 +41,12 @@ def test_migrations_are_repeatable_and_data_survives_restart(tmp_path):
             "alembic_version",
             "workspace_metadata",
             "source_documents",
+            "document_versions",
+            "candidate_profile",
+            "document_text",
+            "profile_draft",
+            "profile_review",
+            "background_tasks",
         }
     finally:
         second.dispose()

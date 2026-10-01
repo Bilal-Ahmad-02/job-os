@@ -42,7 +42,7 @@ class FileDigest(BaseModel):
 class SnapshotManifest(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
     format: Literal[1]
-    schema_revision: Literal["0002", "0003"]
+    schema_revision: Literal["0002", "0003", "0004", "0005", "0006", "0007", "0008"]
     workspace_id: UUID
     created_at: datetime
     files: dict[str, FileDigest]

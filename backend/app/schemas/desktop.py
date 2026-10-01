@@ -12,17 +12,51 @@ from app.schemas.applications import (
     SaveRequest,
 )
 from app.schemas.documents import DocumentListRequest, DocumentPage
+from app.schemas.evidence import DraftGetRequest, DraftResponse
+from app.schemas.profile import CandidateProfile, ProfileGetRequest, ProfileSaveRequest
+from app.schemas.review import ReviewGetRequest, ReviewSaveRequest, ReviewState
+from app.schemas.tasks import (
+    TaskChangeRequest,
+    TaskCreateRequest,
+    TaskListRequest,
+    TaskPage,
+    TaskRecord,
+)
 
 DesktopRequest = Annotated[
-    ListRequest | GetRequest | SaveRequest | DocumentListRequest, Field(discriminator="action")
+    ListRequest
+    | GetRequest
+    | SaveRequest
+    | DocumentListRequest
+    | ProfileGetRequest
+    | ProfileSaveRequest
+    | DraftGetRequest
+    | ReviewGetRequest
+    | ReviewSaveRequest
+    | TaskListRequest
+    | TaskCreateRequest
+    | TaskChangeRequest,
+    Field(discriminator="action"),
 ]
+
+
+DesktopResult = (
+    ApplicationPage
+    | ApplicationRecord
+    | DocumentPage
+    | CandidateProfile
+    | DraftResponse
+    | ReviewState
+    | TaskRecord
+    | TaskPage
+)
 
 
 class Success(BaseModel):
     model_config = ConfigDict(extra="forbid")
     protocol_version: Literal[1] = 1
     ok: Literal[True] = True
-    result: ApplicationPage | ApplicationRecord | DocumentPage
+    result: DesktopResult
 
 
 class Failure(BaseModel):

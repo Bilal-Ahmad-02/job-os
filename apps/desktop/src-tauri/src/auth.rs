@@ -38,12 +38,24 @@ impl Access {
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
                 // A missing credential beside existing personal data is a recovery
                 // problem, never permission to set a replacement password.
-                let database = self.path.with_file_name("oracle.sqlite3");
-                let marker = self.path.with_file_name("oracle.workspace-id");
-                match (database.try_exists(), marker.try_exists()) {
-                    (Ok(false), Ok(false)) => return Ok(None),
-                    _ => return Err(STORAGE_ERROR),
+                for name in [
+                    "oracle.sqlite3",
+                    "oracle.workspace-id",
+                    "runtime.json",
+                    "runtime-wsl.selected",
+                    "runtime-transition.pending",
+                    "rotation.phc",
+                ] {
+                    if self
+                        .path
+                        .with_file_name(name)
+                        .try_exists()
+                        .map_err(|_| STORAGE_ERROR)?
+                    {
+                        return Err(STORAGE_ERROR);
+                    }
                 }
+                return Ok(None);
             }
             Err(_) => return Err(STORAGE_ERROR),
         };
@@ -124,6 +136,65 @@ impl Access {
         self.unlocked = false;
     }
 
+    pub fn rotation_configured(&self) -> Result<bool, &'static str> {
+        if !self
+            .path
+            .with_file_name("rotation.phc")
+            .try_exists()
+            .map_err(|_| STORAGE_ERROR)?
+        {
+            return Ok(false);
+        }
+        Ok(self.rotation_store().stored_hash()?.is_some())
+    }
+
+    fn rotation_store(&self) -> Self {
+        Self::new(self.path.with_file_name("rotation.phc"))
+    }
+
+    pub fn enroll_rotation(&self, steps: &[i32], confirmation: &[i32]) -> Result<(), &'static str> {
+        self.require_unlocked()?;
+        if steps != confirmation {
+            return Err("The rotation sequences do not match.");
+        }
+        let secret = rotation_secret(steps)?;
+        // Exclusive creation: an existing key can never be replaced by enrollment.
+        let hash = hasher()
+            .hash_password(secret.as_bytes())
+            .map_err(|_| STORAGE_ERROR)?
+            .to_string();
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(self.path.with_file_name("rotation.phc"))
+            .map_err(|_| STORAGE_ERROR)?;
+        file.write_all(hash.as_bytes())
+            .and_then(|()| file.sync_all())
+            .map_err(|_| STORAGE_ERROR)
+    }
+
+    pub fn unlock_rotation(&mut self, steps: &[i32], now: Instant) -> Result<(), &'static str> {
+        if self.retry_at.is_some_and(|deadline| now < deadline) {
+            return Err("Please wait up to 30 seconds before trying again.");
+        }
+        // The password remains the recovery credential; missing/corrupt storage fails closed.
+        self.stored_hash()?.ok_or(STORAGE_ERROR)?;
+        let secret = rotation_secret(steps)?;
+        let stored = self.rotation_store().stored_hash()?.ok_or(STORAGE_ERROR)?;
+        let hash = PasswordHash::new(&stored).map_err(|_| STORAGE_ERROR)?;
+        if hasher().verify_password(secret.as_bytes(), &hash).is_err() {
+            self.unlocked = false;
+            self.failures = self.failures.saturating_add(1);
+            self.retry_at =
+                Some(now + Duration::from_secs((1_u64 << self.failures.min(5)).min(30)));
+            return Err("Sequence not recognized. Wait a moment and try again.");
+        }
+        self.unlocked = true;
+        self.failures = 0;
+        self.retry_at = None;
+        Ok(())
+    }
+
     pub fn require_unlocked(&self) -> Result<(), &'static str> {
         if self.unlocked {
             Ok(())
@@ -131,6 +202,18 @@ impl Access {
             Err("Unlock Oracle to continue.")
         }
     }
+}
+
+fn rotation_secret(steps: &[i32]) -> Result<zeroize::Zeroizing<String>, &'static str> {
+    if !(4..=8).contains(&steps.len())
+        || steps.iter().any(|s| *s == 0 || !(-24..=24).contains(s))
+        || steps.windows(2).any(|s| s[0].signum() == s[1].signum())
+    {
+        return Err("Use 4 to 8 alternating turns, each 1 to 24 stops.");
+    }
+    Ok(zeroize::Zeroizing::new(format!(
+        "oracle-rotation-v1:{steps:?}"
+    )))
 }
 
 fn password_params() -> Params {
@@ -152,6 +235,89 @@ fn validate_password(password: &str) -> Result<(), &'static str> {
 mod tests {
     use super::*;
     const PASSWORD: &str = "test-only long passphrase";
+
+    #[test]
+    fn migrated_workspace_never_allows_password_reinitialization() {
+        for name in [
+            "runtime.json",
+            "runtime-wsl.selected",
+            "runtime-transition.pending",
+            "rotation.phc",
+        ] {
+            let directory = tempfile::tempdir().unwrap();
+            std::fs::write(directory.path().join(name), b"synthetic").unwrap();
+            let mut access = Access::new(directory.path().join("password.phc"));
+            assert_eq!(access.status(), Err(STORAGE_ERROR));
+            assert!(access.create_password(PASSWORD).is_err());
+        }
+    }
+
+    #[test]
+    fn rotation_enrollment_requires_auth_confirmation_and_cannot_replace_a_key() {
+        let directory = tempfile::tempdir().unwrap();
+        let path = directory.path().join("password.phc");
+        let mut access = Access::new(path.clone());
+        let pattern = [4, -3, 12, -1];
+        assert!(!access.rotation_configured().unwrap());
+        assert!(access.enroll_rotation(&pattern, &pattern).is_err());
+        access.create_password(PASSWORD).unwrap();
+        assert!(access.enroll_rotation(&pattern, &[1, -2, 3, -4]).is_err());
+        access.enroll_rotation(&pattern, &pattern).unwrap();
+        assert!(access.rotation_configured().unwrap());
+        assert!(access.enroll_rotation(&pattern, &pattern).is_err());
+        let stored = std::fs::read_to_string(directory.path().join("rotation.phc")).unwrap();
+        assert!(stored.starts_with(HASH_PREFIX));
+        assert!(!stored.contains("[4, -3, 12, -1]"));
+        let mut restarted = Access::new(path);
+        assert!(restarted.require_unlocked().is_err());
+        restarted.unlock_rotation(&pattern, Instant::now()).unwrap();
+        assert!(restarted.require_unlocked().is_ok());
+        restarted.lock();
+        assert!(restarted.require_unlocked().is_err());
+    }
+
+    #[test]
+    fn rotation_and_password_share_throttle_and_password_recovers_corrupt_dial() {
+        let directory = tempfile::tempdir().unwrap();
+        let mut access = Access::new(directory.path().join("password.phc"));
+        access.create_password(PASSWORD).unwrap();
+        access
+            .enroll_rotation(&[4, -3, 12, -1], &[4, -3, 12, -1])
+            .unwrap();
+        access.lock();
+        let now = Instant::now();
+        assert!(access.unlock_rotation(&[1, -2, 3, -4], now).is_err());
+        assert!(access.require_unlocked().is_err());
+        assert!(access
+            .unlock(PASSWORD, now + Duration::from_secs(1))
+            .is_err());
+        access
+            .unlock(PASSWORD, now + Duration::from_secs(3))
+            .unwrap();
+        access.lock();
+        std::fs::write(directory.path().join("rotation.phc"), b"corrupt").unwrap();
+        assert!(access.unlock_rotation(&[4, -3, 12, -1], now).is_err());
+        access.unlock(PASSWORD, now).unwrap();
+        access.lock();
+        std::fs::remove_file(directory.path().join("password.phc")).unwrap();
+        assert!(access.unlock_rotation(&[4, -3, 12, -1], now).is_err());
+    }
+
+    #[test]
+    fn rotation_policy_rejects_short_repeated_direction_and_unbounded_inputs() {
+        for pattern in [
+            vec![],
+            vec![1, -2, 3],
+            vec![1, 2, 3, 4],
+            vec![0, -2, 3, -4],
+            vec![25, -2, 3, -4],
+            vec![i32::MIN, -2, 3, -4],
+            vec![1, -1, 1, -1, 1, -1, 1, -1, 1],
+        ] {
+            assert!(rotation_secret(&pattern).is_err());
+        }
+        assert!(rotation_secret(&[24, -24, 1, -1]).is_ok());
+    }
 
     #[test]
     fn setup_persists_only_a_salted_hash_and_restart_is_locked() {

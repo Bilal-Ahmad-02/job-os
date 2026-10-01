@@ -24,7 +24,12 @@ from app.db.store import (
     validate_identity,
 )
 from app.models.applications import Base
+from app.models.document_versions import DocumentVersion  # noqa: F401 -- schema metadata
 from app.models.documents import SourceDocument  # noqa: F401 -- register current schema metadata
+from app.models.evidence import DocumentText, ProfileDraft  # noqa: F401 -- schema metadata
+from app.models.profile import Profile  # noqa: F401 -- register current schema metadata
+from app.models.review import ProfileReview  # noqa: F401 -- schema metadata
+from app.models.tasks import BackgroundTask  # noqa: F401 -- schema metadata
 
 
 def migrate(connection: Connection) -> None:
@@ -88,8 +93,31 @@ def validate_contents(connection: Connection, revision: str) -> None:
         expected.remove("workspace_metadata")
     if revision in ("0001", "0002"):
         expected.remove("source_documents")
+    if revision in ("0001", "0002", "0003"):
+        expected.remove("candidate_profile")
+    if revision in ("0001", "0002", "0003", "0004"):
+        expected.difference_update({"document_text", "profile_draft"})
+    if revision in ("0001", "0002", "0003", "0004", "0005"):
+        expected.discard("profile_review")
+    if revision != "0008":
+        expected.discard("background_tasks")
+    if revision not in ("0007", "0008"):
+        expected.discard("document_versions")
     if not expected.issubset(tables):
         raise WorkspaceError("workspace_schema")
+    if revision in ("0007", "0008"):
+        broken = connection.exec_driver_sql("""
+            SELECT d.id FROM source_documents d
+            LEFT JOIN document_versions v ON v.document_id = d.id
+            LEFT JOIN document_versions p ON p.document_id = v.previous_id
+            LEFT JOIN source_documents source_parent ON source_parent.id = v.previous_id
+            WHERE v.document_id IS NULL OR (v.version > 1 AND
+                (p.document_id IS NULL OR p.family_id != v.family_id OR
+                 p.version + 1 != v.version OR source_parent.kind != d.kind))
+            LIMIT 1
+        """).first()
+        if broken is not None:
+            raise WorkspaceError("workspace_invalid")
     for table in Base.metadata.sorted_tables:
         if table.name in expected:
             connection.execute(select(table).limit(0))
@@ -133,7 +161,7 @@ def prepare_workspace(path: Path) -> None:
                 if revision != SCHEMA_VERSION:
                     if revision == "0001" and identity_path(path).exists():
                         raise WorkspaceError("workspace_identity")
-                    if revision == "0002":
+                    if revision != "0001":
                         validate_identity(connection, read_identity(path), revision)
                     # A separate reader snapshots before DDL while our reserved
                     # writer lock excludes mutations by other connections.

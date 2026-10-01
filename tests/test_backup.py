@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 import sqlite3
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -9,7 +10,6 @@ from uuid import uuid4
 
 import pytest
 from pypdf import PdfWriter
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.backup import default_tool
@@ -17,6 +17,8 @@ from app.db.store import WorkspaceError, identity_path, open_store
 from app.db.workspace import initialize_workspace
 from app.models.documents import SourceDocument
 from app.schemas.applications import ApplicationData, GetRequest, SaveRequest
+from app.schemas.profile import CandidateData, ProfileSaveRequest
+from app.schemas.tasks import TaskCreateRequest
 from app.services.applications import execute
 from app.services.backup_snapshot import (
     DATABASE,
@@ -26,10 +28,29 @@ from app.services.backup_snapshot import (
     snapshot_workspace,
     verify_snapshot,
 )
-from app.services.documents import import_documents, read_document
+from app.services.documents import import_documents, list_documents, read_document
 from app.services.encrypted_backup import ResticBackup
+from app.services.profile import get_profile, save_profile
+from app.services.tasks import create_task, list_tasks
 
 PASSWORD = "synthetic backup test passphrase only"  # noqa: S105 -- disposable synthetic repositories
+
+
+def test_default_backup_tool_rejects_missing_or_tampered_local_binary(tmp_path, monkeypatch):
+    from app import backup as cli
+
+    monkeypatch.setattr(cli, "__file__", str(tmp_path / "backend" / "app" / "backup.py"))
+    with pytest.raises(BackupError, match="backup_tool_missing"):
+        cli.default_tool()
+    folder = tmp_path / ".cache" / "tools" / f"restic-{cli.RESTIC_VERSION}"
+    folder.mkdir(parents=True)
+    for name in (
+        f"restic_{cli.RESTIC_VERSION}_windows_amd64.exe",
+        f"restic_{cli.RESTIC_VERSION}_linux_amd64",
+    ):
+        (folder / name).write_bytes(b"untrusted binary must never execute")
+    with pytest.raises(BackupError, match="backup_tool_checksum"):
+        cli.default_tool()
 
 
 def workspace(parent):
@@ -45,6 +66,12 @@ def workspace(parent):
             data=ApplicationData(
                 company="Synthetic only", notes="Preserve this private-looking test record"
             ),
+        ),
+    )
+    save_profile(
+        engine,
+        ProfileSaveRequest(
+            action="profile_save", version=0, data=CandidateData(full_name="Synthetic Candidate")
         ),
     )
     engine.dispose()
@@ -126,15 +153,21 @@ def encrypted_repository(tmp_path_factory):
     writer.write(source_pdf)
     engine = open_store(database)
     try:
-        import_documents(engine, [read_document("cv", source_pdf)])
+        original_id = import_documents(engine, [read_document("cv", source_pdf)])[0]
+        create_task(
+            engine, TaskCreateRequest(action="task_create", id=uuid4(), document_ids=[original_id])
+        )
     finally:
         engine.dispose()
     repository = root / "encrypted"
     backup = ResticBackup(tool, repository, PASSWORD)
     backup.initialize()
     first = backup.create(database)
+    updated_pdf = root / "synthetic-revised.pdf"
+    updated_pdf.write_bytes(source_pdf.read_bytes() + b"\n% synthetic revision\n")
     engine = open_store(database)
     try:
+        import_documents(engine, [read_document("cv", updated_pdf)], replaces=original_id)
         changed = execute(
             engine,
             SaveRequest(
@@ -165,9 +198,24 @@ def test_encrypted_round_trip_retains_versions_and_checks_repository(
         engine = open_store(target / DATABASE)
         try:
             assert execute(engine, GetRequest(action="get", id=expected["id"])) == expected
+            restored_profile = get_profile(engine)
+            assert restored_profile.version == 1
+            assert restored_profile.data.full_name == "Synthetic Candidate"
+            versions = sorted(list_documents(engine).items, key=lambda item: item.version)
+            assert len(versions) == (1 if identifier == first else 2)
+            assert versions[-1].is_latest
+            restored_tasks = list_tasks(engine).items
+            assert len(restored_tasks) == 1
+            assert restored_tasks[0].state == "queued"
+            assert restored_tasks[0].document_ids == [versions[0].id]
             with Session(engine) as session:
-                restored_pdf = session.scalar(select(SourceDocument.content))
-            assert restored_pdf == (database.parent.parent / "synthetic.pdf").read_bytes()
+                for version in versions:
+                    filename = "synthetic.pdf" if version.version == 1 else "synthetic-revised.pdf"
+                    restored_pdf = session.get(SourceDocument, str(version.id)).content
+                    assert restored_pdf == (database.parent.parent / filename).read_bytes()
+            if len(versions) == 2:
+                assert versions[1].previous_id == versions[0].id
+                assert versions[1].family_id == versions[0].family_id
         finally:
             engine.dispose()
         assert set(p.name for p in target.iterdir()) == set(FILES)
@@ -196,6 +244,8 @@ def test_tampered_encrypted_data_is_detected(encrypted_repository, tmp_path):
     repository = tmp_path / "corrupted"
     shutil.copytree(backup.repository, repository)
     pack = next(path for path in (repository / "data").rglob("*") if path.is_file())
+    # restic packs are read-only on Linux. Tamper only with this disposable test copy.
+    pack.chmod(pack.stat().st_mode | stat.S_IWUSR)
     contents = bytearray(pack.read_bytes())
     contents[len(contents) // 2] ^= 1
     pack.write_bytes(contents)

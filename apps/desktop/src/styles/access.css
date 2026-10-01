@@ -1,0 +1,222 @@
+﻿.oracle-mark {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  margin: 0 auto;
+}
+.oracle-mark svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.oracle-mark img {
+  position: absolute;
+  width: 36%;
+  height: auto;
+  top: 32%;
+  left: 32%;
+  pointer-events: none;
+}
+.mark-grid {
+  stroke: #183522;
+  stroke-width: 0.5;
+}
+.mark-ring {
+  stroke: var(--border-strong);
+  stroke-width: 1;
+}
+.mark-orbit {
+  stroke: var(--icon);
+  stroke-width: 1.2;
+}
+.mark-crosshair {
+  stroke: var(--icon);
+  stroke-width: 1;
+}
+.seal-page {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  border-radius: 50%;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 42%, #0c2317 0, #050c08 46%, #020503 76%);
+  text-align: center;
+}
+.seal-rim {
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  border: 1px solid #2c7046;
+  box-shadow: inset 0 0 28px #123a2255;
+  pointer-events: none;
+}
+.seal-rim::after {
+  content: "";
+  position: absolute;
+  inset: 9px;
+  border: 1px dashed #214c32;
+  border-radius: 50%;
+}
+.seal-header {
+  position: absolute;
+  top: 29px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.seal-handle {
+  color: var(--accent);
+  letter-spacing: 7px;
+  font-size: 23px;
+  border: 0;
+  background: transparent;
+  cursor: move;
+  padding: 0 0 0 7px;
+}
+.seal-window-controls {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.seal-window-controls button {
+  min-height: 24px;
+  height: 24px;
+  width: 30px;
+  padding: 0;
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  font-size: 18px;
+}
+.seal-content {
+  position: absolute;
+  top: 105px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 350px;
+}
+.seal-content h1 {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 3px;
+  color: var(--muted);
+  margin: 0 0 6px;
+}
+.dial {
+  position: relative;
+  height: 234px;
+  width: 234px;
+  margin: 0 auto;
+  border-radius: 50%;
+  touch-action: none;
+  user-select: none;
+  cursor: grab;
+}
+.dial:active {
+  cursor: grabbing;
+}
+.dial[aria-disabled="true"] {
+  cursor: default;
+}
+.dial:focus-visible {
+  outline: 1px solid var(--accent);
+  outline-offset: 4px;
+}
+.dial-rotor {
+  pointer-events: none;
+}
+.dial-index {
+  position: absolute;
+  top: 4px;
+  left: calc(50% - 2px);
+  width: 4px;
+  height: 12px;
+  background: var(--accent);
+  box-shadow: 0 0 8px #32ce7480;
+  pointer-events: none;
+}
+.dial-readout {
+  min-height: 22px;
+  color: var(--accent);
+  font-size: 11px;
+}
+#dial-help {
+  color: var(--muted);
+  font-size: 10px;
+  margin: 2px auto 8px;
+  max-width: 290px;
+}
+.seal-dial-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+.seal-link {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  min-height: 28px;
+  padding: 4px 8px;
+}
+.seal-error {
+  color: var(--error);
+  font-size: 11px;
+  line-height: 1.35;
+  margin: 5px auto 0;
+  max-width: 290px;
+}
+.seal-footer {
+  position: absolute;
+  bottom: 27px;
+  width: 100%;
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: #62866e;
+  pointer-events: none;
+}
+.seal-recovery {
+  top: 125px;
+  width: 310px;
+}
+.seal-recovery form {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  text-align: left;
+}
+.seal-recovery p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 9px 0;
+}
+.seal-recovery label {
+  font-size: 11px;
+}
+.seal-recovery input {
+  padding: 8px;
+}
+.seal-offer {
+  padding: 32px 20px 0;
+}
+.seal-offer p {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+.seal-offer button {
+  margin-top: 10px;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .seal-content {
+    animation: seal-arrive 180ms ease-out;
+  }
+  @keyframes seal-arrive {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}

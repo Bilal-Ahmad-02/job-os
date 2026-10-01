@@ -1,187 +1,17 @@
-import { type FormEvent, Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  APPLICATION_PAGE_SIZE,
   type ApplicationPage,
   type ApplicationRecord,
   applicationError,
   blankApplication,
-  fields,
   getApplication,
   listApplications,
-  saveApplication,
-  statuses,
 } from "./api/applications";
+import ApplicationEditor from "./applications/ApplicationEditor";
 import Icon from "./Icon";
 
-const fieldSectors: Record<number, string> = {
-  0: "01 / TARGET.ID",
-  2: "02 / INGRESS.INTEL",
-  5: "03 / TRANSMISSION",
-  8: "04 / FIELD.NOTES",
-};
-
-function Editor({
-  initial,
-  onClose,
-  onSaved,
-}: {
-  initial: ApplicationRecord;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
-  const [record, setRecord] = useState(initial);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
-  const [saved, setSaved] = useState("");
-  const [discard, setDiscard] = useState(false);
-  const baseline = useRef(initial.data);
-  const dirty = JSON.stringify(record.data) !== JSON.stringify(baseline.current);
-  const form = useRef<HTMLFormElement>(null);
-
-  useEffect(() => {
-    form.current?.querySelector("input")?.focus();
-  }, []);
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    if (busy) return;
-    setBusy(true);
-    setError("");
-    setSaved("");
-    try {
-      const result = await saveApplication(record);
-      setRecord(result);
-      baseline.current = result.data;
-      setSaved("Saved on this computer.");
-      onSaved();
-    } catch (failure) {
-      setError(applicationError(failure));
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return (
-    <form className="application-editor" ref={form} onSubmit={(event) => void submit(event)}>
-      <div className="card-heading">
-        <div>
-          <p className="eyebrow">
-            DOSSIER / {record.version === 0 ? "UNSAVED" : `REV.${record.version}`}
-          </p>
-          <h2>{record.version === 0 ? "NEW.ENTRY" : "RECORD.OPEN"}</h2>
-        </div>
-        <button
-          type="button"
-          disabled={busy}
-          title="Return to dossier index"
-          onClick={() => (dirty ? setDiscard(true) : onClose())}
-        >
-          <Icon name="back" />
-          Back to list
-        </button>
-      </div>
-      {discard ? (
-        <div className="discard-prompt" role="alert">
-          <p>Discard your unsaved changes?</p>
-          <button type="button" onClick={onClose}>
-            Discard changes
-          </button>{" "}
-          <button type="button" onClick={() => setDiscard(false)}>
-            Keep editing
-          </button>
-        </div>
-      ) : null}
-      <p className="input-help">A job title or company is required. Other fields can stay blank.</p>
-      <fieldset disabled={busy}>
-        <label className="application-field status-field" htmlFor="application-status">
-          Status
-          <select
-            id="application-status"
-            value={record.data.status}
-            onChange={(event) => {
-              const status = statuses.find((value) => value === event.target.value);
-              if (status) setRecord({ ...record, data: { ...record.data, status } });
-              setSaved("");
-            }}
-          >
-            {statuses.map((status) => (
-              <option key={status}>{status}</option>
-            ))}
-          </select>
-        </label>
-        <div className="application-fields">
-          {fields.map(([key, label], index) => {
-            const short = key === "title" || key === "company" || key === "resume_sent";
-            const props = {
-              id: `application-${key}`,
-              value: record.data[key],
-              maxLength: short ? 1000 : 10000,
-              onChange: (event: { target: { value: string } }) => {
-                setRecord({ ...record, data: { ...record.data, [key]: event.target.value } });
-                setSaved("");
-              },
-            };
-            return (
-              <Fragment key={key}>
-                {fieldSectors[index] ? (
-                  <div className="field-sector">{fieldSectors[index]}</div>
-                ) : null}
-                <div className="application-field">
-                  <div>
-                    <span className="field-code" aria-hidden="true">
-                      F.{String(index + 1).padStart(2, "0")} /{" "}
-                    </span>
-                    <label htmlFor={props.id}>{label}</label>
-                  </div>
-                  {short ? (
-                    <input {...props} />
-                  ) : (
-                    <textarea {...props} rows={key === "description" || key === "notes" ? 4 : 2} />
-                  )}
-                </div>
-              </Fragment>
-            );
-          })}
-        </div>
-      </fieldset>
-      {error ? (
-        <p className="access-error" role="alert">
-          {error}
-        </p>
-      ) : null}
-      <p role="status">{saved}</p>
-      <button
-        type="submit"
-        disabled={busy || !(record.data.title.trim() || record.data.company.trim())}
-      >
-        <Icon name="save" />
-        {busy ? "Saving…" : "Save application"}
-      </button>
-      {record.imported ? (
-        <details className="import-details">
-          <summary>TRACE / Original spreadsheet entry · row {record.imported.row}</summary>
-          <p className="input-help">
-            Preserved from {record.imported.sheet}. Your edits above do not alter this copy.
-          </p>
-          <dl>
-            {fields.map(([key, label]) => (
-              <div key={key}>
-                <dt>{label}</dt>
-                <dd>{record.imported?.original[key] || "Not provided"}</dd>
-              </div>
-            ))}
-          </dl>
-          {Object.entries(record.imported.links).map(([cell, target]) => (
-            <p key={cell} className="original-link">
-              Embedded link ({cell}): {target}
-            </p>
-          ))}
-        </details>
-      ) : null}
-    </form>
-  );
-}
-
-export default function Applications() {
+export default function Applications({ active = true }: { active?: boolean }) {
   const [page, setPage] = useState<ApplicationPage>({ items: [], total: 0 });
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
@@ -195,7 +25,7 @@ export default function Applications() {
   const searchInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (selected) return;
+    if (selected || !active) return;
     function focusQuery(event: KeyboardEvent) {
       if (
         (event.ctrlKey || event.metaKey) &&
@@ -209,7 +39,7 @@ export default function Applications() {
     }
     window.addEventListener("keydown", focusQuery);
     return () => window.removeEventListener("keydown", focusQuery);
-  }, [selected]);
+  }, [selected, active]);
 
   useEffect(
     () => () => {
@@ -224,7 +54,13 @@ export default function Applications() {
     setError("");
     listApplications(search, offset)
       .then((result) => {
-        if (active) setPage(result);
+        if (!active) return;
+        const lastOffset = Math.max(
+          0,
+          Math.floor((result.total - 1) / APPLICATION_PAGE_SIZE) * APPLICATION_PAGE_SIZE,
+        );
+        if (offset > lastOffset) setOffset(lastOffset);
+        else setPage(result);
       })
       .catch((failure: unknown) => {
         if (active) setError(applicationError(failure));
@@ -253,7 +89,7 @@ export default function Applications() {
 
   if (selected)
     return (
-      <Editor
+      <ApplicationEditor
         key={selected.id}
         initial={selected}
         onClose={() => setSelected(null)}
@@ -305,6 +141,21 @@ export default function Applications() {
             <Icon name="search" />
             EXEC
           </button>
+          {query || search ? (
+            <button
+              type="button"
+              className="quiet-button"
+              disabled={opening}
+              onClick={() => {
+                setQuery("");
+                setSearch("");
+                setOffset(0);
+                searchInput.current?.focus();
+              }}
+            >
+              Clear query
+            </button>
+          ) : null}
           <button
             type="button"
             disabled={loading || opening}
@@ -312,7 +163,7 @@ export default function Applications() {
             onClick={() => setReload((value) => value + 1)}
           >
             <Icon name="refresh" />
-            SYNC
+            REFRESH
           </button>
         </div>
       </form>
@@ -336,9 +187,16 @@ export default function Applications() {
             <span>{search ? "FILTER.ACTIVE" : "ALL.RECORDS"}</span>
           </div>
           {page.items.length === 0 ? (
-            <p>No applications found.</p>
+            <div className="empty-state">
+              <p>No applications found.</p>
+              <span>
+                {search
+                  ? "Try a different company or role, or clear the query."
+                  : "Create a dossier to begin tracking an application."}
+              </span>
+            </div>
           ) : (
-            <ul className="application-list">
+            <ul className="application-list" aria-label="Application dossiers">
               {page.items.map((item, index) => (
                 <li key={item.id}>
                   <button type="button" disabled={opening} onClick={() => void open(item.id)}>
@@ -350,7 +208,9 @@ export default function Applications() {
                       <span>{item.title || "Job title not provided"}</span>
                     </span>
                     <span className="application-meta">
-                      <span>{item.status}</span>
+                      <span className="record-status" data-status={item.status}>
+                        {item.status}
+                      </span>
                       {item.resume_sent ? <span>Resume sent {item.resume_sent}</span> : null}
                     </span>
                   </button>
@@ -358,22 +218,22 @@ export default function Applications() {
               ))}
             </ul>
           )}
-          {page.total > 50 ? (
+          {page.total > APPLICATION_PAGE_SIZE ? (
             <div className="application-pagination">
               <button
                 type="button"
                 disabled={offset === 0 || opening}
-                onClick={() => setOffset(offset - 50)}
+                onClick={() => setOffset(offset - APPLICATION_PAGE_SIZE)}
               >
                 Previous
               </button>
               <span>
-                {offset + 1}–{Math.min(offset + 50, page.total)} of {page.total}
+                {offset + 1}–{Math.min(offset + APPLICATION_PAGE_SIZE, page.total)} of {page.total}
               </span>
               <button
                 type="button"
-                disabled={offset + 50 >= page.total || opening}
-                onClick={() => setOffset(offset + 50)}
+                disabled={offset + APPLICATION_PAGE_SIZE >= page.total || opening}
+                onClick={() => setOffset(offset + APPLICATION_PAGE_SIZE)}
               >
                 Next
               </button>

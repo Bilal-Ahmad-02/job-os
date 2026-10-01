@@ -16,6 +16,10 @@ class DocumentListRequest(BaseModel):
 class DocumentSummary(BaseModel):
     model_config = ConfigDict(extra="forbid")
     id: UUID
+    family_id: UUID
+    version: int = Field(strict=True, ge=1, le=100)
+    previous_id: UUID | None
+    is_latest: bool = Field(strict=True)
     filename: str = Field(min_length=1, max_length=255)
     kind: DocumentKind
     byte_size: int = Field(strict=True, ge=1, le=10485760)

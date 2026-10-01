@@ -10,6 +10,12 @@ fn main() {
             "lock",
             "check_health",
             "applications",
+            "provider_settings",
+            "rotation_status",
+            "enroll_rotation",
+            "unlock_rotation",
+            "shell_mode",
+            "shell_action",
         ]),
     ))
     .expect("Could not build Oracle permissions");

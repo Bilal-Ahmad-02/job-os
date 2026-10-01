@@ -1,5 +1,53 @@
 # Backing up and restoring Oracle
 
+Provider API keys and their connection-test permission are stored in Windows Credential Manager,
+outside the workspace and its backups. Re-enter a key and explicitly grant permission again on a
+replacement machine. See [provider credential recovery](PROVIDER_SETTINGS.md).
+
+Schema `0008` backups also retain the extraction task journal and confirmed progress. After a
+restore, tasks require explicit resume/retry; stale running claims recover on refresh after their
+lease expires. See [TASKS.md](TASKS.md). No backup is automatically created by running a task.
+
+## Current runtime: Linux since 2026-09-30
+
+The active database and matching marker are now in
+`/home/lethargic/.local/share/oracle`. The previous Windows database is an inactive, read-only
+rollback copy; it will not receive new edits. Windows retains the app password hash and explicit
+runtime configuration. See [the completed cutover](WSL_DEVELOPMENT.md) before recovery or moving files.
+
+Open Ubuntu (`wsl.exe -d Ubuntu`) and use the existing encrypted OneDrive repository:
+
+```bash
+cd ~/projects/oracle
+umask 077
+.venv/bin/python -I -m app.backup create --repository /mnt/c/Users/Ziya/OneDrive/OracleBackups --database "$HOME/.local/share/oracle/oracle.sqlite3"
+.venv/bin/python -I -m app.backup list --repository /mnt/c/Users/Ziya/OneDrive/OracleBackups
+.venv/bin/python -I -m app.backup check --repository /mnt/c/Users/Ziya/OneDrive/OracleBackups
+```
+
+Enter the existing backup password locally each time. Do not reinitialize this repository. Only
+encrypted repository files cross into OneDrive; plaintext snapshots, staging, and active SQLite
+remain in Linux. The verified Linux restic binary is selected automatically. Do not use a Windows
+SQLite connection to access the active database through a shared WSL path.
+
+For staged recovery, select an exact full snapshot ID from `list`, then use a new target:
+
+```bash
+umask 077
+oracle_snapshot='paste-the-full-64-character-snapshot-id-here'
+.venv/bin/python -I -m app.backup restore --repository /mnt/c/Users/Ziya/OneDrive/OracleBackups --snapshot "$oracle_snapshot" --target "$HOME/.local/share/oracle-recovery-new" --staging "$HOME/.local/share/oracle-migration"
+```
+
+Restore never activates or overwrites a workspace. Keep every writer stopped for any reviewed
+activation/reverse cutover, and preserve newer Linux edits before considering the old Windows
+rollback copy. The fresh pre-cutover snapshot completed at 13:01 on 2026-09-30 and its Linux restore
+at 13:08; full-table and source-byte comparisons passed again during activation. Synthetic encrypted
+recovery passed in both operating-system directions. These checks establish local recovery, not
+OneDrive upload completion. Backups remain manual and cloud-sync status is unconfirmed.
+
+The Windows commands and AppData storage descriptions later in this document record the previous
+runtime and Windows recovery tooling. They must not be used as the current live backup procedure.
+
 Oracle's source repository is https://github.com/Bilal-Ahmad-02/job-os.
 GitHub stores only files that have been committed and pushed. Editing a local file does not
 automatically back it up. After each tested milestone, review the changes, commit the intended
@@ -65,9 +113,27 @@ OneDrive folder; the existing OneDrive client handles cloud sync. Oracle cannot 
 
 ## Encrypted snapshots and staged recovery
 
+Schema `0007` adds document lineage. Snapshots retain all original versions and their links together;
+restoration accepts `0002` through `0007` and never upgrades archive bytes during verification.
+Explicit preparation upgrades a recovered workspace. Back up after importing new document versions.
+
+Schema `0006` adds the profile review decision ledger. New snapshots include decisions and approved
+profile values atomically. Take another backup after reviewing entries to protect those new changes;
+the earlier draft backup cannot contain future approvals.
+
+Schema `0005` adds extracted page text and unreviewed profile drafts, both included atomically in
+new encrypted snapshots. Earlier backups cannot contain these later additions. The 2026-09-29
+draft was included in the successful encrypted snapshot completed at 13:27 on 2026-09-29,
+with local restore verification. OneDrive cloud sync is still unconfirmed.
+
+Schema `0004` adds candidate profiles inside the private database. New snapshots include saved
+profile data. Restore also continues to accept `0002`, `0003`, and `0004` snapshots without modifying them;
+prepare an older recovered workspace explicitly before opening it with the current backend.
+See [PROFILE.md](PROFILE.md). The 2026-09-27 backup predates profile storage.
+
 Schema `0003` stores imported original PDFs inside the database, so new encrypted snapshots include
 them with application history. A snapshot taken before import does not include these documents.
-Restore accepts `0002` and `0003` manifests and validates each against its declared schema; it never
+Restore accepts `0002` through `0007` manifests and validates each against its declared schema; it never
 silently upgrades an archive during verification. Prepare a restored `0002` workspace explicitly
 before opening it with the current app. See [DOCUMENTS.md](DOCUMENTS.md).
 
@@ -174,3 +240,11 @@ passwords, tampered encrypted data/manifests, WAL snapshots, missing/mismatched 
 destinations, interrupted writes, refusal to overwrite targets, scope/path validation, and bounded
 tool output/time. Tests never use the owner's records or backup password. The restic integration
 cases require the verified cache or an explicit `ORACLE_TEST_RESTIC` test executable.
+
+## Linux development support
+
+The default tool lookup now also accepts the verified restic 0.19.1 Linux amd64 binary. Its pinned
+archive/executable digests and setup status are documented in [WSL_DEVELOPMENT.md](WSL_DEVELOPMENT.md).
+The Windows OneDrive repository remains unchanged; Linux tests use disposable synthetic repositories.
+Live database ownership has switched to Linux. Use the current Linux procedure at the top of this
+document for new snapshots; the earlier Windows paths refer to the pre-cutover installation.

@@ -8,7 +8,7 @@ from pypdf import PdfWriter
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.db.store import identity_path, open_store
+from app.db.store import SCHEMA_VERSION, identity_path, open_store
 from app.db.workspace import initialize_workspace, prepare_workspace
 from app.models.documents import SourceDocument
 from app.services.backup_snapshot import (
@@ -94,8 +94,14 @@ def test_old_snapshot_verifies_without_mutation_then_explicitly_upgrades(tmp_pat
     target = tmp_path / "snapshot"
     snapshot_workspace(database, target)
     old = target / DATABASE
-    # Model the previously shipped schema, which differs only by this new table.
+    # Model the previously shipped schema, before document/profile tables existed.
     with sqlite3.connect(old) as connection:
+        connection.execute("DROP TABLE background_tasks")
+        connection.execute("DROP TABLE document_versions")
+        connection.execute("DROP TABLE profile_review")
+        connection.execute("DROP TABLE profile_draft")
+        connection.execute("DROP TABLE document_text")
+        connection.execute("DROP TABLE candidate_profile")
         connection.execute("DROP TABLE source_documents")
         connection.execute("UPDATE alembic_version SET version_num = '0002'")
     manifest_path = target / MANIFEST
@@ -110,7 +116,9 @@ def test_old_snapshot_verifies_without_mutation_then_explicitly_upgrades(tmp_pat
     prepare_workspace(old)
     assert identity_path(old).read_bytes() == marker
     with sqlite3.connect(old) as connection:
-        assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == ("0003",)
+        assert connection.execute("SELECT version_num FROM alembic_version").fetchone() == (
+            SCHEMA_VERSION,
+        )
         assert connection.execute("SELECT COUNT(*) FROM source_documents").fetchone() == (0,)
     copies = list((target / "migration-backups").glob("*.sqlite3"))
     assert len(copies) == 1

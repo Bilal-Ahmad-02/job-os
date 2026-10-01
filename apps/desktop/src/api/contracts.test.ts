@@ -41,8 +41,13 @@ it("rejects incomplete records and malformed import provenance", async () => {
 });
 
 it("accepts document metadata but rejects bytes, paths and unsupported evidence claims", async () => {
+  const documentId = crypto.randomUUID();
   const item = {
-    id: crypto.randomUUID(),
+    id: documentId,
+    family_id: documentId,
+    version: 1,
+    previous_id: null,
+    is_latest: true,
     filename: "source.pdf",
     kind: "cv",
     byte_size: 100,
@@ -60,6 +65,43 @@ it("accepts document metadata but rejects bytes, paths and unsupported evidence 
     { ...item, page_count: 101 },
   ]) {
     invoke.mockResolvedValue({ items: [changed] });
+    await expect(listDocuments()).rejects.toThrow("Invalid document response");
+  }
+});
+
+it("rejects incomplete, branching, or inconsistent version histories", async () => {
+  const firstId = crypto.randomUUID();
+  const first = {
+    id: firstId,
+    family_id: firstId,
+    version: 1,
+    previous_id: null,
+    is_latest: false,
+    filename: "source.pdf",
+    kind: "cv",
+    byte_size: 100,
+    page_count: 1,
+    sha256: "a".repeat(64),
+    imported_at: "2026-09-29",
+    evidence_status: "source_only",
+  };
+  const second = {
+    ...first,
+    id: crypto.randomUUID(),
+    previous_id: first.id,
+    version: 2,
+    is_latest: true,
+  };
+  invoke.mockResolvedValue({ items: [first, second] });
+  expect(await listDocuments()).toEqual([first, second]);
+  for (const items of [
+    [second],
+    [first, { ...second, previous_id: second.id }],
+    [{ ...first, is_latest: true }, second],
+    [first, { ...second, kind: "transcript" }],
+    [first, second, { ...second, id: crypto.randomUUID() }],
+  ]) {
+    invoke.mockResolvedValue({ items });
     await expect(listDocuments()).rejects.toThrow("Invalid document response");
   }
 });

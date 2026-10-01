@@ -1,5 +1,11 @@
 # Application history
 
+**Runtime update, 2026-09-30:** the active database is now
+`/home/lethargic/.local/share/oracle/oracle.sqlite3` inside Ubuntu. The Windows desktop accesses it
+through supervised Linux workers. The AppData paths and Windows maintenance examples below describe
+the earlier runtime; do not use them to create or reopen a second active workspace. Run future
+maintenance with the Linux environment and database path. See [WSL_DEVELOPMENT.md](WSL_DEVELOPMENT.md).
+
 Oracle is the master record after the one-time spreadsheet import. The **ACQ** console opens the
 **DOSSIER.INDEX**. Enter a company or job title in the query and press **EXEC** (or Enter) to filter;
 **SYNC** reloads the current results. **Ctrl+K** focuses the query while the index is open. Open a

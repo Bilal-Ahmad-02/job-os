@@ -4,8 +4,12 @@ mod applications;
 mod auth;
 mod commands;
 mod health;
+mod provider_vault;
+mod providers;
+mod shell;
 #[cfg(windows)]
 mod windows_icon;
+mod wsl;
 
 use std::sync::{Arc, Mutex};
 use tauri::{webview::NewWindowResponse, Manager, WebviewWindowBuilder};
@@ -31,16 +35,23 @@ fn main() {
             commands::create_password,
             commands::unlock,
             commands::lock,
+            commands::rotation_status,
+            commands::enroll_rotation,
+            commands::unlock_rotation,
+            shell::shell_mode,
+            shell::shell_action,
             commands::check_health,
             commands::applications,
+            providers::provider_settings,
         ])
         .setup(|app| {
             let path = app.path().app_local_data_dir()?.join("password.phc");
             app.manage(Arc::new(Mutex::new(auth::Access::new(path))));
+            app.manage(Arc::new(providers::ProviderStore::new(
+                app.path().app_local_data_dir()?,
+            )));
             app.manage(applications::ApplicationStore(Arc::new(Mutex::new(
-                applications::Workspace::new(
-                    app.path().app_local_data_dir()?.join("oracle.sqlite3"),
-                ),
+                applications::Workspace::from_app_data(&app.path().app_local_data_dir()?)?,
             ))));
             let config = app
                 .config()
@@ -55,6 +66,7 @@ fn main() {
                 .build()?;
             #[cfg(windows)]
             windows_icon::configure(&window)?;
+            shell::initialize(&window)?;
             Ok(())
         })
         .run(tauri::generate_context!())
