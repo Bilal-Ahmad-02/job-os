@@ -18,6 +18,7 @@ passwords or document text is included. Continue with concise dated entries and 
 | 2026-10-01 | Owner paused roadmap for stabilization and Claude handoff before subscription expiry; source/privacy review and GitHub checkpoint | Public repository confirmed; 208-file checkpoint pushed as `f031b31`; Linux source checked and aligned with a retained recovery stash |
 | 2026-10-01 to 2026-10-02 | Optional HTTP diagnostic made manual and removed as a global app-connectivity indicator | Frontend checks and 83 tests passed; no record/backend contract change |
 | 2026-10-02 | Current setup/handoff guides, Claude prompt, advisory review, fresh-checkout verification and release preparation | See VALIDATION.md for final results, backup evidence and limits; do not infer completion from this log alone |
+| 2026-10-02 | Fresh Windows clone exposed missing line-ending policy: automatic CRLF conversion broke formatter checks | Added `.gitattributes` for LF source, CRLF PowerShell scripts and binary image assets; repeat fresh-checkout verification |
 
 The owner reported that the handoff backup passed and OneDrive displayed Up to date. The automatic
 receipt check did not find the expected handoff receipt; clarification/independent confirmation is

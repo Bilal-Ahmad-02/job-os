@@ -1,0 +1,5 @@
+# Keep source compatible with the formatter and Linux tools on both platforms.
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.png binary
+*.ico binary

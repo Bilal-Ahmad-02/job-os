@@ -15,6 +15,8 @@ to start a session. Production uses installed releases, not either development c
 | Routine app launch | Installed Oracle shortcut; no HTTP service |
 
 Do not share virtual environments, Node modules or Rust build output between platforms.
+`.gitattributes` keeps source in LF across operating systems; PowerShell scripts use CRLF and
+icons remain binary. Do not override that policy with a global editor conversion.
 Windows Python 3.11 remains a developer prerequisite for the cross-platform probes/legacy native
 tests. It is not the production record backend.
 
