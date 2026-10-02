@@ -74,8 +74,8 @@ is not a second live workspace. Credentials must not be copied into Linux or com
 
 Repository: https://github.com/Bilal-Ahmad-02/job-os (public). A source checkpoint through step 13
 was pushed as `f031b314293270ee1405e98f08557d454fae3971`; later stabilization commits follow it.
-Use the final handoff tag and validation record to identify the complete handoff. Do not assume
-an installed binary corresponds to current uncommitted source.
+Use tag `oracle-handoff-2026-10-02` and VALIDATION.md to identify the source/release handoff and its
+remaining manual checks. Do not assume an installed binary corresponds to uncommitted source.
 
 Linux was aligned to that checkpoint only after all 208 source files were checked. Its previous
 uncommitted state remains in stash `1a7508fbadc3a488bd39cd1fc1ce30199ebfdd91` as a recovery copy.

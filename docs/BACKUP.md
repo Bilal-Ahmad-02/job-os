@@ -1,5 +1,11 @@
 # Backing up and restoring Oracle
 
+Use the **Linux development/maintenance virtualenv** in the current commands below. The installed
+record-runtime environment does not include the separately provisioned restic executable; running
+backup maintenance there without an explicitly reviewed tool path fails with `backup_tool_missing`.
+This does not mean that the active database or existing encrypted repository is missing. Never
+reinitialize the repository to work around it. See VALIDATION.md for the latest recovery evidence.
+
 Provider API keys and their connection-test permission are stored in Windows Credential Manager,
 outside the workspace and its backups. Re-enter a key and explicitly grant permission again on a
 replacement machine. See [provider credential recovery](PROVIDER_SETTINGS.md).

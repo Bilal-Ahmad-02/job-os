@@ -20,9 +20,14 @@ passwords or document text is included. Continue with concise dated entries and 
 | 2026-10-02 | Current setup/handoff guides, Claude prompt, advisory review, fresh-checkout verification and release preparation | See VALIDATION.md for final results, backup evidence and limits; do not infer completion from this log alone |
 | 2026-10-02 | Fresh Windows clone exposed missing line-ending policy: automatic CRLF conversion broke formatter checks | Added `.gitattributes` for LF source, CRLF PowerShell scripts and binary image assets; repeat fresh-checkout verification |
 
-The owner reported that the handoff backup passed and OneDrive displayed Up to date. The automatic
-receipt check did not find the expected handoff receipt; clarification/independent confirmation is
-tracked in VALIDATION.md. Older verified recovery milestones are documented in BACKUP.md.
+Fresh-checkout checks passed: 264 Linux tests in a new virtualenv, 83 frontend tests and a Windows
+frontend production build after the line-ending correction. The final Windows executable was
+installed and reopened; its digest and current runtime are in VALIDATION.md. Existing native tests,
+fault probes and synthetic cross-platform recovery passed. No backend code/data migration was made.
+
+The initial handoff backup report could not be corroborated: its terminal used the installed record
+environment without the separately provisioned restic tool. The corrected terminal uses the tested
+Linux maintenance environment. Fresh backup receipt/cloud confirmation are tracked in VALIDATION.md.
 
 ## Decisions to preserve
 

@@ -24,6 +24,8 @@ tests. It is not the production record backend.
 
 Use a new clone when testing these instructions; never overwrite an existing checkout or virtualenv.
 Prerequisites are Git, Ubuntu Python 3.12 and `python3-venv`.
+For independent frontend verification, place the clone outside another repository's ignored paths;
+ancestor ignore rules can affect Biome's dependency analysis in a nested `.cache` clone.
 
 ```bash
 git clone https://github.com/Bilal-Ahmad-02/job-os.git oracle
