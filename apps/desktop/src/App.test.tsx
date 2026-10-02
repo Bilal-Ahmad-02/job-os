@@ -5,13 +5,22 @@ import { checkHealth } from "./api/health";
 
 vi.mock("./api/health", () => ({ checkHealth: vi.fn() }));
 
-function renderConsole() {
+function renderConsole(check = true) {
   const view = render(<App />);
   fireEvent.click(screen.getByRole("button", { name: "System status" }));
+  if (check) fireEvent.click(screen.getByRole("button", { name: "Run diagnostic" }));
   return view;
 }
 
 describe("Oracle connection panel", () => {
+  it("does not contact the optional diagnostic on startup, focus or opening the panel", () => {
+    vi.mocked(checkHealth).mockClear();
+    renderConsole(false);
+    fireEvent.focus(window);
+    expect(checkHealth).not.toHaveBeenCalled();
+    expect(screen.getByText("Not requested")).toBeVisible();
+    expect(screen.getByRole("button", { name: "System status" })).toHaveTextContent("SYSTEM");
+  });
   it("returns focus to the system toggle after closing the drawer", () => {
     vi.mocked(checkHealth).mockResolvedValue(undefined);
     renderConsole();
@@ -26,7 +35,7 @@ describe("Oracle connection panel", () => {
   it("shows connected after a successful health check", async () => {
     vi.mocked(checkHealth).mockResolvedValue(undefined);
     renderConsole();
-    expect(await screen.findByText("Connected")).toBeVisible();
+    expect(await screen.findByText("Diagnostic responding")).toBeVisible();
     expect(screen.getByRole("button", { name: "Check again" })).toBeEnabled();
   });
 
@@ -35,10 +44,11 @@ describe("Oracle connection panel", () => {
       .mockRejectedValueOnce(new Error("private error details"))
       .mockResolvedValueOnce(undefined);
     renderConsole();
-    expect(await screen.findByText("Unavailable")).toBeVisible();
+    expect(await screen.findByText("Diagnostic unavailable")).toBeVisible();
+    expect(screen.getByText(/not required for normal Oracle use/)).toBeVisible();
     expect(screen.queryByText("private error details")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
-    expect(await screen.findByText("Connected")).toBeVisible();
+    expect(await screen.findByText("Diagnostic responding")).toBeVisible();
   });
 
   it("disables retry while a request is pending and cancels on unmount", () => {
@@ -50,22 +60,21 @@ describe("Oracle connection panel", () => {
     expect(signal?.aborted).toBe(true);
   });
 
-  it("ignores stale results after focus starts a newer check", async () => {
+  it("does not restart a pending diagnostic on focus", async () => {
     let finishOld: (() => void) | undefined;
-    vi.mocked(checkHealth)
-      .mockImplementationOnce(
-        () =>
-          new Promise<void>((resolve) => {
-            finishOld = resolve;
-          }),
-      )
-      .mockRejectedValueOnce(new Error("Backend stopped"));
+    vi.mocked(checkHealth).mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finishOld = resolve;
+        }),
+    );
+    vi.mocked(checkHealth).mockClear();
     renderConsole();
     fireEvent.focus(window);
-    await waitFor(() => expect(screen.getByText("Unavailable")).toBeVisible());
+    expect(checkHealth).toHaveBeenCalledTimes(1);
     await act(async () => {
       finishOld?.();
     });
-    expect(screen.getByText("Unavailable")).toBeVisible();
+    await waitFor(() => expect(screen.getByText("Diagnostic responding")).toBeVisible());
   });
 });

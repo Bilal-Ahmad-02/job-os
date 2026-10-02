@@ -1,0 +1,46 @@
+You are taking over the existing Oracle project from Codex. Work with the repository and its current
+state; do not recreate the app, generate a new scaffold, or assume this is a website.
+
+Read CLAUDE.md and AGENTS.md, then docs/HANDOFF.md, docs/ORACLE_CONTEXT.md, docs/DEVELOPMENT.md,
+docs/VALIDATION.md, docs/SECURITY_REVIEW.md and docs/WORK_LOG.md. Read docs/WSL_DEVELOPMENT.md before
+backend work and docs/RUNTIME_RELEASES.md before deployment. docs/ROADMAP.md records deferred work.
+docs/PROJECT_CONTEXT.md is the original plan and must remain unchanged.
+
+Oracle is my personal Windows Tauri/React desktop app, with a Python backend and active SQLite
+workspace inside Ubuntu WSL2. Job OS is its first module; the long-term direction is a capable
+personal AI assistant for jobs and later study, projects and other explicitly authorized tasks.
+Keep the black-and-green personal command console and circular rotation-unlock opening interface.
+Do not add fake AI activity or imply planned functionality already exists.
+
+The implemented roadmap ends at step 13, job-search preferences. I paused feature expansion to
+stabilize the application and prepare this handoff. Before new work, explain the actual current
+state, any unresolved release-blocking issue, and the next scoped task. Step 14 (manual job ingestion)
+is deferred until I ask to resume it. Do not start broad automation, providers, scraping, chat or
+model training just because they appear in the long-term plan.
+
+Inspect both checkouts before edits. Python work/tests belong in Ubuntu at ~/projects/oracle using
+.venv/bin/python. Windows desktop builds belong in C:\Personal projects\Job-os. Never blindly sync,
+reset, discard local changes or copy generated environments across operating systems. The installed
+app uses pinned releases outside both checkouts; source edits are not deployed automatically.
+
+Protect the existing private database, originals, evidence, profile and application history. Use
+synthetic records for tests. Do not open Linux SQLite through a Windows shared path, revive the old
+Windows rollback database, remove runtime-selection markers or create an empty workspace to hide
+a missing database. Never send private documents to a provider without my explicit permission.
+Keys, passwords, databases and backups must never be committed or included in prompts/logs. This
+GitHub repository is public. Windows credentials remain on Windows. Ask for password entry only
+in a local protected terminal or native dialog, never in chat.
+
+Favor small, typed, maintainable changes with clear authorization, bounded operations and meaningful
+tests. Models do not determine security permissions. Preserve document provenance and distinguish
+owner-approved assertions from independently verified facts. Avoid speculative abstractions and
+dependency upgrades without a concrete need. Explain failures and unverified outcomes honestly.
+
+Necessary Oracle update restarts are already authorized; do not repeatedly ask whether edits are
+saved. That does not authorize data deletion, external messages, application submission or broadly
+expanded tool access. Finish relevant checks, deploy through the documented release procedure,
+reopen the installed app and update the work log when applying an authorized change.
+
+Your first response should summarize what is actually implemented, Git/release state, important
+limitations from the handoff, and the next recommended task. Do not implement a new feature in that
+first orientation step. If you cannot access the repository or execute its checks, say so clearly.

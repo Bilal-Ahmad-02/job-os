@@ -1,149 +1,57 @@
 # Oracle
 
-Oracle is a local-first Windows desktop application in development for managing a technical job search: discovering opportunities, preparing applications, tracking interviews and outcomes, and learning from application history. The repository and original project plan are named Job OS.
+Oracle is a personal desktop workspace for managing a job search. Job OS is its first module;
+the longer-term goal is a permission-controlled personal AI assistant. It is a Windows
+Tauri/React app with a Python backend running in Ubuntu WSL2, not a hosted website.
 
-The project will begin with a job and application tracker, followed by evidence-grounded AI assistance and optional automation. It is both a personal tool and a portfolio project focused on maintainable software, data, and AI engineering.
+## Open the installed app
 
-Read [the current Oracle context](docs/ORACLE_CONTEXT.md) for the expanded personal-AI vision,
-planned Windows/WSL2 direction, privacy rules, and scope constraints. Job OS is Oracle's first major
-module. The [original Job OS context](docs/PROJECT_CONTEXT.md) is preserved as the historical plan.
+Use **Oracle** in Start, on the desktop or on the taskbar. The installed executable launches its
+pinned Linux worker automatically. No development terminal or HTTP server is required.
+The circular opening seal supports an owner-enrolled rotation sequence, with password recovery.
 
-## Current scope
+The system panel's HTTP diagnostic is optional and runs only when requested. It does not determine
+whether the private record runtime is working.
 
-**Launch Oracle:** use its Start menu entry, desktop shortcut or taskbar icon. The installed Windows
-desktop starts its pinned Ubuntu backend automatically, independently of the development checkouts.
-See [runtime releases](docs/RUNTIME_RELEASES.md) for deployment and recovery. Ubuntu WSL2, its system
-Python and WebView2 remain prerequisites; no development terminal is needed for normal use.
+## Implemented scope
 
-The backend foundation exposes only `GET /health`, returning `{"status":"ok"}`.
-This confirms the process is responding; it does not check a database or AI provider.
-The Tauri/React desktop shell displays connection status with a manual retry and refreshes when
-the window regains focus. A native password lock gates the workspace and its connection check.
-First launch asks you to create your password; later launches require it. The application tracker
-supports searching, adding, and editing records in a local SQLite database, with a one-time Excel
-import and preserved source details. Workspace identity and explicit initialization prevent a missing
-database from silently becoming an empty history. An interactive maintenance command now creates
-encrypted, versioned backups and verifies staged recovery; OneDrive setup requires a separate local
-backup password. Scheduling and automatic sync verification are not implemented. AI generation and
-automated AI tasks are not implemented yet.
-The source document register preserves original PDFs and explicit version histories privately in SQLite.
-Document extraction and an owner-review screen link draft profile entries to document/page evidence;
-approval remains an explicit user action. See [private source documents](docs/DOCUMENTS.md) and
-[candidate profiles](docs/PROFILE.md).
-See [application storage and import](docs/APPLICATIONS.md) and [backup and restore](docs/BACKUP.md) for recovering the
-source code on another computer; local personal data is not uploaded to GitHub.
-See [desktop setup and security](docs/DESKTOP.md) to run Oracle's Windows app.
+- **01 / ACQ:** local application history, search, add/edit, and preserved spreadsheet provenance.
+- **02 / VAULT:** immutable PDF originals, explicit versions and source metadata.
+- **03 / IDENTITY:** editable profile, source-cited draft review, explicit approvals and job preferences.
+- **04 / TASKS:** bounded local text extraction, progress, cancellation and explicit recovery/retries.
+- **05 / CONTROL:** native Windows API-key entry, protected credential storage and explicit connection tests.
+- Versioned runtime installation, workspace identity/migrations and manually triggered encrypted backups.
 
-Provider connection setup is available in **05 / CONTROL**: native Windows key entry, default-denied
-network permission and an explicit key-only OpenAI connection test. It does not enable AI tasks or
-share private records. See [provider configuration and privacy](docs/PROVIDER_SETTINGS.md).
+Job ingestion, job matching, AI generation, chat, autonomous actions, scheduling, voice and model
+training remain future work. Provider setup alone does not enable AI or authorize sharing records.
 
-**03 / IDENTITY > Saved profile > Job preferences** captures search scope and explicit employer
-and listing-phrase exclusions. These remain local choices for upcoming ingestion and matching;
-saving never starts a search. See [profile and search preferences](docs/PROFILE.md).
+## Start here when taking over development
 
-## Backend development in Linux
+Read [AGENTS.md](AGENTS.md), [the handoff](docs/HANDOFF.md) and
+[the current project context](docs/ORACLE_CONTEXT.md). [CLAUDE.md](CLAUDE.md) provides a concise
+Claude entry point; [the starter prompt](docs/CLAUDE_START_PROMPT.txt) can be pasted into a new session.
 
-Use the Ubuntu WSL2 checkout at `~/projects/oracle` for backend development and tests. See
-[Linux setup and the runtime transition](docs/WSL_DEVELOPMENT.md). Since 2026-09-30, the installed
-Windows desktop invokes Ubuntu workers and the active database lives at
-`/home/lethargic/.local/share/oracle/oracle.sqlite3`. Windows retains the desktop build tools and
-password gate. Run backend tests in Linux; the Windows Python instructions below describe the
-legacy development environment and maintenance tooling, not the active record runtime.
+| Guide | Purpose |
+| --- | --- |
+| [Development](docs/DEVELOPMENT.md) | Windows/WSL ownership, clean setup and checks |
+| [Installed releases](docs/RUNTIME_RELEASES.md) | Build, install, select and recover an update |
+| [Validation](docs/VALIDATION.md) | Actual check results and remaining verification limits |
+| [Security review](docs/SECURITY_REVIEW.md) | Boundaries and dependency advisories |
+| [Work log](docs/WORK_LOG.md) | Dated development history and decisions |
+| [Roadmap](docs/ROADMAP.md) | Implemented scope and deferred steps |
+| [Backup and recovery](docs/BACKUP.md) | Encrypted private-data protection, separate from Git |
+| [Desktop](docs/DESKTOP.md) | UI behavior, locking and native security |
+| [Profile](docs/PROFILE.md) | Evidence review and search preferences |
 
-## Windows development setup
+## Source and private data
 
-Use Python 3.11 (the initial tested version) and PowerShell. Run commands from the repository root.
-The first setup downloads packages from PyPI; running the health service requires no cloud account,
-API key, or paid service. Dependencies stay in the ignored `.venv` directory.
+This GitHub repository is public. It contains source, tests, lockfiles, assets and sanitized
+documentation only. Databases, CVs, extracted text, passwords, API keys, local models and backups
+do not belong here. The Windows credentials and active Linux workspace are separate from the source.
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install --use-feature=truststore --require-hashes -r requirements-dev.txt
-.\.venv\Scripts\python.exe -m pip install --no-deps --no-build-isolation -e .
-```
+Normal use depends on Windows/WebView2 and Ubuntu WSL2 with its system Python. It does not depend on
+a Codex subscription. Changing coding assistants does not require moving the database or replacing
+the runtime. See the handoff before making environment or recovery changes.
 
-The editable install makes the `app` Python package available without modifying `PYTHONPATH`.
-Calling the virtual environment's Python directly avoids changing PowerShell execution policy.
-
-The `--use-feature=truststore` flag enables Windows' trusted certificates with Python 3.11's
-older bundled pip while retaining TLS verification. Modern pip already enables this behavior and
-may report that the flag is unnecessary. The development lock installs a modern pip version.
-Do not disable certificate verification.
-
-## Run and verify
-
-```powershell
-.\.venv\Scripts\python.exe -m app
-```
-
-In a second PowerShell terminal:
-
-```powershell
-Invoke-RestMethod http://127.0.0.1:8000/health
-```
-
-Expected result: a `status` field containing `ok`. Stop the server with `Ctrl+C`.
-An occupied port causes startup to fail; stop the conflicting process or choose another port.
-
-Optional configuration uses process environment variables, not automatically loaded `.env` files:
-
-| Variable | Default | Accepted values |
-| --- | --- | --- |
-| `JOB_OS_PORT` | `8000` | Integer from 1024 to 65535 |
-| `JOB_OS_LOG_LEVEL` | `info` | `debug`, `info`, `warning`, `error`, `critical` |
-| `JOB_OS_ALLOW_DESKTOP_DEV_ORIGIN` | `false` | Boolean; enable only for Tauri development |
-
-For example, set `$env:JOB_OS_PORT = "8001"` before starting the backend and use that port in the
-health-check URL. Invalid configuration fails before the server opens a socket.
-
-## Security boundary
-
-- The supported launcher binds explicitly to IPv4 loopback (`127.0.0.1`), not the LAN.
-- Requests must use a `127.0.0.1` or `localhost` Host header. This limits untrusted hostnames,
-  including common DNS-rebinding paths; it is not client authentication.
-- Forwarded proxy headers are not trusted. Debug responses, interactive API docs, and the
-  OpenAPI endpoint are disabled. CORS allows only `GET` from `http://tauri.localhost`, without
-  credentials. The exact development origin `http://127.0.0.1:1420` requires explicit opt-in.
-- Request access logging is disabled to avoid routinely recording URLs or query parameters.
-  Server lifecycle and error logging remain enabled; never include secrets in URLs or logs.
-- The health endpoint is intentionally unauthenticated and returns no personal or machine data.
-  Other local processes can call it. Browsers may still send some requests without CORS permission.
-- Before adding private data or state-changing endpoints, design and test desktop/backend
-  authentication and browser-origin protections. These initial restrictions do not protect against
-  malicious software already running under your user account.
-
-Use the provided launcher: starting Uvicorn manually with different flags can bypass its network
-and logging defaults. Do not expose this service to a network or use a public tunnel.
-
-## Checks
-
-```powershell
-.\.venv\Scripts\python.exe -m pytest
-.\.venv\Scripts\python.exe -m ruff check .
-.\.venv\Scripts\python.exe -m ruff format --check .
-.\.venv\Scripts\python.exe -m pip check
-```
-
-Tests cover the health response, host validation, unavailable routes, rejected write methods,
-restricted CORS permissions, configuration validation, and server startup defaults.
-The test client uses `httpx2`, as recommended by the current
-[Starlette testing guidance](https://www.starlette.io/testclient/).
-
-## Dependency maintenance
-
-`pyproject.toml` declares direct dependencies. `requirements.txt` and `requirements-dev.txt`
-pin resolved runtime and development dependencies with package hashes. They are generated for
-the initial Windows/Python 3.11 environment; regenerate and test when changing the supported runtime.
-Keep lockfiles in Git, but keep local environments and private data out of it.
-
-After editing dependencies, regenerate the runtime lock first, then the development lock:
-
-```powershell
-.\.venv\Scripts\python.exe -m piptools compile --generate-hashes --strip-extras --no-emit-index-url --no-build-isolation --output-file requirements.txt pyproject.toml
-.\.venv\Scripts\python.exe -m piptools compile --extra dev --generate-hashes --allow-unsafe --strip-extras --no-emit-index-url --no-build-isolation --constraint requirements.txt --output-file requirements-dev.txt pyproject.toml
-```
-
-Add `--upgrade` to deliberately refresh pinned versions. Review the changes, reinstall using the
-setup commands, and run the checks. For a clean dependency verification, use a fresh virtual
-environment; installing requirements alone does not remove previously installed packages.
+The [original Job OS plan](docs/PROJECT_CONTEXT.md) is preserved as historical context; it describes
+intentions and must not be read as a claim that future features already exist.

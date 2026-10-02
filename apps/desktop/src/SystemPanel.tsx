@@ -2,12 +2,24 @@ import type { useBackendHealth } from "./hooks/useBackendHealth";
 import Icon from "./Icon";
 
 const connectionCopy = {
-  checking: { label: "Checking connection", description: "Awaiting local service response." },
-  connected: { label: "Connected", description: "Local health service responding." },
-  unavailable: {
-    label: "Unavailable",
+  idle: {
+    label: "Not requested",
     description:
-      "Start the Oracle health service, then retry. Your local records use a separate connection.",
+      "Optional developer check. Oracle's records use the installed Linux worker, independently of this HTTP service.",
+  },
+  checking: {
+    label: "Checking diagnostic",
+    description: "Awaiting optional HTTP service response.",
+  },
+  connected: {
+    label: "Diagnostic responding",
+    description:
+      "The optional HTTP service responded. This does not verify the record runtime or an AI provider.",
+  },
+  unavailable: {
+    label: "Diagnostic unavailable",
+    description:
+      "The optional HTTP service is not responding. It is not required for normal Oracle use; record errors appear in the affected module.",
   },
 };
 
@@ -44,7 +56,7 @@ export default function SystemPanel({
         </div>
       </dl>
       <section className="link-panel" aria-labelledby="connection-heading">
-        <h3 id="connection-heading">HEALTH / BACKEND</h3>
+        <h3 id="connection-heading">OPTIONAL / HTTP DIAGNOSTIC</h3>
         <p className={`status-badge ${state}`}>
           <span className="status-dot" aria-hidden="true" />
           {copy.label}
@@ -64,7 +76,9 @@ export default function SystemPanel({
               ? "Checking…"
               : state === "unavailable"
                 ? "Try again"
-                : "Check again"}
+                : state === "idle"
+                  ? "Run diagnostic"
+                  : "Check again"}
           </button>
         </div>
       </section>

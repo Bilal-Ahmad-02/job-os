@@ -148,6 +148,12 @@ backups/
 # Private Job OS data: candidate profiles, emails, CVs, and application exports
 # Keep personal files in these locations, not alongside source or public docs.
 /Oracle additions.txt
+# Original local roadmap note is preserved in docs/ROADMAP.md for the handoff.
+/stepbystep.txt
+# Local assistant preferences may contain paths, credentials or session-specific settings.
+CLAUDE.local.md
+/.claude/settings.local.json
+/.claude/worktrees/
 private/
 .private/
 .local/

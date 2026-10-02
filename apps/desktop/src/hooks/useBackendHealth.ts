@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { checkHealth } from "../api/health";
 
-export type ConnectionState = "checking" | "connected" | "unavailable";
+export type ConnectionState = "idle" | "checking" | "connected" | "unavailable";
 
 export function useBackendHealth() {
-  const [state, setState] = useState<ConnectionState>("checking");
+  const [state, setState] = useState<ConnectionState>("idle");
   const [lastChecked, setLastChecked] = useState<Date | null>(null);
   const activeRequest = useRef<AbortController | null>(null);
 
@@ -24,15 +24,12 @@ export function useBackendHealth() {
   }, []);
 
   useEffect(() => {
-    void refresh();
-    // Refresh after returning to the app; no background polling or stale replies.
-    const onFocus = () => void refresh();
-    window.addEventListener("focus", onFocus);
+    // This optional developer diagnostic is not the record runtime's health signal.
+    // Only an explicit click contacts the HTTP service; focus never starts a check.
     return () => {
-      window.removeEventListener("focus", onFocus);
       activeRequest.current?.abort();
     };
-  }, [refresh]);
+  }, []);
 
   return { state, lastChecked, refresh };
 }

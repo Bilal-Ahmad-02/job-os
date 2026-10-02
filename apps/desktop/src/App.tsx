@@ -41,7 +41,6 @@ const views = {
     detail: "Saved profile / source review",
   },
 } as const;
-const linkCode = { checking: "PROBING", connected: "LINK.UP", unavailable: "NO.CARRIER" };
 
 export default function App({ onLock }: { onLock?: () => void }) {
   const [view, setView] = useState<View>("applications");
@@ -68,8 +67,7 @@ export default function App({ onLock }: { onLock?: () => void }) {
             aria-controls="system-panel"
             onClick={() => setSystemOpen(!systemOpen)}
           >
-            <span className={`status-dot ${health.state}`} aria-hidden="true" />
-            {linkCode[health.state]}
+            SYSTEM
           </button>
           {onLock ? (
             <button className="quiet-button" type="button" onClick={onLock}>

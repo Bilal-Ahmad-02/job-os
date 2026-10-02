@@ -1,75 +1,41 @@
-# Oracle desktop foundation
+# Oracle desktop
 
-For normal use, open **Oracle** through Start, its desktop shortcut or its taskbar icon. Since
-2026-10-01 these launch a versioned installed executable outside the repository, using a separately
-installed Linux backend. No development terminal is required. See [runtime releases](RUNTIME_RELEASES.md)
-for prerequisites, updates and recovery. The setup instructions below are for development and the
-historical Windows backend; they are not required to launch the installed app.
+For normal use, open **Oracle** through Start, its desktop shortcut or taskbar icon. The versioned
+Windows executable starts its pinned Ubuntu record worker automatically. No development terminal,
+HTTP service or Node/Rust toolchain is required for normal use.
 
-Oracle is the Windows desktop app for the Job OS project. This milestone provides a password-protected local
-window, application tracking, and a connection check. See [application storage and import](APPLICATIONS.md).
+Read [DEVELOPMENT.md](DEVELOPMENT.md) for current setup and test commands and
+[RUNTIME_RELEASES.md](RUNTIME_RELEASES.md) for installing updates. Editing source or building an
+executable does not update the installed copy. The app is a managed local installation, not a
+signed new-machine installer or updater. WebView2 and Ubuntu WSL2 remain prerequisites.
 
-## Prerequisites
+## Current diagnostic and provider behavior
 
-- Complete the Python setup in the root README.
-- Node.js 24 LTS and npm.
-- Rust through rustup; `src-tauri/rust-toolchain.toml` pins the compiler and components.
-- Microsoft Visual Studio 2022 Build Tools with **Desktop development with C++** and a Windows SDK.
-- Microsoft Edge WebView2 Runtime.
+The **SYSTEM** drawer contains an explicitly requested optional HTTP diagnostic. It does not run
+on unlock or window focus, and a diagnostic failure does not set a global disconnected state.
+Record modules report their own failures over the separate authenticated Windows/WSL pipe.
+The HTTP endpoint remains fixed at `http://127.0.0.1:8000/health`, with no personal data.
 
-See the [official Tauri Windows prerequisites](https://v2.tauri.app/start/prerequisites/#windows).
-After installing Rust or the build tools, open a new terminal to refresh PATH.
+**05 / CONTROL** handles native key entry, Windows credential storage and explicit provider-test
+permission. Saving a key never contacts the provider or enables inference. See
+[provider settings](PROVIDER_SETTINGS.md).
 
-## Run during development
+## Building a Windows executable
 
-First terminal, from the repository root:
-
-```powershell
-.\.venv\Scripts\python.exe -m app
-```
-
-Second terminal:
-
-```powershell
-Set-Location apps/desktop
-npm.cmd ci --ignore-scripts
-npm.cmd run desktop
-```
-
-Dependency lifecycle scripts are not needed by this scaffold. Keep them disabled during installation.
-The first native build downloads crates and may take several minutes. Vite runs on
-`127.0.0.1:1420` only and fails if that port is occupied. It is a development asset server for
-the desktop window; no frontend server is required by the built executable.
-
-**05 / CONTROL** manages the first provider connection's native key entry and explicit testing
-permission. Keys stay in Windows Credential Manager and never pass through the WebView or Linux.
-Saving a key does not enable inference or contact the provider. See [provider settings](PROVIDER_SETTINGS.md).
-
-The native shell checks the fixed endpoint `http://127.0.0.1:8000/health` after unlock. Use backend
-port 8000 for this milestone. The renderer cannot directly contact the HTTP backend; its CSP permits
-only Tauri IPC (plus the Vite WebSocket in development). The backend CORS development opt-in is
-no longer needed by Oracle, although it remains available for explicitly authorized browser testing.
-
-Close the desktop window and use `Ctrl+C` to stop development processes. Backend and desktop
-lifecycles are separate for now.
-
-## Build a native executable
-
-From `apps/desktop`:
+From `apps/desktop` in PowerShell:
 
 ```powershell
 npm.cmd run desktop:build
 ```
 
-This produces `src-tauri/target/release/oracle-desktop.exe` with bundled frontend assets.
-Open that executable; application tracking starts Python workers automatically. Start the HTTP
-backend separately only if you need its health check. The artifact is unsigned and
-requires WebView2; it is not yet a self-contained installer. Do not publish it as a complete app.
+This produces `src-tauri/target/release/oracle-desktop.exe` with bundled frontend assets. Follow
+RUNTIME_RELEASES.md to install it and update existing shortcuts. For development, `npm.cmd run desktop`
+starts Vite and Tauri; that development window uses the same local application identity and private
+runtime configuration. Use synthetic tests for mutations.
 
-The selected production backend is now installed separately in Ubuntu, with bounded startup and
-shutdown over password-gated native pipes. Follow RUNTIME_RELEASES.md to deploy a build; editing
-the checkout does not change installed code. New-machine installation, auto-start and automatic
-updates remain future work. Normal record access requires no HTTP service or listening port.
+The behavior/security sections below include historical milestone notes. Current setup is described
+above and in DEVELOPMENT.md; historical Windows Python examples are not instructions to reopen the
+inactive Windows database or change production runtime ownership.
 
 ## Frontend structure and interactions
 

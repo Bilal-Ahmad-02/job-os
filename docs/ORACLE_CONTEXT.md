@@ -1,5 +1,22 @@
 # Oracle — current long-term context
 
+Owner priority, 2026-10-01 / handoff work 2026-10-02: pause new roadmap features after step 13.
+Stabilize the implemented scope, preserve source on GitHub, verify recovery, and prepare a Claude
+handoff before the owner's Codex subscription ends. This supersedes earlier "next step" directions
+until the owner explicitly resumes feature work. Read HANDOFF.md, DEVELOPMENT.md, VALIDATION.md,
+SECURITY_REVIEW.md and WORK_LOG.md for the current state; CLAUDE_START_PROMPT.txt is the starter prompt.
+
+The 208-file source checkpoint was reviewed for private artifacts/token patterns and pushed as
+`f031b314293270ee1405e98f08557d454fae3971`. The repository is public. Linux was aligned to that
+reviewed commit with its former uncommitted work retained in a recovery stash. Private records,
+originals, passwords and API keys remain outside Git. No model generation or new feature was added.
+
+Stabilization corrects a misleading system indicator: the optional HTTP diagnostic now runs only
+on explicit request and cannot label the whole app disconnected. Record operations remain over
+the installed Linux pipe runtime. Current setup instructions replace historical Windows-first
+launch directions. The selected backend remains the step-13 release below; final desktop digest,
+test evidence, advisory applicability and backup verification are recorded in VALIDATION.md.
+
 Implementation checkpoint, 2026-10-01: step 13 completes owner-entered search preferences in
 **03 / IDENTITY > Saved profile > Job preferences**. Target roles, locations, work arrangements
 and employment types are joined by explicit employer and listing-phrase exclusion lists. Each

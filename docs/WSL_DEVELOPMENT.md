@@ -12,14 +12,15 @@ place to edit/test backend source; it no longer supplies live worker code. Norma
 uses `%LOCALAPPDATA%\Programs\Oracle\releases`. See RUNTIME_RELEASES.md for building, verifying,
 selecting and recovering installed releases. Runtime config version 2 restricts the project field
 to this release root plus a 64-character lowercase digest; version 1 development configs remain
-explicitly supported. No fallback occurs when a selected release is missing. All 198 current
-source files match across the checkouts; generated environments remain separate.
+explicitly supported. No fallback occurs when a selected release is missing. Reviewed source
+commits now align the checkouts; generated environments remain separate. Current source/release
+state and test results are recorded in HANDOFF.md and VALIDATION.md.
 
 The 2026-10-01 task milestone upgrades the active workspace to schema `0008`; see TASKS.md. Tasks
 use the same authenticated, bounded Linux request path, one document at a time. There is no new
 daemon or Windows database connection. The migration recovery copy and all existing rows/source
-bytes were verified locally. The current source handoff covers 192 files; platform dependencies
-and credentials remain in their original environments.
+bytes were verified locally. That milestone's source handoff covered 192 files; platform dependencies
+and credentials remain in their original environments. This is a historical milestone count.
 
 - Active database: `/home/lethargic/.local/share/oracle/oracle.sqlite3`, with its matching identity
   marker. Directory permissions are 0700; files are 0600. Access it only through Linux workers or
