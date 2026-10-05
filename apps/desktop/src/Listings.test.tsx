@@ -3,10 +3,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
 import {
   blankListing,
+  deleteSearch,
   getListing,
   type ListingRecord,
   listListings,
+  listSearches,
   saveListing,
+  saveSearch,
+  trackListing,
 } from "./api/listings";
 import Listings from "./Listings";
 
@@ -15,6 +19,10 @@ vi.mock("./api/listings", async (original) => ({
   getListing: vi.fn(),
   listListings: vi.fn(),
   saveListing: vi.fn(),
+  trackListing: vi.fn(),
+  listSearches: vi.fn(),
+  saveSearch: vi.fn(),
+  deleteSearch: vi.fn(),
 }));
 vi.mock("./api/applications", async (original) => ({
   ...(await original<typeof import("./api/applications")>()),
@@ -39,24 +47,37 @@ beforeEach(() => {
   record.data.title = "Synthetic Engineer";
   vi.mocked(listListings)
     .mockReset()
-    .mockImplementation(async (_query, _offset, archived) => ({
-      total: archived ? 0 : 1,
-      items: archived
-        ? []
-        : [
-            {
-              id: record.id,
-              origin: "pasted",
-              title: record.data.title,
-              suggested_title: "",
-              company: "",
-              location: "Remote",
-              collected_at: record.collected_at,
-              archived: false,
-              closed: false,
-              possible_duplicate: false,
-            },
-          ],
+    .mockImplementation(async (_query, _offset, view) => ({
+      total: view === "incoming" ? 1 : 0,
+      items:
+        view !== "incoming"
+          ? []
+          : [
+              {
+                id: record.id,
+                origin: "pasted",
+                title: record.data.title,
+                suggested_title: "",
+                company: "",
+                location: "Remote",
+                collected_at: record.collected_at,
+                archived: false,
+                closed: false,
+                shortlisted: false,
+                application_id: null,
+                possible_duplicate: false,
+              },
+            ],
+    }));
+  vi.mocked(listSearches).mockReset().mockResolvedValue([]);
+  vi.mocked(saveSearch).mockReset();
+  vi.mocked(deleteSearch).mockReset();
+  vi.mocked(trackListing)
+    .mockReset()
+    .mockImplementation(async (input) => ({
+      ...input,
+      version: input.version + 1,
+      application_id: "11111111-1111-4111-8111-111111111111",
     }));
   vi.mocked(getListing)
     .mockReset()
@@ -81,7 +102,7 @@ describe("Listing intake", () => {
     expect(entry).toHaveTextContent("Company not provided / Remote");
     expect(entry).toHaveTextContent("Pasted");
     expect(screen.queryByText(/Ignore previous instructions/)).not.toBeInTheDocument();
-    expect(listListings).toHaveBeenCalledWith("", 0, false);
+    expect(listListings).toHaveBeenCalledWith("", 0, "incoming");
   });
 
   it("saves a pasted listing only on request and then shows the stored original read-only", async () => {
@@ -120,7 +141,7 @@ describe("Listing intake", () => {
     render(<Listings />);
     fireEvent.click(await screen.findByRole("button", { name: /Synthetic Engineer/ }));
     const company = await screen.findByLabelText("Company");
-    const archive = screen.getByRole("button", { name: "Archive listing" });
+    const archive = screen.getByRole("button", { name: "Dismiss listing" });
     fireEvent.change(company, { target: { value: "Example AB" } });
     expect(archive).toBeDisabled();
     fireEvent.click(screen.getByRole("button", { name: "Save listing" }));
@@ -131,7 +152,7 @@ describe("Listing intake", () => {
       original_text: ORIGINAL,
     });
     fireEvent.click(archive);
-    expect(await screen.findByText("Archived. Nothing was deleted.")).toBeVisible();
+    expect(await screen.findByText("Dismissed. Nothing was deleted.")).toBeVisible();
     expect(vi.mocked(saveListing).mock.calls[1]?.[0]).toMatchObject({ version: 2, archived: true });
     expect(screen.getByRole("button", { name: "Restore listing" })).toBeEnabled();
   });
@@ -173,6 +194,8 @@ describe("Listing intake", () => {
           collected_at: record.collected_at,
           archived: false,
           closed: false,
+          shortlisted: false,
+          application_id: null,
           possible_duplicate: false,
         },
       ],
@@ -224,7 +247,7 @@ describe("Listing intake", () => {
     expect(section).toHaveTextContent(/never merges, archives, closes or deletes/);
     expect(section).toHaveTextContent("Earlier Engineer / Example AB");
     expect(section).toHaveTextContent("Same link, Same title and company");
-    expect(section).toHaveTextContent("archived / role closed");
+    expect(section).toHaveTextContent("dismissed / role closed");
     fireEvent.change(screen.getByLabelText("Company"), { target: { value: "Draft" } });
     expect(screen.getByRole("button", { name: "Open listing" })).toBeDisabled();
     fireEvent.change(screen.getByLabelText("Company"), { target: { value: "" } });
@@ -252,6 +275,8 @@ describe("Listing intake", () => {
           collected_at: record.collected_at,
           archived: false,
           closed: true,
+          shortlisted: false,
+          application_id: null,
           possible_duplicate: true,
         },
       ],
@@ -280,16 +305,76 @@ describe("Listing intake", () => {
     expect(screen.queryByRole("region", { name: "04 / NORMALIZED VIEW" })).not.toBeInTheDocument();
   });
 
-  it("switches between active and archived views from the first page", async () => {
+  it("switches between review views from the first page", async () => {
     render(<Listings />);
     await screen.findByRole("button", { name: /Synthetic Engineer/ });
-    fireEvent.click(screen.getByRole("button", { name: "Show archived" }));
-    expect(await screen.findByText("No archived listings.")).toBeVisible();
-    expect(listListings).toHaveBeenLastCalledWith("", 0, true);
-    expect(screen.getByRole("button", { name: "Show active" })).toHaveAttribute(
+    const views = screen.getByRole("group", { name: "Listing views" });
+    expect(views).toHaveTextContent("IncomingShortlistTrackedDismissed");
+    fireEvent.click(screen.getByRole("button", { name: "Dismissed" }));
+    expect(await screen.findByText("No dismissed listings.")).toBeVisible();
+    expect(listListings).toHaveBeenLastCalledWith("", 0, "dismissed");
+    expect(screen.getByRole("button", { name: "Dismissed" })).toHaveAttribute(
       "aria-pressed",
       "true",
     );
+    fireEvent.click(screen.getByRole("button", { name: "Shortlist" }));
+    expect(await screen.findByText("Nothing shortlisted.")).toBeVisible();
+  });
+
+  it("shortlists and starts an application only on request, then offers neither again", async () => {
+    render(<Listings />);
+    fireEvent.click(await screen.findByRole("button", { name: /Synthetic Engineer/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Add to shortlist" }));
+    expect(await screen.findByText("Added to the shortlist.")).toBeVisible();
+    expect(vi.mocked(saveListing).mock.calls[0]?.[0]).toMatchObject({ shortlisted: true });
+    expect(trackListing).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Start application" }));
+    expect(await screen.findByText(/Application dossier created/)).toBeVisible();
+    expect(vi.mocked(trackListing).mock.calls[0]?.[0]).toMatchObject({
+      id: record.id,
+      version: 2,
+    });
+    expect(screen.getByRole("note")).toHaveTextContent("nothing was sent to the employer");
+    expect(screen.queryByRole("button", { name: "Start application" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /shortlist/ })).not.toBeInTheDocument();
+    expect(saveListing).toHaveBeenCalledTimes(1);
+  });
+
+  it("saves, applies and removes a named search without touching listings", async () => {
+    const saved = {
+      id: "22222222-2222-4222-8222-222222222222",
+      name: "Shortlisted data roles",
+      query: "data",
+      view: "shortlist" as const,
+    };
+    vi.mocked(saveSearch).mockResolvedValue([saved]);
+    vi.mocked(deleteSearch).mockResolvedValue([]);
+    render(<Listings />);
+    await screen.findByRole("button", { name: /Synthetic Engineer/ });
+    expect(screen.getByText("None saved.")).toBeVisible();
+    const save = screen.getByRole("button", { name: "Save search" });
+    expect(save).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Search listings by company or job title"), {
+      target: { value: "data" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "EXEC" }));
+    fireEvent.click(screen.getByRole("button", { name: "Shortlist" }));
+    fireEvent.change(screen.getByLabelText("Name for the current search"), {
+      target: { value: " Shortlisted data roles " },
+    });
+    fireEvent.click(save);
+    const apply = await screen.findByRole("button", { name: "Shortlisted data roles" });
+    expect(saveSearch).toHaveBeenCalledWith("Shortlisted data roles", "data", "shortlist");
+    fireEvent.click(screen.getByRole("button", { name: "Incoming" }));
+    fireEvent.click(screen.getByRole("button", { name: "Clear query" }));
+    fireEvent.click(apply);
+    await waitFor(() => expect(listListings).toHaveBeenLastCalledWith("data", 0, "shortlist"));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove saved search Shortlisted data roles" }),
+    );
+    expect(await screen.findByText("None saved.")).toBeVisible();
+    expect(deleteSearch).toHaveBeenCalledWith(saved.id);
+    expect(saveListing).not.toHaveBeenCalled();
   });
 
   it("loads listings only when the module is opened and keeps a draft across modules", async () => {

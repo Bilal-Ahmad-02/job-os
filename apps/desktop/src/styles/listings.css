@@ -1,3 +1,36 @@
+.listing-views,
+.listing-searches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.listing-views button[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--active);
+}
+.listing-searches {
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 1px;
+}
+.listing-searches input {
+  width: 260px;
+  padding: 7px 10px;
+  font-size: 13px;
+}
+.listing-searches button {
+  min-height: 30px;
+  padding: 5px 9px;
+}
+.saved-search {
+  display: inline-flex;
+}
+.editor-actions {
+  flex-wrap: wrap;
+}
 .listing-original,
 .listing-derived {
   margin-top: 28px;

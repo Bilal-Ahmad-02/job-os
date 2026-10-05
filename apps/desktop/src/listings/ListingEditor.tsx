@@ -8,6 +8,7 @@ import {
   matchReasons,
   ORIGINAL_LIMIT,
   saveListing,
+  trackListing,
   validLink,
   workModes,
 } from "../api/listings";
@@ -48,13 +49,13 @@ export default function ListingEditor({
     form.current?.querySelector<HTMLElement>("textarea, input")?.focus();
   }, []);
 
-  async function save(next: ListingRecord, message: string) {
+  async function save(next: ListingRecord, message: string, operation = saveListing) {
     if (busy) return;
     setBusy(true);
     setError("");
     setSaved("");
     try {
-      const result = await saveListing(next);
+      const result = await operation(next);
       setRecord(result);
       baseline.current = JSON.stringify(result);
       setSaved(message);
@@ -83,7 +84,9 @@ export default function ListingEditor({
         <div>
           <p className="eyebrow">
             LISTING / {unsaved ? "UNSAVED" : `REV.${record.version}`}
-            {record.archived ? " / ARCHIVED" : ""}
+            {record.archived ? " / DISMISSED" : ""}
+            {record.shortlisted ? " / SHORTLISTED" : ""}
+            {record.application_id ? " / TRACKED" : ""}
             {record.closed ? " / ROLE CLOSED" : ""}
           </p>
           <h2>{record.data.title || record.data.company || "NEW.LISTING"}</h2>
@@ -276,7 +279,7 @@ export default function ListingEditor({
                 <span>
                   {match.reasons.map((reason) => matchReasons[reason]).join(", ")} / collected{" "}
                   {collected(match.collected_at)}
-                  {match.archived ? " / archived" : ""}
+                  {match.archived ? " / dismissed" : ""}
                   {match.closed ? " / role closed" : ""}
                 </span>
                 {onOpen ? (
@@ -295,6 +298,12 @@ export default function ListingEditor({
           </ul>
         </section>
       )}
+      {record.application_id ? (
+        <p className="input-help" role="note">
+          An application dossier was started from this listing and is tracked in 01 / ACQ. Oracle
+          created the dossier only; nothing was sent to the employer.
+        </p>
+      ) : null}
       <div className="editor-actions">
         <div>
           {error ? (
@@ -315,11 +324,43 @@ export default function ListingEditor({
             onClick={() =>
               void save(
                 { ...record, archived: !record.archived },
-                record.archived ? "Returned to the active list." : "Archived. Nothing was deleted.",
+                record.archived ? "Restored for review." : "Dismissed. Nothing was deleted.",
               )
             }
           >
-            {record.archived ? "Restore listing" : "Archive listing"}
+            {record.archived ? "Restore listing" : "Dismiss listing"}
+          </button>
+        )}
+        {unsaved || record.application_id ? null : (
+          <button
+            type="button"
+            className="quiet-button"
+            disabled={busy || dirty}
+            title={dirty ? "Save or discard your changes first" : undefined}
+            onClick={() =>
+              void save(
+                { ...record, shortlisted: !record.shortlisted },
+                record.shortlisted ? "Removed from the shortlist." : "Added to the shortlist.",
+              )
+            }
+          >
+            {record.shortlisted ? "Remove from shortlist" : "Add to shortlist"}
+          </button>
+        )}
+        {unsaved || record.application_id ? null : (
+          <button
+            type="button"
+            disabled={busy || dirty}
+            title={dirty ? "Save or discard your changes first" : undefined}
+            onClick={() =>
+              void save(
+                record,
+                "Application dossier created. Open 01 / ACQ and choose REFRESH to see it.",
+                trackListing,
+              )
+            }
+          >
+            Start application
           </button>
         )}
         {unsaved ? null : (

@@ -153,7 +153,51 @@ reopened. The step-15 backend can no longer open the workspace. The active backu
 held a single snapshot from before the `0009` migration, so no encrypted backup covers the current
 schema.
 
+## Review workflow (step 19)
+
+Status on 2026-10-05: implemented and tested in source, **not deployed**. It needs schema `0011`,
+so deployment includes a live migration. Steps 17 (matching) and 18 (explanations) were skipped
+for now at the owner's request: the confirmed profile and preferences are still empty, so there is
+nothing to match against. This step does not read the profile.
+
+What it adds in **06 / INGRESS**:
+
+- Four views. **Incoming** holds listings not yet shortlisted, dismissed or tracked. **Shortlist**
+  holds ones you marked. **Tracked** holds ones you started an application from. **Dismissed**
+  holds ones you dismissed. Every listing is in exactly one view.
+- **Add to shortlist** / **Remove from shortlist**, and **Dismiss listing** / **Restore listing**.
+  Dismissal is the step-14 archive flag under a clearer name; nothing is deleted.
+- **Start application** creates one dossier in **01 / ACQ** with status Saved, filled from the
+  listing: your title (or the first line of the pasted text, stated in the dossier's notes),
+  company, link, source and the cleaned text as the description, shortened to 10,000 characters
+  with a note if it is longer. The listing keeps its full original and is linked to the dossier.
+  It can be done once per listing; a retry returns the same link. Press REFRESH in ACQ to see it.
+- **Saved searches**: name the current view and text filter, re-apply it with one click, remove
+  it with the cross. Up to 20. A saved search stores no results and never runs by itself.
+
+What it never does: move, shortlist, dismiss or track a listing by itself; contact an employer or
+any website; submit anything. "Start application" only creates a local tracker record. The link
+from a listing to its dossier is one-way and permanent in this version: the dossier does not yet
+show which listing it came from, and there is no "unlink". Removing a saved search removes the
+named filter only.
+
+Storage: schema `0011` adds `shortlisted` and a nullable `application_id` (foreign key to
+`applications`, unique when set) to `job_listings`, and a `listing_searches` table. Existing
+listings start as not shortlisted and untracked, in the view their archive flag implies.
+`listings_list` now takes `view` instead of `archived`, `listing_update` requires `shortlisted`,
+and `listing_track`, `listing_searches_list`, `listing_search_save` and `listing_search_delete`
+are new operations on the existing authenticated pipe. Backend and desktop must be deployed
+together. The step-16 backend cannot open a `0011` workspace.
+
 ## Verification
+
+Step 19 brings the backend to 333 tests (15 more, net) and the frontend to 108 (4 more): one view per listing,
+a single linked dossier with idempotent retry, stated title provenance and bounded description,
+refusal of unnamed, stale, missing and colliding tracking requests with no partial dossier, saved
+search bounds, idempotency and removal without touching listings, rejected inputs, real migrations
+from `0009` and `0010` built by running only the earlier migrations, strict validation of the new
+response fields, and request-only shortlist, tracking and saved-search actions in the interface.
+The 33 ordinary native tests pass.
 
 Step 16 adds 9 backend tests (318 total) and 2 frontend tests (104 total): key normalization,
 two-way flags with nothing merged, link and title/company reasons kept distinct from identical

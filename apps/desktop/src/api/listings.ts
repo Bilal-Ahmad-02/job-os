@@ -35,6 +35,15 @@ export type NormalizedListing = {
   mentioned_work_modes: (keyof typeof workModes)[];
   mentioned_employment_types: (keyof typeof employmentTypes)[];
 };
+/** Dismissed is the stored archive flag; tracked means an application was started from it. */
+export const listingViews = {
+  incoming: "Incoming",
+  shortlist: "Shortlist",
+  tracked: "Tracked",
+  dismissed: "Dismissed",
+} as const;
+export type ListingView = keyof typeof listingViews;
+export type SavedSearch = { id: string; name: string; query: string; view: ListingView };
 export const matchReasons = {
   same_text: "Identical text",
   same_link: "Same link",
@@ -61,6 +70,8 @@ export type ListingRecord = {
   updated_at: string;
   archived: boolean;
   closed: boolean;
+  shortlisted: boolean;
+  application_id: string | null;
   normalized: NormalizedListing;
   matches: ListingMatch[];
 };
@@ -74,6 +85,8 @@ export type ListingSummary = {
   collected_at: string;
   archived: boolean;
   closed: boolean;
+  shortlisted: boolean;
+  application_id: string | null;
   possible_duplicate: boolean;
 };
 export type ListingPage = { total: number; items: ListingSummary[] };
@@ -90,6 +103,8 @@ export function blankListing(): ListingRecord {
     updated_at: "",
     archived: false,
     closed: false,
+    shortlisted: false,
+    application_id: null,
     matches: [],
     normalized: {
       rules_version: 1,
@@ -177,6 +192,8 @@ function listingResult(value: unknown): ListingRecord {
       "updated_at",
       "archived",
       "closed",
+      "shortlisted",
+      "application_id",
       "normalized",
       "matches",
     ]) ||
@@ -197,6 +214,8 @@ function listingResult(value: unknown): ListingRecord {
     !text(value.updated_at, 40) ||
     typeof value.archived !== "boolean" ||
     typeof value.closed !== "boolean" ||
+    typeof value.shortlisted !== "boolean" ||
+    !(value.application_id === null || uuid(value.application_id)) ||
     !normalized(value.normalized) ||
     !matches(value.matches, value.id)
   )
@@ -204,13 +223,19 @@ function listingResult(value: unknown): ListingRecord {
   return value as ListingRecord;
 }
 
+function inView(item: Record<string, unknown>, view: ListingView): boolean {
+  if (view === "tracked") return item.application_id !== null;
+  if (item.application_id !== null) return false;
+  if (view === "dismissed") return item.archived === true;
+  return item.archived === false && item.shortlisted === (view === "shortlist");
+}
 export async function listListings(
   query: string,
   offset: number,
-  archived: boolean,
+  view: ListingView,
 ): Promise<ListingPage> {
   const value = await invoke<unknown>("applications", {
-    payload: { action: "listings_list", query, offset, archived },
+    payload: { action: "listings_list", query, offset, view },
   });
   if (
     !object(value) ||
@@ -232,6 +257,8 @@ export async function listListings(
           "collected_at",
           "archived",
           "closed",
+          "shortlisted",
+          "application_id",
           "possible_duplicate",
         ]) &&
         uuid(item.id) &&
@@ -241,7 +268,10 @@ export async function listListings(
         text(item.company, 300) &&
         text(item.location, 300) &&
         text(item.collected_at, 40) &&
-        item.archived === archived &&
+        typeof item.archived === "boolean" &&
+        typeof item.shortlisted === "boolean" &&
+        (item.application_id === null || uuid(item.application_id)) &&
+        inView(item, view) &&
         typeof item.closed === "boolean" &&
         typeof item.possible_duplicate === "boolean",
     )
@@ -271,8 +301,70 @@ export async function saveListing(record: ListingRecord): Promise<ListingRecord>
           data: record.data,
           archived: record.archived,
           closed: record.closed,
+          shortlisted: record.shortlisted,
         };
   return listingResult(await invoke<unknown>("applications", { payload }));
+}
+/** Starts one application dossier from a saved listing. Nothing is sent to an employer. */
+export async function trackListing(record: ListingRecord): Promise<ListingRecord> {
+  const result = listingResult(
+    await invoke<unknown>("applications", {
+      payload: {
+        action: "listing_track",
+        id: record.id,
+        version: record.version,
+        application_id: crypto.randomUUID(),
+      },
+    }),
+  );
+  if (result.application_id === null) throw new Error("Invalid listing response");
+  return result;
+}
+
+function searchPage(value: unknown): SavedSearch[] {
+  if (
+    !object(value) ||
+    !keys(value, ["items"]) ||
+    !Array.isArray(value.items) ||
+    value.items.length > 20 ||
+    new Set(value.items.map((item) => (object(item) ? item.id : item))).size !==
+      value.items.length ||
+    !value.items.every(
+      (item: unknown) =>
+        object(item) &&
+        keys(item, ["id", "name", "query", "view"]) &&
+        uuid(item.id) &&
+        text(item.name, 80) &&
+        item.name.trim() !== "" &&
+        text(item.query, 200) &&
+        typeof item.view === "string" &&
+        Object.hasOwn(listingViews, item.view),
+    )
+  )
+    throw new Error("Invalid saved search response");
+  return value.items as SavedSearch[];
+}
+export async function listSearches(): Promise<SavedSearch[]> {
+  return searchPage(
+    await invoke<unknown>("applications", { payload: { action: "listing_searches_list" } }),
+  );
+}
+export async function saveSearch(
+  name: string,
+  query: string,
+  view: ListingView,
+): Promise<SavedSearch[]> {
+  return searchPage(
+    await invoke<unknown>("applications", {
+      payload: { action: "listing_search_save", id: crypto.randomUUID(), name, query, view },
+    }),
+  );
+}
+/** Removes the named filter only; no listing is touched. */
+export async function deleteSearch(id: string): Promise<SavedSearch[]> {
+  return searchPage(
+    await invoke<unknown>("applications", { payload: { action: "listing_search_delete", id } }),
+  );
 }
 
 const messages: Record<string, string> = {

@@ -119,6 +119,16 @@ the built stylesheet. Not verified: the fix or any step 14-16 screen in the unlo
 did not exit on a normal close request while in use, so its process was stopped for this update.
 The active backup repository held one snapshot, taken before the `0009` migration.
 
+### Step 19 source state — October 5, 2026
+
+The review workflow is committed locally and not deployed or pushed. Checks run: 333 Linux tests
+with Ruff clean; TypeScript, Biome, 108 frontend tests across 18 files and the Vite build; 33
+ordinary native tests. Not run: WSL native probes (they need an installed `0011` release). Not
+done: release build/install, live migration to `0011`, selection, desktop install. The installed
+backend `79a4fd8c...`, desktop `2abb7556...` and schema `0010` are still what runs. The new screens
+have not been seen in a browser or the app; after the hub bug, styling is a known blind spot of
+the component tests.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was
