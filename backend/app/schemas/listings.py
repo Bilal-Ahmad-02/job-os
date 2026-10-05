@@ -61,6 +61,21 @@ class ListingUpdateRequest(Contract):
     archived: bool
 
 
+class NormalizedListing(Contract):
+    """Derived by fixed rules from the stored original; never owner-entered or verified."""
+
+    rules_version: Literal[1]
+    # Canonical composition can lengthen a few characters; bound the worst case explicitly.
+    text: Annotated[str, StringConstraints(max_length=150000)]
+    suggested_title: Annotated[str, StringConstraints(max_length=120)]
+    canonical_url: Annotated[str, StringConstraints(max_length=2000)]
+    links: list[Annotated[str, StringConstraints(max_length=2000)]] = Field(max_length=10)
+    mentioned_work_modes: list[Literal["onsite", "hybrid", "remote"]] = Field(max_length=3)
+    mentioned_employment_types: list[
+        Literal["full_time", "part_time", "contract", "temporary", "internship", "traineeship"]
+    ] = Field(max_length=6)
+
+
 class ListingRecord(Contract):
     id: Identity
     version: int = Field(ge=1)
@@ -71,12 +86,14 @@ class ListingRecord(Contract):
     collected_at: str = Field(max_length=40)
     updated_at: str = Field(max_length=40)
     archived: bool
+    normalized: NormalizedListing
 
 
 class ListingSummary(Contract):
     id: Identity
     origin: Origin
     title: Short
+    suggested_title: Annotated[str, StringConstraints(max_length=120)]
     company: Short
     location: Short
     collected_at: str = Field(max_length=40)

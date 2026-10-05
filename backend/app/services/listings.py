@@ -22,6 +22,7 @@ from app.schemas.listings import (
     ListingUpdateRequest,
 )
 from app.services.applications import RecordError
+from app.services.listing_normalizer import normalize, normalize_text, suggested_title
 
 MAX_LISTINGS = 2000
 FIELDS = tuple(ListingFields.model_fields)
@@ -42,6 +43,7 @@ def record(row: JobListing) -> ListingRecord:
         collected_at=row.collected_at,
         updated_at=row.updated_at,
         archived=bool(row.archived),
+        normalized=normalize(row.original_text, row.url),
     )
 
 
@@ -66,6 +68,7 @@ def list_listings(engine: Engine, request: ListingsListRequest) -> ListingPage:
                     id=row.id,
                     origin=row.origin,
                     title=row.title,
+                    suggested_title=suggested_title(normalize_text(row.original_text)),
                     company=row.company,
                     location=row.location,
                     collected_at=row.collected_at,

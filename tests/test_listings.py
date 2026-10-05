@@ -222,6 +222,7 @@ def test_real_wire_requests_round_trip_and_redact_failures(tmp_path):
         "id",
         "origin",
         "title",
+        "suggested_title",
         "company",
         "location",
         "collected_at",
