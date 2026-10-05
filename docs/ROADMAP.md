@@ -85,7 +85,8 @@ steps 1-3 below are reconstructed from the recorded foundation milestones.
 
 Steps 4-13 have been implemented at their documented scope. Step 10's Linux runtime ownership
 was completed early. The owner resumed the roadmap on 2026-10-05. Step 14's manual part (pasted and
-hand-entered listings) is implemented and deployed; see LISTINGS.md. Its
+hand-entered listings) is implemented and deployed; see LISTINGS.md. Step 15 normalization for
+those listings is implemented in source, not yet deployed, and needs no schema change. Its
 "selected supported external sources" part is not started. Later steps may
 build on partial foundations already present; provider connection testing is not AI execution,
 source-text extraction is not semantic profile generation, and manual backups are not scheduling.

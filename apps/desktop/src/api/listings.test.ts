@@ -70,6 +70,12 @@ it("rejects malformed, inconsistent or extended listing records", async () => {
     { ...record, data: { ...record.data, title: "x".repeat(301) } },
     { ...record, data: { title: "Only" } },
     { ...record, path: "/private" },
+    { ...record, normalized: undefined },
+    { ...record, normalized: { ...record.normalized, rules_version: 2 } },
+    { ...record, normalized: { ...record.normalized, links: ["javascript:alert(1)"] } },
+    { ...record, normalized: { ...record.normalized, mentioned_work_modes: ["remote", "remote"] } },
+    { ...record, normalized: { ...record.normalized, mentioned_employment_types: ["ceo"] } },
+    { ...record, normalized: { ...record.normalized, company: "Guessed AB" } },
   ]) {
     invoke.mockResolvedValue(value);
     await expect(getListing(record.id)).rejects.toThrow("Invalid listing response");
@@ -83,6 +89,7 @@ it("rejects pages that are oversized, malformed or from the other archive view",
     id: crypto.randomUUID(),
     origin: "pasted",
     title: "Synthetic role",
+    suggested_title: "",
     company: "",
     location: "",
     collected_at: "2026-10-05T12:00:00+00:00",

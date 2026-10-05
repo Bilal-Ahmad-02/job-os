@@ -83,6 +83,13 @@ snapshot's restore verification, repository check and OneDrive sync are owner-re
 session confirmed only that the folder holds one snapshot file dated 2026-10-05. The pending
 "corrected handoff backup" described below was aimed at the earlier repository and is superseded.
 
+### Step 15 source state — October 5, 2026
+
+Read-time listing normalization is committed locally and not deployed or pushed. Checks run: 309
+Linux tests with Ruff clean; TypeScript, Biome, 102 frontend tests across 18 files and the Vite
+build. No native code or schema changed; native tests and WSL probes were not rerun. The installed
+backend `dd8f4172...` and desktop `1b579d1f...` from step 14 are still what runs.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

@@ -48,6 +48,7 @@ beforeEach(() => {
               id: record.id,
               origin: "pasted",
               title: record.data.title,
+              suggested_title: "",
               company: "",
               location: "Remote",
               collected_at: record.collected_at,
@@ -144,6 +145,64 @@ describe("Listing intake", () => {
     expect(screen.getByLabelText("Job title")).toHaveValue("Draft role");
     fireEvent.click(screen.getByRole("button", { name: "Back to list" }));
     expect(screen.getByText("Discard your unsaved changes?")).toBeVisible();
+  });
+
+  it("shows rule-derived observations separately and applies a suggestion only on request", async () => {
+    record.data.title = "";
+    record.normalized = {
+      rules_version: 1,
+      text: "Synthetic Engineer\nHybrid, full-time. https://example.test/apply",
+      suggested_title: "Synthetic Engineer",
+      canonical_url: "",
+      links: ["https://example.test/apply"],
+      mentioned_work_modes: ["hybrid"],
+      mentioned_employment_types: ["full_time"],
+    };
+    vi.mocked(listListings).mockResolvedValue({
+      total: 1,
+      items: [
+        {
+          id: record.id,
+          origin: "pasted",
+          title: "",
+          suggested_title: "Synthetic Engineer",
+          company: "",
+          location: "",
+          collected_at: record.collected_at,
+          archived: false,
+        },
+      ],
+    });
+    render(<Listings />);
+    fireEvent.click(
+      await screen.findByRole("button", {
+        name: /Synthetic Engineer \(first line of pasted text\)/,
+      }),
+    );
+    const derived = await screen.findByRole("region", { name: "04 / NORMALIZED VIEW" });
+    expect(derived).toHaveTextContent(
+      /fixed rules \(version 1\), with no model and no web request/,
+    );
+    expect(derived).toHaveTextContent("Hybrid");
+    expect(derived).toHaveTextContent("Full time");
+    expect(derived).toHaveTextContent("https://example.test/apply");
+    // Detected links are text only: nothing in a listing can navigate or fetch.
+    expect(derived.querySelector("a")).toBeNull();
+    expect(screen.getByLabelText("Job title")).toHaveValue("");
+    fireEvent.click(screen.getByRole("button", { name: "Use as job title" }));
+    expect(screen.getByLabelText("Job title")).toHaveValue("Synthetic Engineer");
+    expect(saveListing).not.toHaveBeenCalled();
+    expect(screen.getByText("Unsaved changes")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Use as job title" })).not.toBeInTheDocument();
+  });
+
+  it("offers no derived view for a listing entered by hand", async () => {
+    record.origin = "manual";
+    record.original_text = "";
+    render(<Listings />);
+    fireEvent.click(await screen.findByRole("button", { name: /Synthetic Engineer/ }));
+    await screen.findByLabelText("Company");
+    expect(screen.queryByRole("region", { name: "04 / NORMALIZED VIEW" })).not.toBeInTheDocument();
   });
 
   it("switches between active and archived views from the first page", async () => {

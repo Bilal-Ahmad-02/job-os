@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import {
+  employmentTypes,
   type ListingField,
   type ListingRecord,
   listingError,
@@ -7,6 +8,7 @@ import {
   ORIGINAL_LIMIT,
   saveListing,
   validLink,
+  workModes,
 } from "../api/listings";
 import Icon from "../Icon";
 
@@ -176,6 +178,77 @@ export default function ListingEditor({
               </details>
             </>
           ) : null}
+        </section>
+      )}
+      {unsaved || record.origin !== "pasted" ? null : (
+        <section className="listing-derived" aria-labelledby="listing-derived-heading">
+          <h3 className="field-sector" id="listing-derived-heading">
+            04 / NORMALIZED VIEW
+          </h3>
+          <p className="input-help">
+            Worked out from the stored text by fixed rules (version{" "}
+            {record.normalized.rules_version}), with no model and no web request. These are
+            observations about the wording, not confirmed facts, and they never change your fields.
+          </p>
+          <dl>
+            <div>
+              <dt>First line</dt>
+              <dd>
+                {record.normalized.suggested_title || "Too long to be a title"}
+                {record.normalized.suggested_title &&
+                record.normalized.suggested_title !== record.data.title ? (
+                  <button
+                    type="button"
+                    className="quiet-button"
+                    disabled={busy}
+                    onClick={() => change("title", record.normalized.suggested_title)}
+                  >
+                    Use as job title
+                  </button>
+                ) : null}
+              </dd>
+            </div>
+            <div>
+              <dt>Work modes mentioned</dt>
+              <dd>
+                {record.normalized.mentioned_work_modes.map((key) => workModes[key]).join(", ") ||
+                  "None found"}
+              </dd>
+            </div>
+            <div>
+              <dt>Employment types mentioned</dt>
+              <dd>
+                {record.normalized.mentioned_employment_types
+                  .map((key) => employmentTypes[key])
+                  .join(", ") || "None found"}
+              </dd>
+            </div>
+            <div>
+              <dt>Links in the text (not opened)</dt>
+              <dd>
+                {record.normalized.links.length ? (
+                  <ul>
+                    {record.normalized.links.map((link) => (
+                      <li key={link}>{link}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  "None found"
+                )}
+              </dd>
+            </div>
+            {record.normalized.canonical_url ? (
+              <div>
+                <dt>Your link without tracking parts</dt>
+                <dd>{record.normalized.canonical_url}</dd>
+              </div>
+            ) : null}
+          </dl>
+          <details className="source-integrity">
+            <summary className="integrity-label">Cleaned text</summary>
+            <p>Same wording with tidy spacing and no invisible characters.</p>
+            <pre>{record.normalized.text}</pre>
+          </details>
         </section>
       )}
       <div className="editor-actions">

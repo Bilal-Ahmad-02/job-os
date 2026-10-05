@@ -1,9 +1,39 @@
-.listing-original {
+.listing-original,
+.listing-derived {
   margin-top: 28px;
   padding-top: 4px;
   border-top: 1px solid var(--border);
 }
-.listing-original pre {
+.listing-derived dl {
+  margin: 0 0 12px;
+}
+.listing-derived dl > div {
+  display: grid;
+  grid-template-columns: minmax(140px, 240px) minmax(0, 1fr);
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.listing-derived dt {
+  color: var(--muted);
+  font-size: 11px;
+}
+.listing-derived dd {
+  margin: 0;
+  font: 13px / 1.6 var(--body);
+  overflow-wrap: anywhere;
+}
+.listing-derived dd button {
+  min-height: 28px;
+  margin-left: 12px;
+  padding: 4px 8px;
+}
+.listing-derived ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.listing-original pre,
+.listing-derived pre {
   max-height: 360px;
   margin: 0 0 12px;
   padding: 14px;

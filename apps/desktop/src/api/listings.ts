@@ -16,6 +16,25 @@ export const listingFields = [
 export type ListingField = (typeof listingFields)[number][0];
 export type ListingData = Record<ListingField, string>;
 export type ListingOrigin = "pasted" | "manual";
+export const workModes = { onsite: "On site", hybrid: "Hybrid", remote: "Remote" } as const;
+export const employmentTypes = {
+  full_time: "Full time",
+  part_time: "Part time",
+  contract: "Contract",
+  temporary: "Temporary",
+  internship: "Internship",
+  traineeship: "Traineeship",
+} as const;
+/** Derived by fixed backend rules from the stored text; never owner-entered or verified. */
+export type NormalizedListing = {
+  rules_version: 1;
+  text: string;
+  suggested_title: string;
+  canonical_url: string;
+  links: string[];
+  mentioned_work_modes: (keyof typeof workModes)[];
+  mentioned_employment_types: (keyof typeof employmentTypes)[];
+};
 export type ListingRecord = {
   id: string;
   version: number;
@@ -26,11 +45,13 @@ export type ListingRecord = {
   collected_at: string;
   updated_at: string;
   archived: boolean;
+  normalized: NormalizedListing;
 };
 export type ListingSummary = {
   id: string;
   origin: ListingOrigin;
   title: string;
+  suggested_title: string;
   company: string;
   location: string;
   collected_at: string;
@@ -49,6 +70,15 @@ export function blankListing(): ListingRecord {
     collected_at: "",
     updated_at: "",
     archived: false,
+    normalized: {
+      rules_version: 1,
+      text: "",
+      suggested_title: "",
+      canonical_url: "",
+      links: [],
+      mentioned_work_modes: [],
+      mentioned_employment_types: [],
+    },
   };
 }
 
@@ -58,6 +88,37 @@ export function validLink(value: string): boolean {
 
 function origin(value: unknown): boolean {
   return value === "pasted" || value === "manual";
+}
+function distinct(value: unknown, allowed: object): boolean {
+  return (
+    Array.isArray(value) &&
+    new Set(value).size === value.length &&
+    value.every((item) => typeof item === "string" && Object.hasOwn(allowed, item))
+  );
+}
+function normalized(value: unknown): boolean {
+  return (
+    object(value) &&
+    keys(value, [
+      "rules_version",
+      "text",
+      "suggested_title",
+      "canonical_url",
+      "links",
+      "mentioned_work_modes",
+      "mentioned_employment_types",
+    ]) &&
+    value.rules_version === 1 &&
+    text(value.text, 150000) &&
+    text(value.suggested_title, 120) &&
+    text(value.canonical_url, 2000) &&
+    validLink(value.canonical_url) &&
+    Array.isArray(value.links) &&
+    value.links.length <= 10 &&
+    value.links.every((link) => text(link, 2000) && link !== "" && validLink(link)) &&
+    distinct(value.mentioned_work_modes, workModes) &&
+    distinct(value.mentioned_employment_types, employmentTypes)
+  );
 }
 function listingResult(value: unknown): ListingRecord {
   if (
@@ -72,6 +133,7 @@ function listingResult(value: unknown): ListingRecord {
       "collected_at",
       "updated_at",
       "archived",
+      "normalized",
     ]) ||
     !uuid(value.id) ||
     !integer(value.version, 1) ||
@@ -88,7 +150,8 @@ function listingResult(value: unknown): ListingRecord {
     !/^[a-f0-9]{64}$/.test(value.original_sha256) ||
     !text(value.collected_at, 40) ||
     !text(value.updated_at, 40) ||
-    typeof value.archived !== "boolean"
+    typeof value.archived !== "boolean" ||
+    !normalized(value.normalized)
   )
     throw new Error("Invalid listing response");
   return value as ListingRecord;
@@ -112,10 +175,20 @@ export async function listListings(
     !value.items.every(
       (item: unknown) =>
         object(item) &&
-        keys(item, ["id", "origin", "title", "company", "location", "collected_at", "archived"]) &&
+        keys(item, [
+          "id",
+          "origin",
+          "title",
+          "suggested_title",
+          "company",
+          "location",
+          "collected_at",
+          "archived",
+        ]) &&
         uuid(item.id) &&
         origin(item.origin) &&
         text(item.title, 300) &&
+        text(item.suggested_title, 120) &&
         text(item.company, 300) &&
         text(item.location, 300) &&
         text(item.collected_at, 40) &&

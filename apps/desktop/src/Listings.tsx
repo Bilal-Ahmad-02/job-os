@@ -202,7 +202,12 @@ export default function Listings() {
                       {String(offset + index + 1).padStart(3, "0")}
                     </span>
                     <span className="record-target">
-                      <strong>{item.title || "Job title not provided"}</strong>
+                      <strong>
+                        {item.title ||
+                          (item.suggested_title
+                            ? `${item.suggested_title} (first line of pasted text)`
+                            : "Job title not provided")}
+                      </strong>
                       <span>
                         {item.company || "Company not provided"}
                         {item.location ? ` / ${item.location}` : ""}
