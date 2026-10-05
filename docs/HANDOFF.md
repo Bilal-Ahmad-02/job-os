@@ -66,7 +66,7 @@ documented threat boundary before expanding capabilities; do not claim hardened 
 | Windows installation | `%LOCALAPPDATA%\Programs\Oracle\releases\<digest>` |
 | Native configuration/hashes | `%LOCALAPPDATA%\local.oracle.desktop` |
 | Provider key | Windows Credential Manager, `Oracle.Provider.OpenAI.v1` |
-| Encrypted backup repository | Owner's OneDrive `OracleBackups` folder |
+| Encrypted backup repository | Owner's OneDrive `OracleBackups-2026-10` folder; the older `OracleBackups` is retained but unreadable (password lost) |
 
 Selected backend: `bda6f25fbb0f4fdf1efa25b47ebeb0f16b29de16930d6c0086276c1844ef6f25`.
 The desktop's final digest is recorded in VALIDATION.md. Schema is `0008`; profile JSON includes

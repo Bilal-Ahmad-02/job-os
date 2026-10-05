@@ -1,5 +1,25 @@
 # Backing up and restoring Oracle
 
+## Active repository since 2026-10-05
+
+The active encrypted repository is the OneDrive folder `OracleBackups-2026-10`
+(`/mnt/c/Users/Ziya/OneDrive/OracleBackups-2026-10` from Ubuntu). The owner created it on
+2026-10-05 with a new backup password kept in their password manager. Use it for every new
+snapshot, list, check and restore.
+
+The earlier folder `OracleBackups` holds four snapshots, the newest from 2026-09-30. Its password
+is lost, so those snapshots cannot be decrypted. Keep the folder exactly as it is: never delete it,
+re-initialize it or write new snapshots into it. Sections below that mention `OracleBackups`
+without the date suffix describe that earlier repository and are historical.
+
+Evidence: on 2026-10-05 the new folder contained a restic repository with one snapshot file dated
+that day, and the old folder four. The owner reports that the first snapshot passed restore
+verification and a repository check and that OneDrive showed it synced. The coding session did not
+decrypt, restore or check either repository and never saw a password.
+
+Schema `0009` backups also retain collected job listings; see [LISTINGS.md](LISTINGS.md). Snapshots
+taken before the `0009` migration do not contain them.
+
 Use the **Linux development/maintenance virtualenv** in the current commands below. The installed
 record-runtime environment does not include the separately provisioned restic executable; running
 backup maintenance there without an explicitly reviewed tool path fails with `backup_tool_missing`.
@@ -21,17 +41,17 @@ The active database and matching marker are now in
 rollback copy; it will not receive new edits. Windows retains the app password hash and explicit
 runtime configuration. See [the completed cutover](WSL_DEVELOPMENT.md) before recovery or moving files.
 
-Open Ubuntu (`wsl.exe -d Ubuntu`) and use the existing encrypted OneDrive repository:
+Open Ubuntu (`wsl.exe -d Ubuntu`) and use the active encrypted OneDrive repository:
 
 ```bash
 cd ~/projects/oracle
 umask 077
-.venv/bin/python -I -m app.backup create --repository /mnt/c/Users/Ziya/OneDrive/OracleBackups --database "$HOME/.local/share/oracle/oracle.sqlite3"
-.venv/bin/python -I -m app.backup list --repository /mnt/c/Users/Ziya/OneDrive/OracleBackups
-.venv/bin/python -I -m app.backup check --repository /mnt/c/Users/Ziya/OneDrive/OracleBackups
+.venv/bin/python -I -m app.backup create --repository /mnt/c/Users/Ziya/OneDrive/OracleBackups-2026-10 --database "$HOME/.local/share/oracle/oracle.sqlite3"
+.venv/bin/python -I -m app.backup list --repository /mnt/c/Users/Ziya/OneDrive/OracleBackups-2026-10
+.venv/bin/python -I -m app.backup check --repository /mnt/c/Users/Ziya/OneDrive/OracleBackups-2026-10
 ```
 
-Enter the existing backup password locally each time. Do not reinitialize this repository. Only
+Enter the current backup password locally each time. Do not reinitialize this repository. Only
 encrypted repository files cross into OneDrive; plaintext snapshots, staging, and active SQLite
 remain in Linux. The verified Linux restic binary is selected automatically. Do not use a Windows
 SQLite connection to access the active database through a shared WSL path.
@@ -41,7 +61,7 @@ For staged recovery, select an exact full snapshot ID from `list`, then use a ne
 ```bash
 umask 077
 oracle_snapshot='paste-the-full-64-character-snapshot-id-here'
-.venv/bin/python -I -m app.backup restore --repository /mnt/c/Users/Ziya/OneDrive/OracleBackups --snapshot "$oracle_snapshot" --target "$HOME/.local/share/oracle-recovery-new" --staging "$HOME/.local/share/oracle-migration"
+.venv/bin/python -I -m app.backup restore --repository /mnt/c/Users/Ziya/OneDrive/OracleBackups-2026-10 --snapshot "$oracle_snapshot" --target "$HOME/.local/share/oracle-recovery-new" --staging "$HOME/.local/share/oracle-migration"
 ```
 
 Restore never activates or overwrites a workspace. Keep every writer stopped for any reviewed

@@ -60,6 +60,14 @@ need an installed `0009` release. Not done: backend release build/install, live 
 `0009`, release selection, desktop install. The installed desktop above and backend `bda6f25...`
 with schema `0008` are still what runs. The new module has not been seen in a running app.
 
+### Backup repository change — October 5, 2026
+
+The owner replaced the backup repository: `OracleBackups-2026-10` is active and the earlier
+`OracleBackups` is retained untouched with a lost password. See the top of BACKUP.md. The first
+snapshot's restore verification, repository check and OneDrive sync are owner-reported; the coding
+session confirmed only that the folder holds one snapshot file dated 2026-10-05. The pending
+"corrected handoff backup" described below was aimed at the earlier repository and is superseded.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was
