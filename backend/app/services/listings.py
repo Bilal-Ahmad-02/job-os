@@ -20,6 +20,7 @@ from sqlalchemy.orm import Session
 
 from app.models.applications import Application
 from app.models.listings import JobListing, ListingSearch
+from app.models.profile import Profile
 from app.schemas.applications import ApplicationData
 from app.schemas.listings import (
     ListingCreateRequest,
@@ -38,6 +39,7 @@ from app.schemas.listings import (
     SearchSaveRequest,
 )
 from app.services.applications import RecordError, insert
+from app.services.listing_fit import assess, profile_terms, tally
 from app.services.listing_normalizer import (
     KEYS_VERSION,
     canonical_url,
@@ -48,6 +50,7 @@ from app.services.listing_normalizer import (
     suggested_title,
     text_key,
 )
+from app.services.profile import record as profile_record
 
 MAX_LISTINGS = 2000
 MAX_MATCHES = 10
@@ -109,7 +112,14 @@ def find_matches(session: Session, row: JobListing) -> list[ListingMatch]:
     ]
 
 
+def confirmed_profile(session: Session):
+    """The owner's saved profile. Unreviewed draft evidence is never read for matching."""
+    return profile_record(session.get(Profile, 1))
+
+
 def record(session: Session, row: JobListing) -> ListingRecord:
+    profile = confirmed_profile(session)
+    normalized = normalize(row.original_text, row.url)
     return ListingRecord(
         id=row.id,
         version=row.version,
@@ -123,8 +133,16 @@ def record(session: Session, row: JobListing) -> ListingRecord:
         closed=bool(row.closed),
         shortlisted=bool(row.shortlisted),
         application_id=row.application_id,
-        normalized=normalize(row.original_text, row.url),
+        normalized=normalized,
         matches=find_matches(session, row),
+        fit=assess(
+            profile.data,
+            profile.version,
+            text=normalized.text,
+            title=row.title or normalized.suggested_title,
+            company=row.company,
+            location=row.location,
+        ),
     )
 
 
@@ -155,6 +173,24 @@ def list_listings(engine: Engine, request: ListingsListRequest) -> ListingPage:
             {key for key, count in Counter(keys).items() if key and count > 1}
             for keys in zip(*signatures.values(), strict=True)
         ] or [set(), set(), set()]
+        profile = confirmed_profile(session)
+        terms = profile_terms(profile.data)
+        fits = {}
+        titles = {}
+        for row in rows:
+            cleaned = normalize_text(row.original_text)
+            titles[row.id] = suggested_title(cleaned)
+            fits[row.id] = tally(
+                assess(
+                    profile.data,
+                    profile.version,
+                    text=cleaned,
+                    title=row.title or titles[row.id],
+                    company=row.company,
+                    location=row.location,
+                    terms=terms,
+                )
+            )
         return ListingPage(
             total=total,
             items=[
@@ -162,7 +198,9 @@ def list_listings(engine: Engine, request: ListingsListRequest) -> ListingPage:
                     id=row.id,
                     origin=row.origin,
                     title=row.title,
-                    suggested_title=suggested_title(normalize_text(row.original_text)),
+                    suggested_title=titles[row.id],
+                    matched_terms=fits[row.id][0],
+                    conflicts=fits[row.id][1],
                     company=row.company,
                     location=row.location,
                     collected_at=row.collected_at,

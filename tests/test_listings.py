@@ -242,6 +242,8 @@ def test_real_wire_requests_round_trip_and_redact_failures(tmp_path):
         "shortlisted",
         "application_id",
         "possible_duplicate",
+        "matched_terms",
+        "conflicts",
     }
     stale = bridge.handle_request(
         database,

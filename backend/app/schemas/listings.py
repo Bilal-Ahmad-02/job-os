@@ -105,6 +105,45 @@ class ListingMatch(Contract):
     reasons: list[MatchReason] = Field(min_length=1, max_length=3)
 
 
+FitTopic = Literal[
+    "target_role",
+    "location",
+    "work_mode",
+    "employment_type",
+    "excluded_employer",
+    "excluded_keyword",
+    "skill",
+]
+
+
+class FitFinding(Contract):
+    """One rule's result. `not_set`: the owner saved nothing to compare. `not_mentioned`: the
+    listing's wording contains none of what the owner saved. Neither is a judgement."""
+
+    topic: FitTopic
+    outcome: Literal["match", "conflict", "not_mentioned", "not_set"]
+    term: Annotated[str, StringConstraints(max_length=300)]
+    source: Literal["", "preference", "skill", "project_technology"]
+    excerpts: list[Annotated[str, StringConstraints(max_length=300)]] = Field(max_length=2)
+
+
+class RequirementLine(Contract):
+    """A line whose wording suggests a requirement, and the owner's terms found in it, if any."""
+
+    text: Annotated[str, StringConstraints(max_length=300)]
+    covered_by: list[Annotated[str, StringConstraints(max_length=300)]] = Field(max_length=10)
+
+
+class ListingFit(Contract):
+    """Rule-based comparison with the confirmed profile and preferences. No score, no decision."""
+
+    rules_version: Literal[1]
+    profile_version: int = Field(ge=0)
+    terms_checked: int = Field(ge=0, le=1600)
+    findings: list[FitFinding] = Field(max_length=200)
+    requirement_lines: list[RequirementLine] = Field(max_length=30)
+
+
 class ListingRecord(Contract):
     id: Identity
     version: int = Field(ge=1)
@@ -120,6 +159,7 @@ class ListingRecord(Contract):
     application_id: Identity | None
     normalized: NormalizedListing
     matches: list[ListingMatch] = Field(max_length=10)
+    fit: ListingFit
 
 
 class ListingSummary(Contract):
@@ -135,6 +175,8 @@ class ListingSummary(Contract):
     shortlisted: bool
     application_id: Identity | None
     possible_duplicate: bool
+    matched_terms: int = Field(ge=0, le=1600)
+    conflicts: int = Field(ge=0, le=200)
 
 
 class ListingPage(Contract):
