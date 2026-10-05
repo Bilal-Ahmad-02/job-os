@@ -121,13 +121,24 @@ The active backup repository held one snapshot, taken before the `0009` migratio
 
 ### Step 19 source state — October 5, 2026
 
-The review workflow is committed locally and not deployed or pushed. Checks run: 333 Linux tests
-with Ruff clean; TypeScript, Biome, 108 frontend tests across 18 files and the Vite build; 33
-ordinary native tests. Not run: WSL native probes (they need an installed `0011` release). Not
-done: release build/install, live migration to `0011`, selection, desktop install. The installed
-backend `79a4fd8c...`, desktop `2abb7556...` and schema `0010` are still what runs. The new screens
-have not been seen in a browser or the app; after the hub bug, styling is a known blind spot of
-the component tests.
+Checks run: 333 Linux tests with Ruff clean; TypeScript, Biome, 108 frontend tests across 18 files
+and the Vite build; 33 ordinary native tests.
+
+Deployed 2026-10-05. Backend release: `4207506dadba6dd62f0c596bd234136ff8a1c5edc3f17b13944f40ada5a3cade`.
+Desktop SHA-256: `768dc85091654aed4564b284ef05daa5255659d4e12e6ebf89fb2053b9409edf`. Schema: `0011`.
+Earlier releases are retained.
+
+| Check | Result |
+| --- | --- |
+| Installed-release probe | Passed |
+| Windows/WSL native integration | Both opt-in tests passed against the new release |
+| Live migration | `prepare` succeeded; integrity-checked pre-migration copy present |
+| Table comparison | 12 pre-existing tables and the identity marker identical; `alembic_version` and the `job_listings` definition changed; `listing_searches` added; 0 listings before and after |
+| Desktop | Install script verified bytes; process reopened responsive |
+
+Not verified: any step 14-19 screen in the unlocked app, including layout. After the hub bug,
+styling is a known blind spot of the component tests. The active backup repository still held one
+snapshot, taken before the `0009` migration; three migrations have run since.
 
 ## Private backup and remaining manual evidence
 

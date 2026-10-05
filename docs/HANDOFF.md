@@ -21,8 +21,9 @@ Since 2026-10-05 unlock opens a hub ("the chamber") whose only real node opens t
 its Oracle core is labelled dormant because no assistant exists. See DESKTOP.md.
 
 Step 14 manual listing intake (schema `0009`, **06 / INGRESS**) was implemented and deployed on
-2026-10-05, followed the same day by step 15 read-time normalization and step 16 duplicate flags
-(schema `0010`); see LISTINGS.md. The roadmap
+2026-10-05, followed the same day by step 15 read-time normalization, step 16 duplicate flags
+(schema `0010`) and the step 19 review workflow (schema `0011`); see LISTINGS.md. Steps 17-18 are
+skipped for now at the owner's request. The roadmap
 is resumed one scoped step at a time.
 
 Implemented: application tracking and import provenance; immutable source PDFs and explicit version
@@ -69,9 +70,9 @@ documented threat boundary before expanding capabilities; do not claim hardened 
 | Provider key | Windows Credential Manager, `Oracle.Provider.OpenAI.v1` |
 | Encrypted backup repository | Owner's OneDrive `OracleBackups-2026-10` folder; the older `OracleBackups` is retained but unreadable (password lost) |
 
-Selected backend since 2026-10-05: `79a4fd8ca8bdabcd59e8a48473ed9e3873a2a709b48167656ca3ba9b7a19a04a`
+Selected backend since 2026-10-05: `4207506dadba6dd62f0c596bd234136ff8a1c5edc3f17b13944f40ada5a3cade`
 (previously `bda6f25fbb0f4fdf1efa25b47ebeb0f16b29de16930d6c0086276c1844ef6f25`, which cannot open
-the current schema). The desktop digest is recorded in VALIDATION.md. Schema is `0010`; profile JSON
+the current schema). The desktop digest is recorded in VALIDATION.md. Schema is `0011`; profile JSON
 includes step-13 exclusions. An older backend can reject that JSON despite sharing the database schema.
 Do not downgrade code or data without checking compatibility and preserving subsequent writes.
 

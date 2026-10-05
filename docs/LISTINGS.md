@@ -155,8 +155,15 @@ schema.
 
 ## Review workflow (step 19)
 
-Status on 2026-10-05: implemented and tested in source, **not deployed**. It needs schema `0011`,
-so deployment includes a live migration. Steps 17 (matching) and 18 (explanations) were skipped
+Status on 2026-10-05: implemented, tested and deployed on the owner's instruction as backend
+`4207506dadba6dd62f0c596bd234136ff8a1c5edc3f17b13944f40ada5a3cade` and desktop
+`768dc85091654aed4564b284ef05daa5255659d4e12e6ebf89fb2053b9409edf`. The live workspace is at
+schema `0011`: with Oracle closed, the release's explicit `prepare` took the integrity-checked
+local copy (`migration-backups/before-0011-*.sqlite3`) and migrated. Only `alembic_version`, the
+`job_listings` definition and the new `listing_searches` table differ; the other 12 tables and
+the identity marker were identical by typed-row hash, and there were no listings to convert. Both
+Windows/WSL native integration tests passed against the release. Not seen in the unlocked app by
+the coding session. Steps 17 (matching) and 18 (explanations) were skipped
 for now at the owner's request: the confirmed profile and preferences are still empty, so there is
 nothing to match against. This step does not read the profile.
 

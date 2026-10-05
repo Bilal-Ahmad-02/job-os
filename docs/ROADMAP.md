@@ -89,8 +89,7 @@ hand-entered listings) is implemented and deployed; see LISTINGS.md. Step 15 nor
 those listings is implemented and deployed, with no schema change. Step 16 duplicate flags and
 the owner-set closed flag are implemented and deployed with schema `0010`. Steps 17-18 (matching
 and its explanations) are skipped for now at the owner's request, pending a confirmed profile and
-preferences. Step 19's review workflow is implemented in source with schema `0011`, not yet
-deployed. Its
+preferences. Step 19's review workflow is implemented and deployed with schema `0011`. Its
 "selected supported external sources" part is not started. Later steps may
 build on partial foundations already present; provider connection testing is not AI execution,
 source-text extraction is not semantic profile generation, and manual backups are not scheduling.
