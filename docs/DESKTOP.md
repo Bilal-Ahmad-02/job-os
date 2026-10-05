@@ -248,6 +248,52 @@ below the platform's edge. Installed as desktop
 `49bbe82657d560271d9e7b122d639c9a862417cb3ee8e16d169a47fdea90e596`, a build specific to this PC
 because it bundles three Git-ignored local images. Not verified in the unlocked window.
 
+### Larger platform, a page per figure, lines to the orb (2026-10-05)
+
+This supersedes the "agentless slots" and "roaming figure" notes above where they say figures
+cannot be pressed.
+
+- The platform grew from a 10 by 10 court to 13 by 13 with wider wings, about 1.7 times the floor.
+- All five figures are buttons and each opens its own page: **01 / JOB.OS** opens the job console
+  as before; **02 / PERCH**, **03 / SUMMIT**, **04 / WATCH** and **05 / DEEP** open four rooms.
+- The rooms deliberately look nothing alike (amber rings, a tilted yellow headline over peaks, a
+  moonlit skyline, violet water) but share one small component and differ only in their
+  stylesheet block. Each says plainly: "No agent lives here yet. This page does nothing: it stores
+  nothing, reads none of your records and contacts nothing." A room holds no state, has no input
+  and makes no request, so opening one cannot touch the backend, the database or the network.
+- A dotted line runs from the orb to every figure's feet, including the one that roams the whole
+  space. The lines are decoration, not a data link: the core is still labelled dormant.
+- Figure tags and the footer ("5 FIGURES / 1 WITH A FUNCTION") say which figure has a function.
+
+Structure, for whoever changes it next:
+
+| File | Responsibility |
+| --- | --- |
+| `chamber/agents.ts` | The one list of figures: slot, name, drawing, private file name, position, movement, room text. Scene geometry lives here too |
+| `Chamber.tsx` | Composes the hub and switches between hub, console and rooms |
+| `chamber/ChamberScene.tsx` | The static drawing: court, pads, hourglasses, core |
+| `chamber/camera.ts`, `chamber/motion.ts` | Zoom and drag; the motion switch |
+| `chamber/useLeash.ts` | Draws the lines by reading where the orb and each figure are on the page |
+| `chamber/AgentRoom.tsx`, `styles/rooms.css` | The four rooms |
+| `ShellHeader.tsx` | The header bar shared by the hub, the rooms and the job console |
+
+Adding a figure is one entry in `agents.ts`, plus a stylesheet block if it has a room. The earlier
+keyframe trick that kept one tether in step with one walker was removed: lines now follow any
+figure, the camera and window resizing by measurement. They redraw every frame only while motion
+is on, and otherwise only when the camera or window changes.
+
+No native command, backend operation, schema, dependency or content-policy change was made.
+
+Verification: 133 frontend tests pass. They cover each room's honest wording, that a room has no
+inputs and triggers no native call, focus returning to the figure that was opened, one line per
+figure, figures placed inside the drawing with the roamer outside the camera, the camera, the
+motion switch and the stylesheet guards. In a component preview the larger platform, all five
+lines and each of the four rooms were viewed, and with motion on every line's end was measured
+exactly at its figure's feet at two moments while two figures moved. A headline that wrapped
+mid-word in one room was found there and fixed. Installed as desktop
+`4ae455ab11550a054e274871fbb9c8ff5a7254cc49fadf88596933d40874fd66` (specific to this PC because it
+bundles Git-ignored private images). Not verified in the installed, unlocked window.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves

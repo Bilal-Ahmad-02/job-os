@@ -7,12 +7,12 @@ desktop executable when you build it on this PC.
 
 | File name | Replaces |
 | --- | --- |
-| `job-os.png` | The walking figure that opens the job-search console |
+| `job-os.png` | 01 / JOB.OS, the walking figure that opens the job-search console |
+| `slot-2.png` | 02 / PERCH (built in: a cat asleep on a cat tree) |
+| `slot-3.png` | 03 / SUMMIT (built in: a hovering fighter; it floats above its pad) |
+| `slot-4.png` | 04 / WATCH (built in: a cloaked watcher) |
+| `slot-5.png` | 05 / DEEP, which roams the whole space (built in: a winged glider). Draw it facing right; it is mirrored for the flight back |
 | `oracle.png` | The seated figure at the console in the middle |
-| `slot-2.png` | The figure on slot 02 (built in: a sleeping cat on a stand) |
-| `slot-3.png` | The figure on slot 03 (built in: a hovering fighter; it floats above the pad) |
-| `slot-4.png` | The figure on slot 04 (built in: a cloaked watcher) |
-| `slot-5.png` | The figure that roams the space under the platform (built in: a winged glider). Draw it facing right; it is mirrored for the flight back |
 
 `.png`, `.gif` and `.webp` are accepted, for example `job-os.gif`. If more than one format exists
 for a name, PNG wins, then GIF, then WebP.
@@ -23,8 +23,7 @@ Drawing notes:
 - The walking figure is shown about 2 wide by 3 tall and stands on its bottom edge. The seated
   figure and the slot figures are about 6 wide by 7 tall. Other proportions are fitted inside the
   same space.
-- Slot figures are scenery for slots that have no agent yet. They cannot be clicked until an
-  agent is built for that slot.
+- Every figure opens its own page. Only 01 / JOB.OS has a function so far.
 - An animated GIF or WebP keeps playing even when the hub's Motion switch is off.
 - Draw the walking figure facing left; the app mirrors it for the walk back.
 

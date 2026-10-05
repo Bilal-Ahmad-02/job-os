@@ -239,6 +239,15 @@ Git-ignored local images and cannot be reproduced from the repository alone. Che
 Biome, 129 frontend tests across 19 files, Vite and Tauri builds; installed bytes verified and the
 process reopened responsive. Not verified in the unlocked window.
 
+### Desktop update — rooms and larger platform, October 5, 2026
+
+Desktop SHA-256 is now `4ae455ab11550a054e274871fbb9c8ff5a7254cc49fadf88596933d40874fd66`,
+frontend only; backend `380671a6...` and schema `0012` are unchanged. The build bundles
+Git-ignored local images. Checks: TypeScript, Biome, 133 frontend tests across 19 files, Vite and
+Tauri builds; installed bytes verified and the process reopened responsive. The hub and all four
+rooms were viewed in a browser preview. Not verified in the unlocked window. The new rooms make
+no native or backend call; a test asserts that opening one triggers none.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

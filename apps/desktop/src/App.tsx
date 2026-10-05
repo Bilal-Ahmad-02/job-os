@@ -6,6 +6,7 @@ import Icon from "./Icon";
 import Listings from "./Listings";
 import ProfileWorkspace from "./ProfileWorkspace";
 import ProviderSettings from "./ProviderSettings";
+import ShellHeader from "./ShellHeader";
 import SystemPanel from "./SystemPanel";
 import Tasks from "./Tasks";
 
@@ -73,44 +74,31 @@ export default function App({
   }, [active]);
   return (
     <div className="console-shell">
-      <header className="console-header">
-        <div className="console-brand">
-          <img src="/oracle.png" width="32" height="32" alt="" />
-          <span>ORACLE</span>
-          <small>PERSONAL OPERATIONS</small>
-        </div>
-        <div className="header-actions">
-          {onChamber ? (
-            <button
-              className="quiet-button"
-              type="button"
-              aria-label="Return to the chamber"
-              ref={chamberButton}
-              onClick={onChamber}
-            >
-              <Icon name="back" />
-              Chamber
-            </button>
-          ) : null}
+      <ShellHeader caption="PERSONAL OPERATIONS" onLock={onLock}>
+        {onChamber ? (
           <button
-            type="button"
             className="quiet-button"
-            aria-label="System status"
-            ref={systemButton}
-            aria-expanded={systemOpen}
-            aria-controls="system-panel"
-            onClick={() => setSystemOpen(!systemOpen)}
+            type="button"
+            aria-label="Return to the chamber"
+            ref={chamberButton}
+            onClick={onChamber}
           >
-            SYSTEM
+            <Icon name="back" />
+            Chamber
           </button>
-          {onLock ? (
-            <button className="quiet-button" type="button" onClick={onLock}>
-              <Icon name="lock" />
-              Lock Oracle
-            </button>
-          ) : null}
-        </div>
-      </header>
+        ) : null}
+        <button
+          type="button"
+          className="quiet-button"
+          aria-label="System status"
+          ref={systemButton}
+          aria-expanded={systemOpen}
+          aria-controls="system-panel"
+          onClick={() => setSystemOpen(!systemOpen)}
+        >
+          SYSTEM
+        </button>
+      </ShellHeader>
       <nav className="module-navigation" aria-label="Workspace modules">
         {(["applications", "documents", "profile", "tasks", "providers", "listings"] as View[]).map(
           (key) => (

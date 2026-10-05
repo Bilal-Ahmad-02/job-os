@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
-import { pickSprite, privateSprites } from "./privateSprites";
+import { AGENTS } from "./agents";
+import { pickSprite, privateSprite } from "./privateSprites";
 
 it("picks an owner-supplied figure by exact name and prefers PNG", () => {
   const files = {
@@ -24,9 +25,12 @@ it("keeps private artwork out of Git", () => {
   expect(ignore.filter((line) => line.startsWith("!") && line.includes("chamber"))).toEqual([]);
 });
 
-it("falls back to the built-in figures when a name has no private file", () => {
-  const { slots, ...figures } = privateSprites;
-  expect(Object.keys(slots)).toEqual(["02", "03", "04", "05"]);
-  for (const address of [...Object.values(figures), ...Object.values(slots)])
+it("gives every figure its own private file name and falls back when none is supplied", () => {
+  const names = [...AGENTS.map((agent) => agent.sprite), "oracle"];
+  expect(new Set(names).size).toBe(names.length);
+  for (const name of names) {
+    const address = privateSprite(name);
     expect(address === undefined || typeof address === "string").toBe(true);
+  }
+  expect(privateSprite("not-a-figure")).toBeUndefined();
 });

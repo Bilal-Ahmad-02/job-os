@@ -1,20 +1,6 @@
-import { cloakedWatcher, hoveringFighter, overseer, PixelSprite, sleepingCat } from "./sprites";
+import { AGENTS, CORE, iso, SCENE } from "./agents";
+import { overseer, PixelSprite } from "./sprites";
 
-/** Scene coordinates: a 760 x 480 canvas with a 2:1 isometric grid, origin at the far corner. */
-export const SCENE = { width: 760, height: 480 } as const;
-export const ORB = { x: 380, y: 170 } as const;
-/** The far end of the JOB.OS figure's walk; its tether runs from the orb to this point. */
-export const WALK_END = { x: 156, y: 382 } as const;
-/** Slots with no agent. Each shows a decorative figure; `lift` raises one that floats. */
-export const EMPTY_PADS = [
-  { slot: "02", x: 9, y: 1.2, figure: sleepingCat, lift: 0, scale: 3 },
-  { slot: "03", x: 1.5, y: 8.5, figure: hoveringFighter, lift: 22, scale: 4 },
-  { slot: "04", x: 8.5, y: 8.5, figure: cloakedWatcher, lift: 0, scale: 4 },
-] as const;
-
-export function iso(x: number, y: number, z = 0): [number, number] {
-  return [380 + (x - y) * 32, 110 + (x + y) * 16 - z];
-}
 function points(corners: readonly (readonly [number, number])[], drop = 0): string {
   return corners
     .map(([x, y]) => iso(x, y))
@@ -22,26 +8,27 @@ function points(corners: readonly (readonly [number, number])[], drop = 0): stri
     .join(" ");
 }
 
-// A square court with three wings, like the reference platform seen from the same angle.
+// A square court with three wings, seen from the angle of the owner's reference picture.
 const court = [
   [0, 0],
-  [10, 0],
-  [10, 3],
-  [13, 3],
-  [13, 7],
-  [10, 7],
-  [10, 10],
-  [7, 10],
-  [7, 13],
-  [3, 13],
-  [3, 10],
-  [0, 10],
-  [0, 7],
-  [-3, 7],
-  [-3, 3],
-  [0, 3],
+  [13, 0],
+  [13, 4],
+  [16, 4],
+  [16, 9],
+  [13, 9],
+  [13, 13],
+  [9, 13],
+  [9, 16],
+  [4, 16],
+  [4, 13],
+  [0, 13],
+  [0, 9],
+  [-3, 9],
+  [-3, 4],
+  [0, 4],
 ] as const;
-const gridLines = Array.from({ length: 17 }, (_, index) => index - 3);
+const gridLines = Array.from({ length: 20 }, (_, index) => index - 3);
+const standing = AGENTS.filter((agent) => agent.at);
 
 function Hourglass({ x, y, id }: { x: number; y: number; id: string }) {
   const [cx, base] = iso(x, y);
@@ -117,18 +104,11 @@ function Hourglass({ x, y, id }: { x: number; y: number; id: string }) {
 }
 
 /**
- * Decorative chamber drawing. Nothing in it reports activity: the orb and screen are dim and the
- * tether does not pulse, because the Oracle core is not running.
+ * Decorative chamber drawing. Nothing in it reports activity: the orb and screen are dim, because
+ * the Oracle core is not running. Figures and their lines to the orb are drawn by the chamber.
  */
-export default function ChamberScene({
-  coreSprite,
-  slotSprites = {},
-}: {
-  coreSprite?: string;
-  /** Owner-supplied images for the agentless slots, keyed by slot number. */
-  slotSprites?: Record<string, string | undefined>;
-}) {
-  const [cx, cy] = iso(5, 5);
+export default function ChamberScene({ coreSprite }: { coreSprite?: string | undefined }) {
+  const [cx, cy] = iso(CORE.x, CORE.y);
   return (
     <svg
       className="chamber-art"
@@ -155,35 +135,42 @@ export default function ChamberScene({
             <polyline
               points={points([
                 [line, -3],
-                [line, 13],
+                [line, 16],
               ])}
             />
             <polyline
               points={points([
                 [-3, line],
-                [13, line],
+                [16, line],
               ])}
             />
           </g>
         ))}
       </g>
 
-      {EMPTY_PADS.map((pad) => (
-        <polygon
-          key={pad.slot}
-          points={points([
-            [pad.x - 0.9, pad.y - 0.9],
-            [pad.x + 0.9, pad.y - 0.9],
-            [pad.x + 0.9, pad.y + 0.9],
-            [pad.x - 0.9, pad.y + 0.9],
-          ])}
-          fill="#0b1a1366"
-          stroke="#376347"
-          strokeDasharray="5 5"
-        />
-      ))}
+      {/* A pad under each figure that stands on the platform, and a shadow under one that hovers. */}
+      {standing.map(({ id, at = [0, 0], lift }) => {
+        const [x, y] = at;
+        const [px, py] = iso(x, y);
+        return (
+          <g key={id}>
+            <polygon
+              points={points([
+                [x - 0.9, y - 0.9],
+                [x + 0.9, y - 0.9],
+                [x + 0.9, y + 0.9],
+                [x - 0.9, y + 0.9],
+              ])}
+              fill="#0b1a1366"
+              stroke="#376347"
+              strokeDasharray="5 5"
+            />
+            {lift ? <ellipse cx={px} cy={py} rx="16" ry="6" fill="#00000066" /> : null}
+          </g>
+        );
+      })}
 
-      <Hourglass x={-1.5} y={5} id="chamber-glass-a" />
+      <Hourglass x={-1.5} y={6.5} id="chamber-glass-a" />
 
       {/* The core: a low dais under a wire dome, with a dim orb above a console. */}
       <ellipse cx={cx} cy={cy + 6} rx="96" ry="48" fill="#03080580" />
@@ -195,18 +182,6 @@ export default function ChamberScene({
         <path d={`M${cx + 46} ${cy + 30}Q${cx + 66} ${cy - 80} ${cx} ${cy - 140}`} />
         <ellipse cx={cx} cy={cy - 78} rx="80" ry="30" />
       </g>
-      <line
-        className="chamber-tether"
-        x1={ORB.x}
-        y1={ORB.y}
-        x2={WALK_END.x}
-        y2={WALK_END.y}
-        stroke="#32ce74"
-        strokeWidth="2"
-        strokeOpacity="0.75"
-        strokeDasharray="3 5"
-        vectorEffect="non-scaling-stroke"
-      />
       {coreSprite ? (
         <image
           className="chamber-figure"
@@ -228,43 +203,17 @@ export default function ChamberScene({
       <rect x={cx - 44} y={cy - 6} width="88" height="7" fill="#07100c" stroke="#376347" />
       <rect x={cx - 19} y={cy - 46} width="38" height="25" fill="#040706" stroke="#4f8f69" />
       <path d={`M${cx - 11} ${cy - 33}h22`} stroke="#1e3528" strokeWidth="2" />
-      <circle cx={ORB.x} cy={ORB.y} r="15" fill="#32ce7414" />
-      <circle cx={ORB.x} cy={ORB.y} r="10" fill="url(#chamber-orb)" stroke="#376347" />
+      <circle cx={cx} cy={cy - 100} r="15" fill="#32ce7414" />
+      <circle
+        className="chamber-orb"
+        cx={cx}
+        cy={cy - 100}
+        r="10"
+        fill="url(#chamber-orb)"
+        stroke="#376347"
+      />
 
-      {/* Figures on slots that have no agent. They are scenery: not pressable and not connected. */}
-      {EMPTY_PADS.map((pad) => {
-        const [px, py] = iso(pad.x, pad.y);
-        const width = (pad.figure[0]?.length ?? 0) * pad.scale;
-        const height = pad.figure.length * pad.scale;
-        const custom = slotSprites[pad.slot];
-        return (
-          <g key={pad.slot} className="chamber-occupant" data-slot={pad.slot}>
-            {pad.lift ? <ellipse cx={px} cy={py + 4} rx="16" ry="6" fill="#00000066" /> : null}
-            <g className={pad.lift ? "chamber-float" : undefined}>
-              {custom ? (
-                <image
-                  className="chamber-figure"
-                  href={custom}
-                  x={px - 28}
-                  y={py + 6 - pad.lift - 66}
-                  width="56"
-                  height="66"
-                  preserveAspectRatio="xMidYMax meet"
-                />
-              ) : (
-                <PixelSprite
-                  rows={pad.figure}
-                  x={px - width / 2}
-                  y={py + 6 - pad.lift - height}
-                  scale={pad.scale}
-                />
-              )}
-            </g>
-          </g>
-        );
-      })}
-
-      <Hourglass x={11.5} y={6} id="chamber-glass-b" />
+      <Hourglass x={14.8} y={7.2} id="chamber-glass-b" />
     </svg>
   );
 }

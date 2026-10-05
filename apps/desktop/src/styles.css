@@ -1,6 +1,7 @@
 ﻿@import "./styles/base.css";
 @import "./styles/workspace.css";
 @import "./styles/chamber.css";
+@import "./styles/rooms.css";
 @import "./styles/records.css";
 @import "./styles/documents.css";
 @import "./styles/access.css";

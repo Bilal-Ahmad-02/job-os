@@ -1,0 +1,248 @@
+/* Pages behind figures that have no function yet. One structure; each room restyles all of it. */
+.room {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: 60px minmax(0, 1fr);
+}
+.room-stage {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  padding: 48px;
+}
+.room-art,
+.room-art i {
+  position: absolute;
+  display: block;
+}
+.room-art {
+  inset: 0;
+  pointer-events: none;
+}
+.room-words {
+  position: relative;
+  max-width: 46ch;
+}
+.room-words h1 {
+  margin: 0 0 14px;
+}
+.room-line,
+.room-status {
+  margin: 0 0 12px;
+  font: 15px / 1.6 var(--body);
+}
+.room-status {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* THE PERCH: amber lamplight, everything centred inside resting rings. */
+.room[data-room="perch"] .room-stage {
+  place-items: center;
+  background: radial-gradient(circle at 50% 50%, #2a1d0c 0, #0d0905 55%, #040302 100%);
+  text-align: center;
+}
+.room[data-room="perch"] .room-art i {
+  left: 50%;
+  top: 50%;
+  width: calc(var(--ring) * 1vmin);
+  aspect-ratio: 1;
+  border: 1px solid #e4bc7333;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.room[data-room="perch"] .room-art i:nth-child(1) {
+  --ring: 46;
+  background: #e4bc730a;
+}
+.room[data-room="perch"] .room-art i:nth-child(2) {
+  --ring: 62;
+}
+.room[data-room="perch"] .room-art i:nth-child(3) {
+  --ring: 80;
+}
+.room[data-room="perch"] .room-art i:nth-child(4) {
+  --ring: 100;
+}
+.room[data-room="perch"] .room-art i:nth-child(5) {
+  --ring: 124;
+}
+.room[data-room="perch"] .room-art i:nth-child(6) {
+  --ring: 152;
+}
+.room[data-room="perch"] h1 {
+  color: var(--warning);
+  font-size: clamp(20px, 3vw, 30px);
+  font-weight: 400;
+  letter-spacing: 10px;
+}
+.room[data-room="perch"] .eyebrow {
+  color: #b9a063;
+}
+
+/* THE SUMMIT: bright, tilted and loud, with peaks along the foot of the page. */
+.room[data-room="summit"] .room-stage {
+  align-items: start;
+  background:
+    repeating-linear-gradient(115deg, transparent 0 46px, #f2c23012 46px 48px),
+    linear-gradient(160deg, #1b1705 0, #060602 60%);
+}
+.room[data-room="summit"] .room-words {
+  max-width: none;
+  transform: skewY(-4deg);
+  transform-origin: 0 0;
+}
+.room[data-room="summit"] h1 {
+  color: #f2c230;
+  font: 800 clamp(48px, 11vw, 132px) / 0.9 var(--body);
+  letter-spacing: -3px;
+  text-transform: uppercase;
+}
+.room[data-room="summit"] :is(.room-line, .room-status) {
+  max-width: 46ch;
+}
+.room[data-room="summit"] .eyebrow {
+  color: #f08a24;
+}
+.room[data-room="summit"] .room-art i {
+  bottom: calc(var(--peak) * -0.5vmin);
+  left: calc(var(--from) * 1%);
+  width: calc(var(--peak) * 1vmin);
+  aspect-ratio: 1;
+  border-top: 2px solid #f2c23066;
+  border-left: 2px solid #f2c23066;
+  background: #0c0a03;
+  transform: rotate(45deg);
+}
+.room[data-room="summit"] .room-art i:nth-child(1) {
+  --from: -4;
+  --peak: 34;
+}
+.room[data-room="summit"] .room-art i:nth-child(2) {
+  --from: 16;
+  --peak: 52;
+}
+.room[data-room="summit"] .room-art i:nth-child(3) {
+  --from: 38;
+  --peak: 30;
+}
+.room[data-room="summit"] .room-art i:nth-child(4) {
+  --from: 52;
+  --peak: 70;
+}
+.room[data-room="summit"] .room-art i:nth-child(5) {
+  --from: 74;
+  --peak: 40;
+}
+.room[data-room="summit"] .room-art i:nth-child(6) {
+  --from: 90;
+  --peak: 26;
+}
+
+/* THE WATCH: cold night, a moon and a skyline, words set small in the top right. */
+.room[data-room="watch"] .room-stage {
+  justify-items: end;
+  align-items: start;
+  background: linear-gradient(#05070c 0, #0b1220 70%, #101a2e 100%);
+  text-align: right;
+}
+.room[data-room="watch"] .room-words {
+  max-width: 34ch;
+  padding-right: 20px;
+  border-right: 1px solid #5a6170;
+}
+.room[data-room="watch"] h1 {
+  color: #cfd6e4;
+  font: 300 clamp(22px, 3vw, 34px) / 1.1 var(--mono);
+  letter-spacing: 6px;
+}
+.room[data-room="watch"] .eyebrow {
+  color: #f2c230;
+}
+.room[data-room="watch"] .room-art i {
+  bottom: 0;
+  left: calc(var(--from) * 1%);
+  width: calc(var(--wide) * 1%);
+  height: calc(var(--tall) * 1%);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 9px, #f2c2301f 9px 12px, transparent 12px 21px),
+    #05070c;
+  background-size: 100% 22px;
+  border-top: 1px solid #2a3a66;
+}
+.room[data-room="watch"] .room-art i:nth-child(1) {
+  top: 12%;
+  bottom: auto;
+  left: 9%;
+  width: 16vmin;
+  height: 16vmin;
+  border: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #e9edf5 0, #a8b2c6 60%, #6d7890 100%);
+}
+.room[data-room="watch"] .room-art i:nth-child(2) {
+  --from: 0;
+  --wide: 16;
+  --tall: 38;
+}
+.room[data-room="watch"] .room-art i:nth-child(3) {
+  --from: 15;
+  --wide: 12;
+  --tall: 56;
+}
+.room[data-room="watch"] .room-art i:nth-child(4) {
+  --from: 30;
+  --wide: 22;
+  --tall: 30;
+}
+.room[data-room="watch"] .room-art i:nth-child(5) {
+  --from: 55;
+  --wide: 14;
+  --tall: 48;
+}
+.room[data-room="watch"] .room-art i:nth-child(6) {
+  --from: 72;
+  --wide: 28;
+  --tall: 24;
+}
+
+/* THE DEEP: violet water in slow bands, words resting at the bottom left. */
+.room[data-room="deep"] .room-stage {
+  align-items: end;
+  background: linear-gradient(#0b0717 0, #120a2b 45%, #05030d 100%);
+}
+.room[data-room="deep"] h1 {
+  color: #b9a8f0;
+  font: 200 clamp(40px, 8vw, 96px) / 1 var(--body);
+  letter-spacing: 2px;
+}
+.room[data-room="deep"] .eyebrow {
+  color: #8070b8;
+}
+.room[data-room="deep"] .room-art i {
+  left: -20%;
+  top: calc(var(--depth) * 1%);
+  width: 140%;
+  height: 46%;
+  border-top: 1px solid #8070b855;
+  border-radius: 50%;
+  background: linear-gradient(#5c4e8c1f, transparent 60%);
+}
+.room[data-room="deep"] .room-art i:nth-child(1) {
+  --depth: -24;
+}
+.room[data-room="deep"] .room-art i:nth-child(2) {
+  --depth: -8;
+}
+.room[data-room="deep"] .room-art i:nth-child(3) {
+  --depth: 10;
+}
+.room[data-room="deep"] .room-art i:nth-child(4) {
+  --depth: 30;
+}
+.room[data-room="deep"] .room-art i:nth-child(5) {
+  --depth: 52;
+}
+.room[data-room="deep"] .room-art i:nth-child(6) {
+  --depth: 76;
+}
