@@ -90,6 +90,51 @@ with state and focus preserved, and locking from both places. The hub was viewed
 preview of the component at the default 1100x760 size. The narrow layout, the installed window after
 a real unlock and the real console behind the hub were not visually checked.
 
+## The chamber scene (2026-10-05, second version)
+
+The owner asked for the hub to become an interactive, isometric pixel scene seen from the angle of
+a reference image they supplied, in Oracle's dark palette. This replaces the flat board described
+above; the hub/console switch, the Chamber return control and locking are unchanged.
+
+What is drawn (`src/chamber/`, original SVG, no image files, no new dependency):
+
+- A cross-shaped court over dark space with green stars and grid lines drifting along the court's
+  own axes.
+- Two hourglasses whose sand drains and refills on a 24-second loop.
+- The core in the middle: a seated machine figure at a console under a wire dome, with a dim orb
+  above it. It is labelled **ORACLE / MASTER — DORMANT — No assistant yet. Nothing is running
+  here.** The screen is dark and the orb does not pulse.
+- One walking figure, a coated investigator, for the one real module. It is a real button named
+  "Open JOB.OS console", tagged "01 / JOB.OS — Job search / manual, no automation". A dotted
+  tether runs from the orb to its feet and follows it as it walks. Pointing at it or focusing it
+  with the keyboard stops it so it can be pressed.
+- Three empty pads labelled UNASSIGNED. They are not interactive.
+
+Deliberate limits:
+
+- Only modules that exist get a figure. More figures appear when more modules do; none is drawn
+  for a planned one. The tether is a static dotted line, not a pulse or a data flow, because
+  nothing passes between a dormant core and a manual console.
+- The owner asked for figures of specific film and comic characters. The figures drawn here are
+  original designs that fit each role, not likenesses of those characters, because this repository
+  is public and those characters belong to their publishers. Private, owner-supplied sprites kept
+  out of Git would be a separate change.
+- **Motion switch.** The scene moves only when the hub is marked on. It starts from the system's
+  reduced-motion preference, and a **Motion on/off** button in the hub header lets the owner
+  override it; the choice is kept in the app's local storage. On this PC Windows "Animation
+  effects" is off, so the scene starts still and the owner must switch motion on once. All
+  animation rules are scoped to that switch.
+
+Validation: 113 frontend tests, TypeScript, Biome, Vite and the Tauri build passed. Unlike the
+first hub, this one was looked at in a browser preview of the component at 1100x720 and 640x640:
+layout, labels and the scaled-down square window were checked by eye, and with motion on the
+figure's feet and the tether's end were measured at the same point at four moments of the walk.
+Two stylesheet guards were added because component tests do not apply CSS: the hub must stay
+hideable, and every animation must sit behind the motion switch. Installed as desktop
+`76e4a70e2191465bf7d7887d27691e95d8da4bbc553c99ce9c41735ba8d79652`; backend and schema unchanged.
+Not verified: the scene inside the installed, unlocked app, and the walking-frame and facing
+changes, which were not inspected frame by frame.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves

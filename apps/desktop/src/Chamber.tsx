@@ -1,18 +1,34 @@
 import { useEffect, useRef, useState } from "react";
 import App from "./App";
+import ChamberScene, { EMPTY_PADS } from "./chamber/ChamberScene";
+import { investigator, PixelSprite } from "./chamber/sprites";
 import Icon from "./Icon";
-import OracleMark from "./OracleMark";
 
 type Place = "chamber" | "jobs";
-const emptySlots = ["02", "03", "04"];
+const MOTION_KEY = "oracle.chamber.motion";
+
+/** The owner's saved choice if there is one, otherwise the system's reduced-motion preference. */
+function initialMotion(): boolean {
+  try {
+    const saved = window.localStorage.getItem(MOTION_KEY);
+    if (saved === "on" || saved === "off") return saved === "on";
+  } catch {
+    // Storage can be unavailable; fall through to the system preference.
+  }
+  return (
+    typeof window.matchMedia === "function" &&
+    window.matchMedia("(prefers-reduced-motion: no-preference)").matches
+  );
+}
 
 /**
- * Hub shown after unlock. Only JOB.OS exists; the core and empty slots are labelled as inactive
- * and never represent model activity.
+ * Hub shown after unlock. Only JOB.OS exists, so only its figure walks and can be opened. The
+ * core and empty pads are labelled as inactive, and no motion here represents model activity.
  */
 export default function Chamber({ onLock }: { onLock?: () => void }) {
   const [place, setPlace] = useState<Place>("chamber");
   const [jobsOpened, setJobsOpened] = useState(false);
+  const [motion, setMotion] = useState(initialMotion);
   const jobsNode = useRef<HTMLButtonElement>(null);
   const returning = useRef(false);
 
@@ -22,39 +38,57 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
 
   return (
     <>
-      <div className="chamber" hidden={place !== "chamber"}>
+      <div className="chamber" hidden={place !== "chamber"} data-motion={motion ? "on" : "off"}>
         <header className="console-header">
           <div className="console-brand">
             <img src="/oracle.png" width="32" height="32" alt="" />
             <span>ORACLE</span>
             <small>THE CHAMBER</small>
           </div>
-          {onLock ? (
-            <div className="header-actions">
+          <div className="header-actions">
+            <button
+              className="quiet-button"
+              type="button"
+              aria-pressed={motion}
+              title="Decorative movement only. It does not show any activity."
+              onClick={() => {
+                const next = !motion;
+                setMotion(next);
+                try {
+                  window.localStorage.setItem(MOTION_KEY, next ? "on" : "off");
+                } catch {
+                  // The choice still applies until Oracle is closed.
+                }
+              }}
+            >
+              Motion {motion ? "on" : "off"}
+            </button>
+            {onLock ? (
               <button className="quiet-button" type="button" onClick={onLock}>
                 <Icon name="lock" />
                 Lock Oracle
               </button>
-            </div>
-          ) : null}
+            ) : null}
+          </div>
         </header>
         <main className="chamber-void" aria-labelledby="chamber-title">
-          <div className="chamber-floor" aria-hidden="true">
-            <div className="chamber-grid" />
+          <div className="chamber-space" aria-hidden="true">
+            <div className="chamber-stars" />
+            <div className="chamber-streaks" />
           </div>
           <h1 id="chamber-title">THE CHAMBER</h1>
-          <div className="chamber-board">
+          <div className="chamber-scene">
+            <ChamberScene />
             <section className="chamber-core" aria-labelledby="chamber-core-title">
-              <OracleMark />
               <h2 id="chamber-core-title">ORACLE / MASTER</h2>
               <p className="chamber-state">DORMANT</p>
               <p>No assistant yet. Nothing is running here.</p>
             </section>
             <ul className="chamber-nodes" aria-label="Agent slots">
-              <li className="chamber-slot" data-slot="01">
+              <li className="chamber-slot">
                 <button
                   type="button"
-                  className="chamber-node"
+                  className="chamber-agent"
                   ref={jobsNode}
                   aria-label="Open JOB.OS console"
                   onClick={() => {
@@ -62,15 +96,23 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
                     setPlace("jobs");
                   }}
                 >
-                  <span className="chamber-code">01 / JOB.OS</span>
-                  <span className="chamber-name">Job search</span>
-                  <span className="chamber-detail">Manual console / no automation</span>
-                  <span className="chamber-enter">ENTER</span>
+                  <span className="chamber-tag">
+                    <span className="chamber-code">01 / JOB.OS</span>
+                    <span className="chamber-detail">Job search / manual, no automation</span>
+                  </span>
+                  <svg viewBox="0 0 36 54" aria-hidden="true" focusable="false">
+                    <PixelSprite rows={investigator[0] ?? []} scale={3} className="chamber-step" />
+                    <PixelSprite
+                      rows={investigator[1] ?? []}
+                      scale={3}
+                      className="chamber-step chamber-step-alternate"
+                    />
+                  </svg>
                 </button>
               </li>
-              {emptySlots.map((slot) => (
-                <li key={slot} className="chamber-slot chamber-empty" data-slot={slot}>
-                  <span className="chamber-code">{slot} / UNASSIGNED</span>
+              {EMPTY_PADS.map((pad) => (
+                <li key={pad.slot} className="chamber-slot chamber-empty" data-slot={pad.slot}>
+                  <span className="chamber-code">{pad.slot} / UNASSIGNED</span>
                   <span className="chamber-detail">Empty slot</span>
                 </li>
               ))}

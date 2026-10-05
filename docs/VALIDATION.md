@@ -163,6 +163,16 @@ update. Not verified: any step 14-20 screen in the unlocked app. The active back
 held one snapshot, taken before the `0009` migration; four migrations have run since, this one on
 the table of real dossiers.
 
+### Chamber scene — October 5, 2026
+
+Desktop SHA-256 is now `76e4a70e2191465bf7d7887d27691e95d8da4bbc553c99ce9c41735ba8d79652`,
+a frontend-only change (see DESKTOP.md). Backend `57a5d2b2...` and schema `0012` are unchanged.
+Checks: TypeScript, Biome, 113 frontend tests across 18 files, Vite and Tauri builds; installed
+bytes verified and the process reopened responsive. The component was inspected in a browser
+preview at two window sizes with motion off and on. Not verified: the scene in the installed,
+unlocked window. Windows "Animation effects" is off on this PC, so the scene is still until the
+owner uses the hub's Motion switch.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

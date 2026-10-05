@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import Chamber from "./Chamber";
@@ -48,7 +49,8 @@ describe("Oracle chamber", () => {
       expect(slot).toHaveTextContent(/UNASSIGNED.*Empty slot/);
       expect(within(slot).queryByRole("button")).not.toBeInTheDocument();
     }
-    expect(screen.getAllByRole("button")).toHaveLength(1);
+    // The only other control is the decorative motion switch.
+    expect(screen.getAllByRole("button")).toHaveLength(2);
   });
   it("opens the console from the JOB.OS node and returns with its state and focus intact", () => {
     render(<Chamber onLock={() => {}} />);
@@ -73,5 +75,40 @@ describe("Oracle chamber", () => {
     fireEvent.click(screen.getByRole("button", { name: "Open JOB.OS console" }));
     fireEvent.click(screen.getByRole("button", { name: "Lock Oracle" }));
     expect(onLock).toHaveBeenCalledTimes(2);
+  });
+  it("keeps the hub hideable and every animation behind the motion switch", () => {
+    // Component tests do not apply stylesheets, so guard the two rules that broke or could.
+    const styles = readFileSync("src/styles/chamber.css", "utf8");
+    expect(styles).toMatch(/\.chamber\[hidden\]\s*\{\s*display:\s*none;/);
+    const rules = [...styles.matchAll(/([^{}]+)\{([^{}]*animation[^{}]*)\}/g)];
+    expect(rules.length).toBeGreaterThan(5);
+    for (const [, selector] of rules) expect(selector).toContain('.chamber[data-motion="on"]');
+  });
+  it("shows the figure and tether for the one real module and marks the scene decorative", () => {
+    const { container } = render(<Chamber />);
+    expect(container.querySelector(".chamber-art")).toHaveAttribute("aria-hidden", "true");
+    expect(container.querySelectorAll(".chamber-tether")).toHaveLength(1);
+    expect(container.querySelectorAll(".chamber-agent")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Open JOB.OS console" })).toHaveTextContent(
+      "manual, no automation",
+    );
+  });
+  it("starts still without a motion preference and moves only after the owner switches it on", () => {
+    window.localStorage.clear();
+    const { container, unmount } = render(<Chamber />);
+    const hub = container.querySelector(".chamber");
+    const toggle = screen.getByRole("button", { name: "Motion off" });
+    expect(hub).toHaveAttribute("data-motion", "off");
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(toggle);
+    expect(hub).toHaveAttribute("data-motion", "on");
+    expect(screen.getByRole("button", { name: "Motion on" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    unmount();
+    render(<Chamber />);
+    expect(screen.getByRole("button", { name: "Motion on" })).toBeVisible();
+    window.localStorage.clear();
   });
 });
