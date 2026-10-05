@@ -33,7 +33,12 @@ const emptyViews: Record<ListingView, [string, string]> = {
 };
 
 /** Manual intake and review: nothing here fetches, ranks, matches or decides for the owner. */
-export default function Listings() {
+export default function Listings({
+  request = null,
+}: {
+  /** A dossier asking to show the listing it was started from. */
+  request?: { id: string; serial: number } | null;
+}) {
   const [page, setPage] = useState<ListingPage>({ items: [], total: 0 });
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
@@ -103,7 +108,17 @@ export default function Listings() {
     }
   }
 
+  const [requested, setRequested] = useState("");
+  // biome-ignore lint/correctness/useExhaustiveDependencies: runs once per request, not per edit.
+  useEffect(() => {
+    if (!request || selected?.id === request.id) return;
+    // Never replace a listing that is open, since it may hold unsaved edits.
+    if (selected) setRequested(request.id);
+    else void open(request.id);
+  }, [request]);
+
   async function open(id: string) {
+    setRequested("");
     const ticket = ++selection.current;
     setOpening(true);
     setError("");
@@ -119,13 +134,26 @@ export default function Listings() {
 
   if (selected)
     return (
-      <ListingEditor
-        key={selected.id}
-        initial={selected}
-        onClose={() => setSelected(null)}
-        onOpen={(id) => void open(id)}
-        onSaved={() => setReload((value) => value + 1)}
-      />
+      <>
+        {requested ? (
+          <div className="discard-prompt" role="alert">
+            <p>A dossier asked to show its source listing, but this listing is open.</p>
+            <button type="button" onClick={() => void open(requested)}>
+              Open it and leave this listing
+            </button>{" "}
+            <button type="button" onClick={() => setRequested("")}>
+              Stay here
+            </button>
+          </div>
+        ) : null}
+        <ListingEditor
+          key={selected.id}
+          initial={selected}
+          onClose={() => setSelected(null)}
+          onOpen={(id) => void open(id)}
+          onSaved={() => setReload((value) => value + 1)}
+        />
+      </>
     );
 
   return (

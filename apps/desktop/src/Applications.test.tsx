@@ -40,6 +40,8 @@ beforeEach(() => {
           company: record.data.company,
           status: "Unspecified",
           resume_sent: "",
+          deadline_date: "",
+          follow_up_date: "",
         },
       ],
     });
@@ -93,6 +95,8 @@ describe("Application history", () => {
           company: "Example company",
           status: "Unspecified",
           resume_sent: "",
+          deadline_date: "",
+          follow_up_date: "",
         },
       ],
     };
@@ -215,5 +219,41 @@ describe("Application history", () => {
     await waitFor(() =>
       expect(screen.getByRole("button", { name: /Example company/ })).toBeVisible(),
     );
+  });
+
+  it("saves owner-set dates on request and shows them in the index without reminding", async () => {
+    render(<Applications />);
+    fireEvent.click(await screen.findByRole("button", { name: /Example company/ }));
+    const deadline = await screen.findByLabelText("Application deadline");
+    expect(deadline).toHaveAttribute("type", "date");
+    expect(screen.getByText(/does not remind or notify/)).toBeVisible();
+    fireEvent.change(deadline, { target: { value: "2000-01-02" } });
+    fireEvent.change(screen.getByLabelText("Follow up on"), { target: { value: "2999-12-31" } });
+    expect(saveApplication).not.toHaveBeenCalled();
+    vi.mocked(listApplications).mockResolvedValue({
+      total: 1,
+      items: [
+        {
+          id: record.id,
+          title: "",
+          company: record.data.company,
+          status: "Unspecified",
+          resume_sent: "",
+          deadline_date: "2000-01-02",
+          follow_up_date: "2999-12-31",
+        },
+      ],
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save application" }));
+    await screen.findByText("Saved on this computer.");
+    expect(vi.mocked(saveApplication).mock.calls[0]?.[0].data).toMatchObject({
+      deadline_date: "2000-01-02",
+      follow_up_date: "2999-12-31",
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Back to list" }));
+    const entry = await screen.findByRole("button", { name: /Example company/ });
+    expect(entry).toHaveTextContent("Deadline 2000-01-02 (passed)");
+    expect(entry).toHaveTextContent("Follow up 2999-12-31");
+    expect(entry).not.toHaveTextContent("(due)");
   });
 });

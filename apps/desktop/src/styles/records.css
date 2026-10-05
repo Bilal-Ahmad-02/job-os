@@ -146,6 +146,16 @@
   max-width: 260px;
   margin-bottom: 28px;
 }
+.application-dates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 220px)) minmax(0, 1fr);
+  align-items: end;
+  gap: 16px;
+  margin-top: 16px;
+}
+.application-dates .input-help {
+  margin: 0;
+}
 .editor-section {
   margin-bottom: 28px;
 }

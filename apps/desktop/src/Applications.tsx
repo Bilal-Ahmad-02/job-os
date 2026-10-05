@@ -11,7 +11,19 @@ import {
 import ApplicationEditor from "./applications/ApplicationEditor";
 import Icon from "./Icon";
 
-export default function Applications({ active = true }: { active?: boolean }) {
+function today(): string {
+  const now = new Date();
+  const pad = (value: number) => String(value).padStart(2, "0");
+  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+}
+
+export default function Applications({
+  active = true,
+  onOpenListing,
+}: {
+  active?: boolean;
+  onOpenListing?: (id: string) => void;
+}) {
   const [page, setPage] = useState<ApplicationPage>({ items: [], total: 0 });
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
@@ -93,6 +105,7 @@ export default function Applications({ active = true }: { active?: boolean }) {
         key={selected.id}
         initial={selected}
         onClose={() => setSelected(null)}
+        {...(onOpenListing ? { onOpenListing } : {})}
         onSaved={() => setReload((value) => value + 1)}
       />
     );
@@ -212,6 +225,18 @@ export default function Applications({ active = true }: { active?: boolean }) {
                         {item.status}
                       </span>
                       {item.resume_sent ? <span>Resume sent {item.resume_sent}</span> : null}
+                      {item.deadline_date ? (
+                        <span>
+                          Deadline {item.deadline_date}
+                          {item.deadline_date < today() ? " (passed)" : ""}
+                        </span>
+                      ) : null}
+                      {item.follow_up_date ? (
+                        <span>
+                          Follow up {item.follow_up_date}
+                          {item.follow_up_date <= today() ? " (due)" : ""}
+                        </span>
+                      ) : null}
                     </span>
                   </button>
                 </li>

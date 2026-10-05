@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "./App";
+import { blankApplication, getApplication, listApplications } from "./api/applications";
 import {
   blankListing,
   deleteSearch,
@@ -26,6 +27,7 @@ vi.mock("./api/listings", async (original) => ({
 }));
 vi.mock("./api/applications", async (original) => ({
   ...(await original<typeof import("./api/applications")>()),
+  getApplication: vi.fn(),
   listApplications: vi.fn().mockResolvedValue({ total: 0, items: [] }),
 }));
 vi.mock("./api/documents", () => ({ listDocuments: vi.fn().mockResolvedValue([]) }));
@@ -391,5 +393,50 @@ describe("Listing intake", () => {
     fireEvent.click(screen.getByRole("button", { name: "Job listings" }));
     expect(screen.getByLabelText("Pasted listing text")).toHaveValue("Unsaved paste");
     expect(saveListing).not.toHaveBeenCalled();
+  });
+
+  it("opens a dossier's source listing on request and never over an open listing unasked", async () => {
+    const dossier = { ...blankApplication(), version: 1, listing_id: record.id };
+    dossier.data.company = "Example AB";
+    vi.mocked(getApplication).mockResolvedValue(dossier);
+    vi.mocked(listApplications).mockResolvedValue({
+      total: 1,
+      items: [
+        {
+          id: dossier.id,
+          title: "",
+          company: "Example AB",
+          status: "Saved",
+          resume_sent: "",
+          deadline_date: "",
+          follow_up_date: "",
+        },
+      ],
+    });
+    render(<App />);
+    fireEvent.click(await screen.findByRole("button", { name: /Example AB/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Open source listing" }));
+    expect(await screen.findByRole("heading", { name: "Synthetic Engineer" })).toBeVisible();
+    expect(getListing).toHaveBeenLastCalledWith(record.id);
+    expect(screen.getByRole("button", { name: "Job listings" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    // A second request while another listing is open asks first instead of replacing it.
+    const other = structuredClone(record);
+    other.id = "other-listing";
+    other.data.title = "Other listing";
+    vi.mocked(getApplication).mockResolvedValue({ ...dossier, listing_id: other.id });
+    vi.mocked(getListing).mockImplementation(async (id) =>
+      structuredClone(id === other.id ? other : record),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Applications" }));
+    fireEvent.click(screen.getByRole("button", { name: "Back to list" }));
+    fireEvent.click(await screen.findByRole("button", { name: /Example AB/ }));
+    fireEvent.click(await screen.findByRole("button", { name: "Open source listing" }));
+    expect(await screen.findByText(/asked to show its source listing/)).toBeVisible();
+    expect(screen.getByRole("heading", { name: "Synthetic Engineer" })).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Open it and leave this listing" }));
+    expect(await screen.findByRole("heading", { name: "Other listing" })).toBeVisible();
   });
 });

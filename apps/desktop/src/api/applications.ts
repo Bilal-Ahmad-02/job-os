@@ -32,13 +32,29 @@ export const statuses = [
 ] as const;
 
 export type FieldName = (typeof fields)[number][0];
-export type ApplicationData = Record<FieldName, string> & { status: (typeof statuses)[number] };
+export const dateFields = [
+  ["deadline_date", "Application deadline"],
+  ["follow_up_date", "Follow up on"],
+] as const;
+export type DateField = (typeof dateFields)[number][0];
+export type ApplicationData = Record<FieldName | DateField, string> & {
+  status: (typeof statuses)[number];
+};
+/** An ISO calendar day that really exists, or empty. */
+export function validDay(value: unknown): value is string {
+  if (value === "") return true;
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.valueOf()) && date.toISOString().slice(0, 10) === value;
+}
 export type ApplicationSummary = {
   id: string;
   title: string;
   company: string;
   status: string;
   resume_sent: string;
+  deadline_date: string;
+  follow_up_date: string;
 };
 export type ApplicationPage = { total: number; items: ApplicationSummary[] };
 export type ApplicationRecord = {
@@ -52,6 +68,8 @@ export type ApplicationRecord = {
     original: Record<FieldName, string>;
     links: Record<string, string>;
   };
+  /** The collected listing this dossier was started from, if any. */
+  listing_id: string | null;
 };
 
 export function blankApplication(): ApplicationRecord {
@@ -60,7 +78,10 @@ export function blankApplication(): ApplicationRecord {
     version: 0,
     updated_at: "",
     imported: null,
+    listing_id: null,
     data: {
+      deadline_date: "",
+      follow_up_date: "",
       title: "",
       company: "",
       website: "",
@@ -85,7 +106,11 @@ function status(value: unknown): boolean {
 function sourceFields(value: unknown, withStatus: boolean): boolean {
   return (
     object(value) &&
-    keys(value, [...fields.map(([key]) => key), ...(withStatus ? ["status"] : [])]) &&
+    keys(value, [
+      ...fields.map(([key]) => key),
+      ...(withStatus ? ["status", ...dateFields.map(([key]) => key)] : []),
+    ]) &&
+    (!withStatus || dateFields.every(([key]) => validDay(value[key]))) &&
     fields.every(([key]) =>
       text(
         value[key],
@@ -111,7 +136,8 @@ function provenance(value: unknown): boolean {
 function recordResult(value: unknown): ApplicationRecord {
   if (
     !object(value) ||
-    !keys(value, ["id", "version", "data", "updated_at", "imported"]) ||
+    !keys(value, ["id", "version", "data", "updated_at", "imported", "listing_id"]) ||
+    !(value.listing_id === null || uuid(value.listing_id)) ||
     !uuid(value.id) ||
     !integer(value.version, 1) ||
     !sourceFields(value.data, true) ||
@@ -135,7 +161,17 @@ export async function listApplications(query: string, offset: number): Promise<A
     !value.items.every(
       (item: unknown) =>
         object(item) &&
-        keys(item, ["id", "title", "company", "status", "resume_sent"]) &&
+        keys(item, [
+          "id",
+          "title",
+          "company",
+          "status",
+          "resume_sent",
+          "deadline_date",
+          "follow_up_date",
+        ]) &&
+        validDay(item.deadline_date) &&
+        validDay(item.follow_up_date) &&
         uuid(item.id) &&
         text(item.title, 1000) &&
         text(item.company, 1000) &&

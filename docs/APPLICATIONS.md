@@ -139,3 +139,35 @@ On 2026-09-25, OSV queries for the eight added Python packages returned no known
 SQLAlchemy 2.0.54, Alembic 1.20.0, openpyxl 3.1.5, defusedxml 0.7.1, greenlet 3.5.6,
 Mako 1.4.3, MarkupSafe 3.0.3, and et-xmlfile 2.0.0. This is a point-in-time dependency check;
 the existing Tauri findings remain documented in [desktop security](DESKTOP.md).
+
+## Deadlines, follow-up dates and source listings (step 20, part 1)
+
+Status on 2026-10-05: implemented and tested in source, **not deployed**. It needs schema `0012`,
+so deployment includes a live migration of the `applications` table, which holds the owner's
+existing dossiers.
+
+- A dossier has two optional dates the owner sets: **Application deadline** and **Follow up on**.
+  They are real calendar days in ISO form or empty; impossible days are rejected. The existing
+  free-text follow-up and interview fields are unchanged and nothing is parsed out of them.
+- The dossier index shows the dates, marking a deadline before today as "(passed)" and a follow-up
+  on or before today as "(due)". That is a label computed when the list is drawn. Oracle does not
+  remind, notify, schedule or change a status because of a date; that belongs to step 28.
+- A dossier started from a collected listing reports that listing. **Open source listing** switches
+  to 06 / INGRESS and opens it. If another listing is already open there, Oracle asks before
+  leaving it, so unsaved listing edits are never replaced silently.
+
+Storage: schema `0012` adds `deadline_date` and `follow_up_date` to `applications`, empty for every
+existing dossier. No existing column or row value changes. The two fields are not part of
+spreadsheet import provenance, which still records exactly the imported columns. The link to a
+listing is read from `job_listings.application_id`; nothing new is stored for it. Application
+records gained `listing_id` and the date fields, so backend and desktop must be deployed together.
+
+Not in this part: tasks and reminders, interview preparation, and links from an application to the
+exact documents used. Those remain open under step 20.
+
+Verification: 345 Linux tests (12 more), 110 frontend tests (2 more) and 33 native tests pass. They
+cover round-trip and clearing of dates, rejected dates, unchanged import provenance, the listing
+link surviving edits, a real migration from `0011` that preserves an existing dossier's values,
+an updated legacy-upgrade test that writes its 2026-09 row as that release stored it, strict
+response validation, save-on-request, the index labels and guarded navigation to the listing.
+Not seen in the running app.

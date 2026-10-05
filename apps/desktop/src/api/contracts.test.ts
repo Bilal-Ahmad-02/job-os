@@ -34,6 +34,10 @@ it("rejects incomplete records and malformed import provenance", async () => {
     { ...record, data: { company: "Synthetic" } },
     { ...record, imported: { sheet: "Sheet", row: 2, original: {}, links: {} } },
     { ...record, version: 0 },
+    { ...record, listing_id: "not-a-uuid" },
+    { ...record, listing_id: undefined },
+    { ...record, data: { ...record.data, deadline_date: "2026-02-30" } },
+    { ...record, data: { ...record.data, follow_up_date: "soon" } },
   ]) {
     invoke.mockResolvedValue(value);
     await expect(getApplication(record.id)).rejects.toThrow("Invalid application response");

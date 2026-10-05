@@ -140,6 +140,16 @@ Not verified: any step 14-19 screen in the unlocked app, including layout. After
 styling is a known blind spot of the component tests. The active backup repository still held one
 snapshot, taken before the `0009` migration; three migrations have run since.
 
+### Step 20 part 1 source state — October 5, 2026
+
+Application dates and the listing link are committed locally and not deployed or pushed. Checks
+run: 345 Linux tests with Ruff clean; TypeScript, Biome, 110 frontend tests across 18 files and the
+Vite build; 33 ordinary native tests. Not run: WSL native probes (they need an installed `0012`
+release). Not done: release build/install, live migration to `0012`, selection, desktop install.
+This migration alters `applications`, the table holding the owner's 23 existing dossiers; the
+deployment comparison must show every existing value unchanged. The installed backend
+`4207506d...`, desktop `768dc850...` and schema `0011` are still what runs.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useRef, useState } from "react";
 import {
   type ApplicationRecord,
   applicationError,
+  dateFields,
   type FieldName,
   fields,
   saveApplication,
@@ -24,10 +25,12 @@ const labels = Object.fromEntries(fields) as Record<FieldName, string>;
 export default function ApplicationEditor({
   initial,
   onClose,
+  onOpenListing,
   onSaved,
 }: {
   initial: ApplicationRecord;
   onClose: () => void;
+  onOpenListing?: (id: string) => void;
   onSaved: () => void;
 }) {
   const [record, setRecord] = useState(initial);
@@ -115,6 +118,26 @@ export default function ApplicationEditor({
             ))}
           </select>
         </label>
+        <div className="application-dates">
+          {dateFields.map(([key, label]) => (
+            <label className="application-field" key={key} htmlFor={`application-${key}`}>
+              {label}
+              <input
+                id={`application-${key}`}
+                type="date"
+                value={record.data[key]}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setRecord((current) => ({ ...current, data: { ...current.data, [key]: value } }));
+                  setSaved("");
+                }}
+              />
+            </label>
+          ))}
+          <p className="input-help">
+            Dates you set yourself. Oracle shows them in the index; it does not remind or notify.
+          </p>
+        </div>
         {sections.map((section) => (
           <section className="editor-section" key={section.label} aria-label={section.label}>
             <h3 className="field-sector">{section.label}</h3>
@@ -145,6 +168,23 @@ export default function ApplicationEditor({
         ))}
       </fieldset>
       {record.imported ? <SourceTrace source={record.imported} /> : null}
+      {record.listing_id ? (
+        <p className="input-help" role="note">
+          Started from a listing you collected in 06 / INGRESS; its full original text is kept
+          there.{" "}
+          {onOpenListing ? (
+            <button
+              type="button"
+              className="quiet-button"
+              disabled={busy || dirty}
+              title={dirty ? "Save or discard your changes first" : undefined}
+              onClick={() => record.listing_id && onOpenListing(record.listing_id)}
+            >
+              Open source listing
+            </button>
+          ) : null}
+        </p>
+      ) : null}
       <div className="editor-actions">
         <div>
           {error ? (

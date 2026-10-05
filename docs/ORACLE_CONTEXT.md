@@ -4,6 +4,11 @@ Owner instruction, 2026-10-05: the roadmap is resumed ("focus on finishing the 4
 earlier pause notes below are historical. Work proceeds one scoped step at a time; later steps are
 still not authorized in bulk, and frontend redesign beyond the chamber hub is deferred.
 
+Source checkpoint, 2026-10-05: step 20 part 1 adds owner-set deadline and follow-up dates to
+dossiers (schema `0012` on `applications`), index labels for passed or due dates, and a guarded
+link from a dossier to the listing it was started from. Nothing reminds or notifies. Committed
+locally and **not deployed**. See APPLICATIONS.md. The rest of step 20 is open.
+
 Implementation checkpoint, 2026-10-05: the owner skipped steps 17-18 for now because no profile entry is
 approved and no preferences are saved. Step 19 adds the listing review workflow: four views,
 a shortlist flag, a one-time "Start application" that creates a linked tracker dossier, and saved

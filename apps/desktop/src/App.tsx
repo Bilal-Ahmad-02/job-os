@@ -63,6 +63,7 @@ export default function App({
   const [profileOpened, setProfileOpened] = useState(false);
   const [tasksOpened, setTasksOpened] = useState(false);
   const [listingsOpened, setListingsOpened] = useState(false);
+  const [listingRequest, setListingRequest] = useState<{ id: string; serial: number } | null>(null);
   const [systemOpen, setSystemOpen] = useState(false);
   const systemButton = useRef<HTMLButtonElement>(null);
   const chamberButton = useRef<HTMLButtonElement>(null);
@@ -147,7 +148,14 @@ export default function App({
           </header>
           {/* Keep drafts in memory when changing modules; locking unmounts the workspace. */}
           <div hidden={view !== "applications"}>
-            <Applications active={active && view === "applications"} />
+            <Applications
+              active={active && view === "applications"}
+              onOpenListing={(id) => {
+                setListingsOpened(true);
+                setView("listings");
+                setListingRequest((current) => ({ id, serial: (current?.serial ?? 0) + 1 }));
+              }}
+            />
           </div>
           {profileOpened && (
             <div hidden={view !== "profile"}>
@@ -161,7 +169,7 @@ export default function App({
           )}
           {listingsOpened && (
             <div hidden={view !== "listings"}>
-              <Listings />
+              <Listings request={listingRequest} />
             </div>
           )}
           {view === "providers" && <ProviderSettings />}
