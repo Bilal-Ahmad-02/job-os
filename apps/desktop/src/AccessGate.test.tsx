@@ -160,4 +160,40 @@ describe("Oracle circular access gate", () => {
     await waitFor(() => expect(screen.queryByText("Private workspace")).not.toBeInTheDocument());
     await waitFor(() => expect(invoke).toHaveBeenCalledWith("shell_mode", { workspace: false }));
   });
+  it("unseals with Enter once the sequence is complete, from the dial or with nothing focused", async () => {
+    render(<AccessGate />);
+    await screen.findByRole("button", { name: "Unseal" });
+    const dial = screen.getByRole("slider", { name: "Rotation dial" });
+    // Too short: Enter must not submit an incomplete sequence.
+    fireEvent.keyDown(dial, { key: "ArrowRight" });
+    fireEvent.keyDown(dial, { key: " " });
+    fireEvent.keyDown(dial, { key: "Enter" });
+    fireEvent.keyDown(document.body, { key: "Enter" });
+    expect(invoke).not.toHaveBeenCalledWith("unlock_rotation", expect.anything());
+    for (const key of ["ArrowLeft", "ArrowRight", "ArrowLeft"]) {
+      fireEvent.keyDown(dial, { key });
+      fireEvent.keyDown(dial, { key: " " });
+    }
+    fireEvent.keyDown(document.body, { key: "Enter" });
+    expect(await screen.findByRole("heading", { name: "THE CHAMBER" })).toBeVisible();
+    expect(invoke).toHaveBeenCalledWith("unlock_rotation", { steps: [1, -1, 1, -1] });
+    expect(
+      vi.mocked(invoke).mock.calls.filter(([command]) => command === "unlock_rotation"),
+    ).toHaveLength(1);
+  });
+  it("unseals with Enter on the dial after the last turn", async () => {
+    render(<AccessGate />);
+    await screen.findByRole("button", { name: "Unseal" });
+    turns();
+    fireEvent.keyDown(screen.getByRole("slider", { name: "Rotation dial" }), { key: "Enter" });
+    expect(await screen.findByRole("heading", { name: "THE CHAMBER" })).toBeVisible();
+    expect(invoke).toHaveBeenCalledWith("unlock_rotation", { steps: [1, -1, 1, -1] });
+  });
+  it("does not treat Enter on another control as an unseal request", async () => {
+    render(<AccessGate />);
+    await screen.findByRole("button", { name: "Unseal" });
+    turns();
+    fireEvent.keyDown(screen.getByRole("button", { name: "Clear turns" }), { key: "Enter" });
+    expect(invoke).not.toHaveBeenCalledWith("unlock_rotation", expect.anything());
+  });
 });

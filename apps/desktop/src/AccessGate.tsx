@@ -130,6 +130,25 @@ export default function AccessGate() {
       await openWorkspace();
     });
   }
+  const sealPanel = panel === "seal" || panel === "enroll" || panel === "confirm";
+  const canSubmit =
+    status === "locked" &&
+    sealPanel &&
+    !busy &&
+    validSequence(steps) &&
+    (configured || panel !== "seal");
+  // Enter submits a complete sequence even when nothing on the seal has keyboard focus.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: the handler must see the current sequence.
+  useEffect(() => {
+    if (!canSubmit) return;
+    function enter(event: KeyboardEvent) {
+      if (event.key !== "Enter" || event.repeat || event.target !== document.body) return;
+      event.preventDefault();
+      void submitRotation();
+    }
+    window.addEventListener("keydown", enter);
+    return () => window.removeEventListener("keydown", enter);
+  }, [canSubmit, steps, panel]);
   async function lock() {
     setStatus("loading");
     setError("");
@@ -287,6 +306,9 @@ export default function AccessGate() {
               key={dialKey}
               disabled={busy || (!configured && !enrolling)}
               onChange={setSteps}
+              onSubmit={() => {
+                if (canSubmit) void submitRotation();
+              }}
             />
             <div className="seal-dial-actions">
               {configured || enrolling ? (

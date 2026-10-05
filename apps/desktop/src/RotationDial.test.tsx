@@ -71,4 +71,35 @@ describe("rotation input", () => {
     fireEvent.keyDown(dial, { key: " " });
     expect(changed).toHaveBeenCalledTimes(2);
   });
+  it("uses Enter to finish a turn in progress, otherwise to ask for submission", () => {
+    const changed = vi.fn();
+    const submitted = vi.fn();
+    render(<RotationDial disabled={false} onChange={changed} onSubmit={submitted} />);
+    const dial = screen.getByRole("slider");
+    fireEvent.keyDown(dial, { key: "ArrowRight" });
+    fireEvent.keyDown(dial, { key: "Enter" });
+    expect(changed).toHaveBeenLastCalledWith([1]);
+    expect(submitted).not.toHaveBeenCalled();
+    fireEvent.keyDown(dial, { key: "Enter" });
+    expect(submitted).toHaveBeenCalledTimes(1);
+    expect(changed).toHaveBeenCalledTimes(1);
+    // Space never submits.
+    fireEvent.keyDown(dial, { key: " " });
+    expect(submitted).toHaveBeenCalledTimes(1);
+  });
+  it("still submits on Enter after the eighth turn and never while disabled", () => {
+    const submitted = vi.fn();
+    const view = render(<RotationDial disabled={false} onChange={() => {}} onSubmit={submitted} />);
+    const dial = screen.getByRole("slider");
+    for (let turn = 0; turn < 8; turn += 1) {
+      fireEvent.keyDown(dial, { key: turn % 2 ? "ArrowLeft" : "ArrowRight" });
+      fireEvent.keyDown(dial, { key: " " });
+    }
+    expect(dial).toHaveAttribute("aria-disabled", "true");
+    fireEvent.keyDown(dial, { key: "Enter" });
+    expect(submitted).toHaveBeenCalledTimes(1);
+    view.rerender(<RotationDial disabled onChange={() => {}} onSubmit={submitted} />);
+    fireEvent.keyDown(dial, { key: "Enter" });
+    expect(submitted).toHaveBeenCalledTimes(1);
+  });
 });

@@ -169,6 +169,21 @@ Verification: zoom, right-drag, limits, reset and left-button behaviour are cove
 a browser preview confirmed wheel zoom about the pointer and right-drag at about 2x with sharp
 pixels. Not verified in the installed, unlocked window.
 
+### Enter submits the rotation sequence (2026-10-05)
+
+At the owner's request, pressing Enter after the turns are entered does what the **Unseal** button
+does (and **Record sequence** / **Save rotation key** during enrollment). It works with keyboard
+focus on the dial, which is where it is after dragging a turn, or with nothing focused. Enter only
+submits a sequence the button would accept: 4 to 8 alternating turns, not while a request is
+pending, and not from another control. While a keyboard turn is in progress Enter still finishes
+that turn first, as before; Space never submits. The native check, the retry delay and the
+password recovery form are unchanged; that form already submitted on Enter.
+
+Verification: 125 frontend tests pass, five of them new, covering Enter on the dial and with
+nothing focused, an incomplete sequence, the eighth turn, a disabled dial and Enter on another
+button. Installed as desktop `4855d897478de4662c9b42a108a3a19d01a9a324a9711cd52b865ea7ab6ff476`. Not
+verified in the real seal window, where the owner enters their own sequence.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves

@@ -181,6 +181,13 @@ frontend only; backend `57a5d2b2...` and schema `0012` are unchanged. Checks: Ty
 process reopened responsive. The chamber camera was exercised in a browser preview. Not verified:
 either feature in the installed, unlocked window, and approve-all against the real draft.
 
+### Desktop update — Enter to unseal, October 5, 2026
+
+Desktop SHA-256 is now `4855d897478de4662c9b42a108a3a19d01a9a324a9711cd52b865ea7ab6ff476`,
+frontend only; backend `57a5d2b2...` and schema `0012` are unchanged. Checks: TypeScript, Biome,
+125 frontend tests across 19 files, Vite and Tauri builds; installed bytes verified and the
+process reopened responsive at the seal. Not verified: the key in the real seal window.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

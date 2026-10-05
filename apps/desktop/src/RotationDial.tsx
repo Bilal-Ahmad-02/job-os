@@ -18,8 +18,13 @@ export function validSequence(steps: readonly number[]): boolean {
     )
   );
 }
-type Props = { disabled: boolean; onChange: (steps: number[]) => void };
-export default function RotationDial({ disabled, onChange }: Props) {
+type Props = {
+  disabled: boolean;
+  onChange: (steps: number[]) => void;
+  /** Enter with no turn in progress asks the owner of the dial to submit the sequence. */
+  onSubmit?: () => void;
+};
+export default function RotationDial({ disabled, onChange, onSubmit }: Props) {
   const [steps, setSteps] = useState<number[]>([]);
   const [turn, setTurn] = useState(0);
   const [notice, setNotice] = useState("");
@@ -98,6 +103,12 @@ export default function RotationDial({ disabled, onChange }: Props) {
           setTurn(0);
         }}
         onKeyDown={(event) => {
+          // Checked before the eight-turn limit, which disables turning but not submitting.
+          if (event.key === "Enter" && !disabled && turn === 0 && movement.current.pointer === -1) {
+            event.preventDefault();
+            onSubmit?.();
+            return;
+          }
           if (unavailable || movement.current.pointer !== -1) return;
           if (event.key === "ArrowRight" || event.key === "ArrowLeft") {
             event.preventDefault();
@@ -126,7 +137,9 @@ export default function RotationDial({ disabled, onChange }: Props) {
             ? `${turn > 0 ? "CW" : "CCW"} / ${String(Math.abs(turn)).padStart(2, "0")}`
             : `${steps.length} / 8 TURNS`)}
       </div>
-      <p id="dial-help">Drag and release each turn. Keyboard: ← / →, then Space.</p>
+      <p id="dial-help">
+        Drag and release each turn, then press Enter. Keyboard: ← / →, then Space.
+      </p>
     </div>
   );
 }
