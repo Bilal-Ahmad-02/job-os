@@ -142,9 +142,15 @@ the existing Tauri findings remain documented in [desktop security](DESKTOP.md).
 
 ## Deadlines, follow-up dates and source listings (step 20, part 1)
 
-Status on 2026-10-05: implemented and tested in source, **not deployed**. It needs schema `0012`,
-so deployment includes a live migration of the `applications` table, which holds the owner's
-existing dossiers.
+Status on 2026-10-05: implemented, tested and deployed on the owner's instruction as backend
+`57a5d2b29dadda1e95f7a337fb8cc3d3b1166a9f9bac31fd43deaf51cc421eed` and desktop
+`f6fd5dade89966cb8d8bbd564c3c3c5f105dc1c9ee4ccd4ecda1c2d205e124fa`. The live workspace is at
+schema `0012`. With Oracle closed, the release's explicit `prepare` took the integrity-checked
+local copy (`migration-backups/before-0012-*.sqlite3`) and migrated. All 23 existing dossiers kept
+every stored value (compared column by column over the pre-existing columns), no dossier has a new
+date set, and the 13 other tables and the identity marker were identical by typed-row hash. Both
+Windows/WSL native integration tests passed against the release. Not seen in the unlocked app by
+the coding session. No encrypted backup was taken before this migration.
 
 - A dossier has two optional dates the owner sets: **Application deadline** and **Follow up on**.
   They are real calendar days in ISO form or empty; impossible days are rejected. The existing

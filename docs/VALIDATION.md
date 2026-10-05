@@ -142,13 +142,26 @@ snapshot, taken before the `0009` migration; three migrations have run since.
 
 ### Step 20 part 1 source state — October 5, 2026
 
-Application dates and the listing link are committed locally and not deployed or pushed. Checks
-run: 345 Linux tests with Ruff clean; TypeScript, Biome, 110 frontend tests across 18 files and the
-Vite build; 33 ordinary native tests. Not run: WSL native probes (they need an installed `0012`
-release). Not done: release build/install, live migration to `0012`, selection, desktop install.
-This migration alters `applications`, the table holding the owner's 23 existing dossiers; the
-deployment comparison must show every existing value unchanged. The installed backend
-`4207506d...`, desktop `768dc850...` and schema `0011` are still what runs.
+Checks run: 345 Linux tests with Ruff clean; TypeScript, Biome, 110 frontend tests across 18 files
+and the Vite build; 33 ordinary native tests.
+
+Deployed 2026-10-05. Backend release: `57a5d2b29dadda1e95f7a337fb8cc3d3b1166a9f9bac31fd43deaf51cc421eed`.
+Desktop SHA-256: `f6fd5dade89966cb8d8bbd564c3c3c5f105dc1c9ee4ccd4ecda1c2d205e124fa`. Schema: `0012`.
+Earlier releases are retained.
+
+| Check | Result |
+| --- | --- |
+| Installed-release probe | Passed |
+| Windows/WSL native integration | Both opt-in tests passed against the new release |
+| Live migration | `prepare` succeeded; integrity-checked pre-migration copy present |
+| Existing dossiers | 23 before and after; every pre-existing column value identical; none has a new date set |
+| Other tables | 13 identical by typed-row hash, identity marker identical; `alembic_version` changed |
+| Desktop | Install script verified bytes; process reopened responsive |
+
+Oracle was in use and did not exit on a normal close request, so its process was stopped for this
+update. Not verified: any step 14-20 screen in the unlocked app. The active backup repository still
+held one snapshot, taken before the `0009` migration; four migrations have run since, this one on
+the table of real dossiers.
 
 ## Private backup and remaining manual evidence
 
