@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { type DocumentSummary, listDocuments } from "./api/documents";
 import {
   type Entry,
@@ -9,6 +9,16 @@ import {
   targetValue,
 } from "./api/profile";
 import EntryFields, { entryLabel, ReadValue } from "./profile/EntryFields";
+
+/** Blank technology lines are editor padding, not profile data. */
+function prepared(value: string | Entry): string | Entry {
+  if (typeof value !== "string" && Array.isArray(value.technologies))
+    return {
+      ...value,
+      technologies: value.technologies.map((item) => item.trim()).filter(Boolean),
+    };
+  return value;
+}
 
 export default function ProfileReview({
   refresh = 0,
@@ -25,6 +35,14 @@ export default function ProfileReview({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [reload, setReload] = useState(0);
+  const [confirmAll, setConfirmAll] = useState(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   // biome-ignore lint/correctness/useExhaustiveDependencies: Reload intentionally starts a fresh request with cleanup.
   useEffect(() => {
     let active = true;
@@ -63,13 +81,7 @@ export default function ProfileReview({
     setBusy(true);
     setError("");
     setNotice("");
-    let corrected = value;
-    if (typeof corrected !== "string" && Array.isArray(corrected.technologies)) {
-      corrected = {
-        ...corrected,
-        technologies: corrected.technologies.map((item) => item.trim()).filter(Boolean),
-      };
-    }
+    const corrected = prepared(value);
     try {
       const result = await saveReview(
         state,
@@ -99,6 +111,57 @@ export default function ProfileReview({
       setBusy(false);
     }
   }
+  const unreviewed =
+    draft?.payload.evidence.filter(
+      (item) => !state?.decisions.some((entry) => entry.target === item.target),
+    ) ?? [];
+  const flagged = unreviewed.filter((item) => item.notes.length > 0).length;
+  /**
+   * The owner's one explicit decision applied to every unreviewed entry. Each entry is still saved
+   * and recorded separately, in order, and the run stops at the first one that cannot be saved.
+   */
+  async function approveAll() {
+    if (!state || !draft || busy) return;
+    setConfirmAll(false);
+    setBusy(true);
+    setError("");
+    let current = state;
+    let done = 0;
+    for (const item of unreviewed) {
+      const proposal = edits[item.target] ?? targetValue(draft.payload.data, item.target);
+      setNotice(`Approving ${done + 1} of ${unreviewed.length}…`);
+      try {
+        if (proposal === undefined) throw new Error("Missing entry");
+        current = await saveReview(
+          current,
+          item.target,
+          "approved",
+          singleCandidate(item.target, prepared(proposal)),
+        );
+      } catch {
+        if (!mounted.current) return;
+        setError(
+          `Stopped at "${proposal === undefined ? item.target : entryLabel(proposal)}" after approving ${done} of ${unreviewed.length}. Nothing after it was changed. Open that entry, check its fields, then approve it or use Reload latest state.`,
+        );
+        break;
+      }
+      if (!mounted.current) return;
+      done += 1;
+      setState(current);
+      setEdits((existing) => {
+        const copy = { ...existing };
+        delete copy[item.target];
+        return copy;
+      });
+    }
+    setNotice(
+      done === unreviewed.length
+        ? `Approved ${done} ${done === 1 ? "entry" : "entries"} as your own statements. Source evidence remains unchanged, and nothing was verified.`
+        : "",
+    );
+    if (done > 0) onSaved?.();
+    setBusy(false);
+  }
   return (
     <section className="profile-review" aria-label="Candidate evidence review" aria-busy={busy}>
       <header className="review-toolbar">
@@ -109,17 +172,53 @@ export default function ProfileReview({
             a credential.
           </p>
         </div>
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => {
-            setNotice("");
-            setReload((n) => n + 1);
-          }}
-        >
-          Reload latest state
-        </button>
+        <div className="review-toolbar-actions">
+          <button
+            type="button"
+            disabled={busy || unreviewed.length === 0}
+            onClick={() => {
+              setNotice("");
+              setConfirmAll(true);
+            }}
+          >
+            Approve all unreviewed ({unreviewed.length})
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => {
+              setNotice("");
+              setConfirmAll(false);
+              setReload((n) => n + 1);
+            }}
+          >
+            Reload latest state
+          </button>
+        </div>
       </header>
+      {confirmAll && unreviewed.length > 0 && (
+        <div className="discard-prompt" role="alert">
+          <p>
+            Approve {unreviewed.length} unreviewed {unreviewed.length === 1 ? "entry" : "entries"}{" "}
+            without opening {unreviewed.length === 1 ? "it" : "each one"}?
+          </p>
+          <p>
+            They go into your profile as written, including any corrections you typed but have not
+            saved.{" "}
+            {flagged > 0
+              ? `${flagged} of them carry a review note asking you to check something. `
+              : ""}
+            Oracle will treat them as your own statements; it has not verified any of them. You can
+            still open and correct an entry afterwards.
+          </p>
+          <button type="button" disabled={busy} onClick={() => void approveAll()}>
+            Approve {unreviewed.length} {unreviewed.length === 1 ? "entry" : "entries"}
+          </button>{" "}
+          <button type="button" onClick={() => setConfirmAll(false)}>
+            Cancel
+          </button>
+        </div>
+      )}
       {error && (
         <p role="alert" className="error-message">
           {error}

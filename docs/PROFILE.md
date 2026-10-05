@@ -207,3 +207,28 @@ review UI warns when a newer one exists. See [DOCUMENTS.md](DOCUMENTS.md). New e
 Schema `0006` creates the empty ledger using the existing checked migration-recovery mechanism.
 Verification/restoration accepts older `0002` through `0005` snapshots without upgrading their bytes;
 explicit preparation migrates recovered workspaces. No live draft entry is approved by installation.
+
+## Approve all unreviewed (2026-10-05)
+
+At the owner's request, **03 / IDENTITY > Evidence review** has an **Approve all unreviewed (N)**
+button. It asks for one confirmation that states how many entries will be approved, how many of
+them carry a review note, and that Oracle has verified none of them. On confirmation the desktop
+approves the unreviewed entries one at a time, in draft order, through the same per-entry
+operation as the single **Approve entry** button, showing progress.
+
+- Each entry is still a separate saved decision with its own revision check; there is no new
+  backend operation, schema change or shortcut around the review ledger.
+- A correction typed but not yet saved for an unreviewed entry is what gets approved for it.
+- Already approved or rejected entries are not touched.
+- The run stops at the first entry that cannot be saved and names it. Entries before it stay
+  approved; nothing after it is changed.
+- With the installed Linux worker each approval is a separate request, so a full draft takes
+  on the order of a minute.
+
+This trades the entry-by-entry check for speed. Approved entries are owner assertions, as before,
+and become what later matching and document drafting rely on, so an entry approved unread can
+carry an extraction error forward. Any entry can still be opened and corrected afterwards.
+
+Verification: two frontend tests cover the confirmation, per-entry saves with chained revisions,
+use of a typed correction, cancelling, and stopping at a failure without exposing error details.
+Not run against the owner's real draft by the coding session.

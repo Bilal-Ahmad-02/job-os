@@ -22,6 +22,31 @@ function initialMotion(): boolean {
   );
 }
 
+type View = { scale: number; x: number; y: number };
+const HOME: View = { scale: 1, x: 0, y: 0 };
+const MIN_SCALE = 0.6;
+const MAX_SCALE = 3;
+const ZOOM_STEP = 1.15;
+
+/** Keeps the scene within reach: the further in, the further it may be dragged. */
+function limited(view: View): View {
+  const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, view.scale));
+  const reach = 520 * scale;
+  return {
+    scale,
+    x: Math.min(reach, Math.max(-reach, view.x)),
+    y: Math.min(reach, Math.max(-reach, view.y)),
+  };
+}
+/** Zooms about a point given relative to the centre of the space, so that point stays put. */
+function zoomed(view: View, factor: number, px = 0, py = 0): View {
+  // Rounded so repeated steps in and out return to exactly the starting size.
+  const target = Math.round(view.scale * factor * 10000) / 10000;
+  const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, target));
+  const ratio = scale / view.scale;
+  return limited({ scale, x: px - (px - view.x) * ratio, y: py - (py - view.y) * ratio });
+}
+
 /**
  * Hub shown after unlock. Only JOB.OS exists, so only its figure walks and can be opened. The
  * core and empty pads are labelled as inactive, and no motion here represents model activity.
@@ -30,8 +55,51 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
   const [place, setPlace] = useState<Place>("chamber");
   const [jobsOpened, setJobsOpened] = useState(false);
   const [motion, setMotion] = useState(initialMotion);
+  const [view, setView] = useState<View>(HOME);
+  const [panning, setPanning] = useState(false);
+  const space = useRef<HTMLElement>(null);
   const jobsNode = useRef<HTMLButtonElement>(null);
   const returning = useRef(false);
+
+  // The wheel zooms about the pointer. A native listener is needed to stop the page scrolling.
+  useEffect(() => {
+    const element = space.current;
+    if (!element) return;
+    function wheel(event: WheelEvent) {
+      if (!element || event.deltaY === 0) return;
+      event.preventDefault();
+      const box = element.getBoundingClientRect();
+      setView((current) =>
+        zoomed(
+          current,
+          event.deltaY < 0 ? ZOOM_STEP : 1 / ZOOM_STEP,
+          event.clientX - box.left - box.width / 2,
+          event.clientY - box.top - box.height / 2,
+        ),
+      );
+    }
+    element.addEventListener("wheel", wheel, { passive: false });
+    return () => element.removeEventListener("wheel", wheel);
+  }, []);
+  /** Holding the right mouse button drags the space; the left button still presses figures. */
+  function startPan(event: React.MouseEvent) {
+    if (event.button !== 2) return;
+    event.preventDefault();
+    const origin = { x: event.clientX - view.x, y: event.clientY - view.y };
+    setPanning(true);
+    function move(next: MouseEvent) {
+      setView((current) =>
+        limited({ ...current, x: next.clientX - origin.x, y: next.clientY - origin.y }),
+      );
+    }
+    function stop() {
+      setPanning(false);
+      window.removeEventListener("mousemove", move);
+      window.removeEventListener("mouseup", stop);
+    }
+    window.addEventListener("mousemove", move);
+    window.addEventListener("mouseup", stop);
+  }
 
   useEffect(() => {
     if (place === "chamber" && returning.current) jobsNode.current?.focus();
@@ -47,6 +115,32 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
             <small>THE CHAMBER</small>
           </div>
           <div className="header-actions">
+            <button
+              className="quiet-button"
+              type="button"
+              aria-label="Zoom out"
+              disabled={view.scale <= MIN_SCALE}
+              onClick={() => setView((current) => zoomed(current, 1 / ZOOM_STEP))}
+            >
+              −
+            </button>
+            <button
+              className="quiet-button"
+              type="button"
+              aria-label="Zoom in"
+              disabled={view.scale >= MAX_SCALE}
+              onClick={() => setView((current) => zoomed(current, ZOOM_STEP))}
+            >
+              +
+            </button>
+            <button
+              className="quiet-button"
+              type="button"
+              disabled={view.scale === 1 && view.x === 0 && view.y === 0}
+              onClick={() => setView(HOME)}
+            >
+              Reset view
+            </button>
             <button
               className="quiet-button"
               type="button"
@@ -72,13 +166,24 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
             ) : null}
           </div>
         </header>
-        <main className="chamber-void" aria-labelledby="chamber-title">
+        {/* Mouse-only camera; the header buttons do the same by keyboard. */}
+        <main
+          className="chamber-void"
+          aria-labelledby="chamber-title"
+          ref={space}
+          data-panning={panning}
+          onMouseDown={startPan}
+          onContextMenu={(event) => event.preventDefault()}
+        >
           <div className="chamber-space" aria-hidden="true">
             <div className="chamber-stars" />
             <div className="chamber-streaks" />
           </div>
           <h1 id="chamber-title">THE CHAMBER</h1>
-          <div className="chamber-scene">
+          <div
+            className="chamber-scene"
+            style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
+          >
             <ChamberScene
               {...(privateSprites.oracle ? { coreSprite: privateSprites.oracle } : {})}
             />

@@ -14,10 +14,13 @@
   justify-items: center;
   align-items: center;
   padding: 20px 24px 16px;
-  overflow: hidden auto;
+  /* The scene is moved and scaled by the owner; it is clipped, never scrolled. */
+  overflow: clip;
   background: radial-gradient(ellipse 70% 60% at 50% 55%, #0a1c13 0, #030705 60%, #010302 100%);
-  scrollbar-color: var(--border-strong) var(--canvas);
-  scrollbar-width: thin;
+}
+.chamber-void[data-panning="true"] {
+  cursor: grabbing;
+  user-select: none;
 }
 .chamber-void h1 {
   position: relative;

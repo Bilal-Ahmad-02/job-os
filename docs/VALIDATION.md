@@ -173,6 +173,14 @@ preview at two window sizes with motion off and on. Not verified: the scene in t
 unlocked window. Windows "Animation effects" is off on this PC, so the scene is still until the
 owner uses the hub's Motion switch.
 
+### Desktop update — approve-all and chamber camera, October 5, 2026
+
+Desktop SHA-256 is now `555a5e17aedf25f61535c5998f9147265f842c8305ccd79df054bb1f5e6cf2d4`,
+frontend only; backend `57a5d2b2...` and schema `0012` are unchanged. Checks: TypeScript, Biome,
+120 frontend tests across 19 files, Vite and Tauri builds; installed bytes verified and the
+process reopened responsive. The chamber camera was exercised in a browser preview. Not verified:
+either feature in the installed, unlocked window, and approve-all against the real draft.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

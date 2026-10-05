@@ -184,3 +184,61 @@ it("warns when a citation still uses an earlier original", async () => {
   expect(screen.getByText("Synthetic CV.pdf · v1 · page 1")).toBeVisible();
   expect(saveReview).not.toHaveBeenCalled();
 });
+it("approves every unreviewed entry only after one explicit confirmation, one save per entry", async () => {
+  let current = sample();
+  vi.mocked(saveReview).mockImplementation(async (state, target) => {
+    current = {
+      ...state,
+      version: state.version + 1,
+      profile: { ...state.profile, version: state.profile.version + 1 },
+      decisions: [...state.decisions, { target, decision: "approved", reviewed_at: "now" }],
+    };
+    return current;
+  });
+  const onSaved = vi.fn();
+  render(<ProfileReview onSaved={onSaved} />);
+  fireEvent.change(await screen.findByLabelText("full name"), {
+    target: { value: "Typed correction" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Approve all unreviewed (2)" }));
+  const prompt = screen.getByRole("alert");
+  expect(prompt).toHaveTextContent("Approve 2 unreviewed entries without opening each one?");
+  expect(prompt).toHaveTextContent("1 of them carry a review note");
+  expect(prompt).toHaveTextContent("it has not verified any of them");
+  expect(saveReview).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Approve 2 entries" }));
+  expect(await screen.findByText(/Approved 2 entries as your own statements/)).toBeVisible();
+  expect(
+    vi.mocked(saveReview).mock.calls.map((call) => [call[0].version, call[1], call[2]]),
+  ).toEqual([
+    [0, "full_name", "approved"],
+    [1, "headline", "approved"],
+  ]);
+  expect(vi.mocked(saveReview).mock.calls[0]?.[3]).toMatchObject({ full_name: "Typed correction" });
+  expect(vi.mocked(saveReview).mock.calls[1]?.[3]).toMatchObject({
+    headline: "Synthetic headline",
+  });
+  expect(onSaved).toHaveBeenCalledTimes(1);
+  expect(screen.getByRole("button", { name: "Approve all unreviewed (0)" })).toBeDisabled();
+});
+it("can be cancelled, and stops at the first entry that cannot be saved", async () => {
+  const afterFirst = sample();
+  afterFirst.version = 1;
+  afterFirst.profile.version = 1;
+  afterFirst.decisions = [{ target: "full_name", decision: "approved", reviewed_at: "now" }];
+  vi.mocked(saveReview)
+    .mockResolvedValueOnce(afterFirst)
+    .mockRejectedValueOnce("private storage detail");
+  render(<ProfileReview />);
+  fireEvent.click(await screen.findByRole("button", { name: "Approve all unreviewed (2)" }));
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  expect(saveReview).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Approve all unreviewed (2)" }));
+  fireEvent.click(screen.getByRole("button", { name: "Approve 2 entries" }));
+  const alert = await screen.findByRole("alert");
+  expect(alert).toHaveTextContent('Stopped at "Synthetic headline" after approving 1 of 2');
+  expect(screen.queryByText("private storage detail")).not.toBeInTheDocument();
+  expect(saveReview).toHaveBeenCalledTimes(2);
+  expect(screen.getByRole("button", { name: "Approve all unreviewed (1)" })).toBeEnabled();
+});

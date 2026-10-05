@@ -49,8 +49,8 @@ describe("Oracle chamber", () => {
       expect(slot).toHaveTextContent(/UNASSIGNED.*Empty slot/);
       expect(within(slot).queryByRole("button")).not.toBeInTheDocument();
     }
-    // The only other control is the decorative motion switch.
-    expect(screen.getAllByRole("button")).toHaveLength(2);
+    // The only other controls are the camera buttons and the decorative motion switch.
+    expect(screen.getAllByRole("button")).toHaveLength(5);
   });
   it("opens the console from the JOB.OS node and returns with its state and focus intact", () => {
     render(<Chamber onLock={() => {}} />);
@@ -110,5 +110,55 @@ describe("Oracle chamber", () => {
     render(<Chamber />);
     expect(screen.getByRole("button", { name: "Motion on" })).toBeVisible();
     window.localStorage.clear();
+  });
+  it("zooms with the wheel or buttons, drags with the right button only, and resets", () => {
+    const { container } = render(<Chamber />);
+    const scene = container.querySelector<HTMLElement>(".chamber-scene");
+    const space = container.querySelector<HTMLElement>(".chamber-void");
+    if (!scene || !space) throw new Error("Chamber scene is missing");
+    const reset = screen.getByRole("button", { name: "Reset view" });
+    expect(scene.style.transform).toBe("translate(0px, 0px) scale(1)");
+    expect(reset).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "Zoom in" }));
+    expect(scene.style.transform).toBe("translate(0px, 0px) scale(1.15)");
+    const wheel = new WheelEvent("wheel", { deltaY: 100, bubbles: true, cancelable: true });
+    fireEvent(space, wheel);
+    expect(wheel.defaultPrevented).toBe(true);
+    expect(scene.style.transform).toBe("translate(0px, 0px) scale(1)");
+    // The left button never drags, so a figure can still be pressed.
+    fireEvent.mouseDown(space, { button: 0, clientX: 10, clientY: 10 });
+    fireEvent.mouseMove(window, { clientX: 90, clientY: 50 });
+    expect(scene.style.transform).toBe("translate(0px, 0px) scale(1)");
+    fireEvent.mouseDown(space, { button: 2, clientX: 10, clientY: 10 });
+    expect(space).toHaveAttribute("data-panning", "true");
+    fireEvent.mouseMove(window, { clientX: 90, clientY: 50 });
+    expect(scene.style.transform).toBe("translate(80px, 40px) scale(1)");
+    fireEvent.mouseUp(window);
+    expect(space).toHaveAttribute("data-panning", "false");
+    fireEvent.mouseMove(window, { clientX: 300, clientY: 300 });
+    expect(scene.style.transform).toBe("translate(80px, 40px) scale(1)");
+    const menu = new MouseEvent("contextmenu", { bubbles: true, cancelable: true });
+    fireEvent(space, menu);
+    expect(menu.defaultPrevented).toBe(true);
+    fireEvent.click(reset);
+    expect(scene.style.transform).toBe("translate(0px, 0px) scale(1)");
+  });
+  it("keeps zoom and drag within limits", () => {
+    const { container } = render(<Chamber />);
+    const scene = container.querySelector<HTMLElement>(".chamber-scene");
+    const space = container.querySelector<HTMLElement>(".chamber-void");
+    if (!scene || !space) throw new Error("Chamber scene is missing");
+    for (let step = 0; step < 20; step += 1)
+      fireEvent.click(screen.getByRole("button", { name: "Zoom in" }));
+    expect(scene.style.transform).toBe("translate(0px, 0px) scale(3)");
+    expect(screen.getByRole("button", { name: "Zoom in" })).toBeDisabled();
+    fireEvent.mouseDown(space, { button: 2, clientX: 0, clientY: 0 });
+    fireEvent.mouseMove(window, { clientX: 99999, clientY: -99999 });
+    fireEvent.mouseUp(window);
+    expect(scene.style.transform).toBe("translate(1560px, -1560px) scale(3)");
+    for (let step = 0; step < 40; step += 1)
+      fireEvent.click(screen.getByRole("button", { name: "Zoom out" }));
+    expect(scene.style.transform).toContain("scale(0.6)");
+    expect(screen.getByRole("button", { name: "Zoom out" })).toBeDisabled();
   });
 });

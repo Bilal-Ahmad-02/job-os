@@ -156,6 +156,19 @@ files were removed. Not verified: how a real owner-supplied sprite looks in the 
 change is committed but not installed, since without private files the app looks the same as the
 installed desktop `76e4a70e...`.
 
+### Chamber camera (2026-10-05)
+
+The owner can move around the chamber. The mouse wheel zooms about the pointer between 0.6x and
+3x. Holding the right mouse button drags the space; the left button is untouched, so figures are
+still pressed normally, and the browser's context menu is suppressed inside the space. Header
+buttons **−**, **+** and **Reset view** do the same from the keyboard. Dragging is limited so the
+scene cannot be lost off screen. The view is not saved; it starts centred each time the hub is
+shown after unlocking. The space is clipped rather than scrolled.
+
+Verification: zoom, right-drag, limits, reset and left-button behaviour are covered by tests, and
+a browser preview confirmed wheel zoom about the pointer and right-drag at about 2x with sharp
+pixels. Not verified in the installed, unlocked window.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves
