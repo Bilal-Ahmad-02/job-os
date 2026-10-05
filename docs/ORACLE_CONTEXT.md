@@ -4,12 +4,12 @@ Owner instruction, 2026-10-05: the roadmap is resumed ("focus on finishing the 4
 earlier pause notes below are historical. Work proceeds one scoped step at a time; later steps are
 still not authorized in bulk, and frontend redesign beyond the chamber hub is deferred.
 
-Source checkpoint, 2026-10-05: steps 17-18 compare each listing with the saved profile and
+Implementation checkpoint, 2026-10-05: steps 17-18 compare each listing with the saved profile and
 preferences by fixed rules, rebuilt on every read. Confirmed skill and project-technology names
 are matched as whole terms; preferences report match, conflict, not mentioned or not set; every
 hit quotes the listing; requirement-like lines show which of the owner's terms they contain.
 There is no score or recommendation, the unreviewed draft is never read, and no schema changed.
-Committed locally and **not deployed**. See LISTINGS.md.
+Deployed as backend `380671a6...` and desktop `581461f5...`. See LISTINGS.md.
 
 Implementation checkpoint, 2026-10-05: step 20 part 1 adds owner-set deadline and follow-up dates to
 dossiers (schema `0012` on `applications`), index labels for passed or due dates, and a guarded

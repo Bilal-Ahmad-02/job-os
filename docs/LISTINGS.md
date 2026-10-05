@@ -198,8 +198,11 @@ together. The step-16 backend cannot open a `0011` workspace.
 
 ## Fit against the confirmed profile (steps 17 and 18)
 
-Status on 2026-10-05: implemented and tested in source, **not deployed**. No schema change and no
-migration: the comparison is rebuilt on each read and never stored. The owner returned to these
+Status on 2026-10-05: implemented, tested and deployed on the owner's instruction as backend
+`380671a6f4c9ccc082ceb08dace94761bca85693e4819fcac16f406dec017a0b` and desktop
+`581461f58ac6a42e645188dc5c55c445ea9b7ad0d870fe7d121923b2bf7da67e`. No schema change and no
+migration: the comparison is rebuilt on each read and never stored. Not seen in the unlocked app
+or tried against a real listing by the coding session. The owner returned to these
 skipped steps after approving all 29 draft entries; the saved profile then held 1 experience, 2
 education, 20 skill, 4 project and 1 certification entries, and every job-preference list was
 still empty.

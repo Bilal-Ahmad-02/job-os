@@ -201,10 +201,17 @@ at four snapshots.
 
 ### Steps 17-18 source state — October 5, 2026
 
-Rule-based fit is committed locally and not deployed or pushed. Checks run: 352 Linux tests with
-Ruff clean; TypeScript, Biome, 126 frontend tests across 19 files and the Vite build. No native
-code or schema changed; native tests and WSL probes were not rerun. The installed backend
-`57a5d2b2...`, desktop `4855d897...` and schema `0012` are still what runs. Counts read from the
+Checks run: 352 Linux tests with Ruff clean; TypeScript, Biome, 126 frontend tests across 19 files
+and the Vite build; 33 ordinary native tests.
+
+Deployed 2026-10-05. Backend release: `380671a6f4c9ccc082ceb08dace94761bca85693e4819fcac16f406dec017a0b`.
+Desktop SHA-256: `581461f58ac6a42e645188dc5c55c445ea9b7ad0d870fe7d121923b2bf7da67e`. Schema stays `0012`;
+no migration ran. The release passed its offline install probe and both Windows/WSL native
+integration tests; selection verified it opens the existing workspace; afterwards it answered on
+the live workspace with 0 listings, 23 applications and profile revision 29 (counts only). The
+install script verified the desktop bytes and the process reopened responsive. Oracle was in use
+and did not exit on a normal close request, so its process was stopped. Earlier releases are
+retained. Counts read from the
 live workspace for planning, numbers only: 29 approved entries (20 skills, 4 projects), all
 preference lists empty, no listings stored. Not verified: the fit section on screen, and the
 rules against a real listing and the owner's real skill names.
