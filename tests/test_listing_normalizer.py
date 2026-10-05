@@ -129,6 +129,7 @@ def test_records_carry_derived_data_without_changing_stored_or_owner_fields(tmp_
                 version=1,
                 data=ListingFields(title="Owner title", url="https://Example.test/a#x"),
                 archived=False,
+                closed=False,
             ),
         )
         assert changed.data.title == "Owner title"

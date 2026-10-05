@@ -27,7 +27,14 @@ ROUTES = [
         True,
     ),
     (
-        {"action": "listing_update", "id": IDENTITY, "version": 1, "data": {}, "archived": True},
+        {
+            "action": "listing_update",
+            "id": IDENTITY,
+            "version": 1,
+            "data": {},
+            "archived": True,
+            "closed": False,
+        },
         "update_listing",
         True,
     ),

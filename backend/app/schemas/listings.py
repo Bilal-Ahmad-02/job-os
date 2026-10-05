@@ -59,6 +59,7 @@ class ListingUpdateRequest(Contract):
     version: int = Field(ge=1)
     data: ListingFields
     archived: bool
+    closed: bool
 
 
 class NormalizedListing(Contract):
@@ -76,6 +77,21 @@ class NormalizedListing(Contract):
     ] = Field(max_length=6)
 
 
+MatchReason = Literal["same_text", "same_link", "same_title_company"]
+
+
+class ListingMatch(Contract):
+    """Another stored listing that fixed rules flag as possibly the same role. Never merged."""
+
+    id: Identity
+    title: Short
+    company: Short
+    collected_at: str = Field(max_length=40)
+    archived: bool
+    closed: bool
+    reasons: list[MatchReason] = Field(min_length=1, max_length=3)
+
+
 class ListingRecord(Contract):
     id: Identity
     version: int = Field(ge=1)
@@ -86,7 +102,9 @@ class ListingRecord(Contract):
     collected_at: str = Field(max_length=40)
     updated_at: str = Field(max_length=40)
     archived: bool
+    closed: bool
     normalized: NormalizedListing
+    matches: list[ListingMatch] = Field(max_length=10)
 
 
 class ListingSummary(Contract):
@@ -98,6 +116,8 @@ class ListingSummary(Contract):
     location: Short
     collected_at: str = Field(max_length=40)
     archived: bool
+    closed: bool
+    possible_duplicate: bool
 
 
 class ListingPage(Contract):

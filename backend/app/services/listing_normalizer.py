@@ -5,6 +5,7 @@ Nothing is written back, so derived values can never replace owner-entered field
 change cannot leave stale stored results. Keyword hits mean "the text mentions this", not a fact.
 """
 
+import hashlib
 import re
 import unicodedata
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
@@ -12,6 +13,9 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from app.schemas.listings import NormalizedListing
 
 RULES_VERSION = 1
+# Version of the stored duplicate-detection text key; other versions are ignored when matching.
+KEYS_VERSION = 1
+LEGAL_SUFFIXES = {"ab", "aps", "as", "corp", "gmbh", "inc", "llc", "ltd", "oy", "plc"}
 MAX_LINKS = 10
 MAX_TITLE = 120
 TRACKING = ("utm_", "gclid", "fbclid", "mc_cid", "mc_eid", "msclkid")
@@ -97,6 +101,25 @@ def mentions(text: str, vocabulary: dict[str, tuple[str, ...]]) -> list[str]:
         for name, patterns in vocabulary.items()
         if any(re.search(pattern, folded) for pattern in patterns)
     ]
+
+
+def text_key(original_text: str) -> str:
+    """Hash of the cleaned text ignoring letter case and spacing; empty when there is no text."""
+    collapsed = " ".join(normalize_text(original_text).casefold().split())
+    return hashlib.sha256(collapsed.encode("utf-8")).hexdigest() if collapsed else ""
+
+
+def label_key(value: str) -> str:
+    """Comparable form of a short label: compatibility-folded words without punctuation."""
+    folded = unicodedata.normalize("NFKC", value).casefold()
+    return " ".join(re.sub(r"[\W_]+", " ", folded).split())
+
+
+def company_key(value: str) -> str:
+    words = label_key(value).split()
+    while len(words) > 1 and words[-1] in LEGAL_SUFFIXES:
+        words.pop()
+    return " ".join(words)
 
 
 def normalize(original_text: str, url: str) -> NormalizedListing:

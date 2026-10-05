@@ -47,7 +47,7 @@ def create(engine, original_text="", **data):
     )
 
 
-def update(engine, row, archived=False, version=None, **data):
+def update(engine, row, archived=False, version=None, closed=False, **data):
     return listings.update_listing(
         engine,
         ListingUpdateRequest(
@@ -56,6 +56,7 @@ def update(engine, row, archived=False, version=None, **data):
             version=row.version if version is None else version,
             data=ListingFields(**data),
             archived=archived,
+            closed=closed,
         ),
     )
 
@@ -131,7 +132,12 @@ def test_stale_and_missing_updates_are_rejected_without_changes(store):
         listings.update_listing(
             store,
             ListingUpdateRequest(
-                action="listing_update", id=uuid4(), version=1, data=ListingFields(), archived=False
+                action="listing_update",
+                id=uuid4(),
+                version=1,
+                data=ListingFields(),
+                archived=False,
+                closed=False,
             ),
         )
     assert page(store).items[0].title == "Second"
@@ -227,11 +233,20 @@ def test_real_wire_requests_round_trip_and_redact_failures(tmp_path):
         "location",
         "collected_at",
         "archived",
+        "closed",
+        "possible_duplicate",
     }
     stale = bridge.handle_request(
         database,
         json.dumps(
-            {"action": "listing_update", "id": identity, "version": 9, "data": {}, "archived": True}
+            {
+                "action": "listing_update",
+                "id": identity,
+                "version": 9,
+                "data": {},
+                "archived": True,
+                "closed": False,
+            }
         ).encode(),
     )
     assert not stale.ok and stale.error == "conflict"
@@ -250,12 +265,12 @@ def test_migration_from_0008_preserves_rows_and_snapshots_include_listings(tmp_p
         before = connection.exec_driver_sql("SELECT workspace_id FROM workspace_metadata").all()
     engine.dispose()
     prepare_workspace(database)
-    assert list((tmp_path / "migration-backups").glob("before-0009-*.sqlite3"))
+    assert list((tmp_path / "migration-backups").glob("before-0010-*.sqlite3"))
     upgraded = open_store(database)
     try:
         with upgraded.connect() as connection:
             assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").all() == [
-                ("0009",)
+                ("0010",)
             ]
             assert (
                 connection.exec_driver_sql("SELECT workspace_id FROM workspace_metadata").all()
@@ -265,7 +280,7 @@ def test_migration_from_0008_preserves_rows_and_snapshots_include_listings(tmp_p
     finally:
         upgraded.dispose()
     snapshot = tmp_path / "snapshot"
-    assert snapshot_workspace(database, snapshot).schema_revision == "0009"
+    assert snapshot_workspace(database, snapshot).schema_revision == "0010"
     verify_snapshot(snapshot)
     restored = open_store(snapshot / "oracle.sqlite3")
     try:

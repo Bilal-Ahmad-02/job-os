@@ -212,7 +212,7 @@ def test_migration_from_0007_preserves_existing_rows(tmp_path):
         with restored.connect() as connection:
             assert (
                 connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-                == "0009"
+                == "0010"
             )
     finally:
         restored.dispose()
