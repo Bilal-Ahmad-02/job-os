@@ -19,7 +19,7 @@ export function iso(x: number, y: number, z = 0): [number, number] {
 /** Centre of the platform, where the Oracle core sits. */
 export const CORE = { x: 6.5, y: 6.5 } as const;
 /** The two sand timers, and how far above the floor the bar across each one's posts is. */
-export const TIMERS = { left: [-1.5, 8.3], right: [14.8, 7.2], bar: 134 } as const;
+export const TIMERS = { left: [-1.5, 8.3], right: [15.2, 6.6], bar: 134 } as const;
 
 export type Point = readonly [number, number];
 /** A page behind a figure that has no function yet. Each one has its own look and says so. */
@@ -31,7 +31,7 @@ export type Room = { title: string; line: string };
  * - `tree`: a cat lives on a cat tree: sleeps, stretches, jumps down, hides, climbs back.
  * - `fly`: roams the whole space in the air, pausing to hover or to fire a beam.
  * - `vigil`: stands watch on top of a sand timer.
- * - `swim`: has no place on the platform and swims a loop beneath the whole space.
+ * - `swim`: has no place on the platform and swims a loop beneath its floor.
  * - `spin`: turns on the spot, off the platform.
  */
 export type Act = "walk" | "tree" | "fly" | "vigil" | "swim" | "spin";
@@ -50,8 +50,8 @@ export type Beat = {
   seconds?: number;
   /** Jump: how far above the higher end the arc peaks, in percent of the frame's height. */
   hop?: number;
-  /** Speed up and slow down instead of keeping a steady pace. */
-  glide?: true;
+  /** Gather speed, shed it, or both, instead of keeping a steady pace. */
+  ease?: "in" | "out" | "both";
   /** Play the pose's frames through exactly once across the beat instead of looping them. */
   once?: true;
   /** Run the figure's effect (falling stars, a beam, turning panes) across the beat. */
@@ -78,9 +78,9 @@ export type Agent = {
    * `name-pose` for a pose and `name-prop` for the prop.
    */
   sprite: string;
-  /** Drawn width in scene units. Unused by the swimmer, which is sized by the space. */
+  /** Drawn width in scene units. */
   width: number;
-  /** Where it stands on the platform grid. Absent for the swimmer. */
+  /** Where it stands on the platform grid. Absent for the swimmer, which is under the floor. */
   at?: Point;
   /** Height above the floor. */
   lift?: number;
@@ -105,6 +105,13 @@ export type Figure = Pick<
 const through = (pose: string, points: readonly Point[], extra: Partial<Beat> = {}): Beat[] =>
   points.map((to) => ({ pose, to, ...extra }));
 const stars: Beat = { pose: "cast", seconds: 7, cast: true };
+/** One flight through `points`: gathering speed on the first leg and shedding it on the last. */
+const flight = (points: readonly Point[]): Beat[] =>
+  points.map((to, leg) => {
+    const [first, last] = [leg === 0, leg === points.length - 1];
+    const ease = first && last ? "both" : first ? "in" : last ? "out" : undefined;
+    return { pose: "fly", to, ...(ease && { ease }) };
+  });
 const beamShot = (face: "left" | "right"): Beat[] => [
   { pose: "charge", seconds: 1.6, once: true, face },
   { pose: "fire", seconds: 2.6, cast: true, face },
@@ -117,6 +124,9 @@ const hop = (to: Point, seconds: number, height: number): Beat => ({
   once: true,
 });
 
+// Two corners of the walker's patrol, which it passes in both directions.
+const FRONT_RIGHT: Point = [12.7, 9.5];
+const PASSAGE: Point = [12.75, 6.6];
 // Places on the cat tree, as percentages of its drawing.
 const PERCH: Point = [68, 15.3];
 const LEDGE: Point = [25, 36.5];
@@ -128,33 +138,24 @@ export const AGENTS: readonly Agent[] = [
   {
     id: "jobs",
     slot: "01",
-    name: "JOB.OS",
+    name: "QUEST",
     note: "Job search / manual, no automation",
     act: "walk",
     frames: investigator,
     sprite: "job-os",
     width: 84,
-    at: [4.5, 10.5],
+    at: [9.9, 12.7],
     pad: true,
     pace: 1.9,
-    // Round the platform, clear of the core and the cat tree, back to its square.
+    // A patrol across the front of the court and up its right side, and back the same way. It
+    // keeps clear of everything that stands on the court and of the flyer's whole circuit.
     routine: [
-      { pose: "walk", to: [2, 11.2] },
+      { pose: "walk", to: FRONT_RIGHT },
       stars,
-      ...through("walk", [
-        [0.6, 9.5],
-        [0.6, 2.5],
-        [5, 1],
-        [8, 3.4],
-        [11.2, 7],
-      ]),
+      ...through("walk", [PASSAGE, [9.3, 3.2], [11.6, 1.3]]),
       stars,
-      ...through("walk", [
-        [11.8, 12],
-        [7.5, 12.2],
-      ]),
+      ...through("walk", [[9.3, 3.2], PASSAGE, FRONT_RIGHT, [9.9, 12.7]]),
       stars,
-      { pose: "walk", to: [4.5, 10.5] },
     ],
   },
   {
@@ -167,8 +168,9 @@ export const AGENTS: readonly Agent[] = [
     poses: { sleep: [catCurled] },
     prop: [catTree],
     sprite: "slot-2",
-    width: 110,
-    at: [11, 1.5],
+    width: 140,
+    // On the wing at the lower left, where nothing has to pass behind it.
+    at: [6.5, 15.3],
     pad: true,
     pace: 9,
     routine: [
@@ -199,34 +201,47 @@ export const AGENTS: readonly Agent[] = [
     },
   },
   {
-    id: "summit",
+    id: "zenith",
     slot: "03",
-    name: "SUMMIT",
+    name: "ZENITH",
     note: "No function yet",
     act: "fly",
     frames: [hoveringFighter],
     sprite: "slot-3",
     width: 72,
-    at: [2, 7],
+    at: [1.7, 7],
     lift: 22,
     pace: 7,
-    // Out over the edge of the platform and across the open space on every side of it.
+    // Down past the cat tree, along the open space below the court, up its right side and back
+    // across the top. It never crosses anything that stands, nor the walker's patrol.
     routine: [
-      { pose: "idle", seconds: 5 },
-      { pose: "fly", to: [-2.8, 2.4], glide: true },
-      { pose: "idle", seconds: 3, face: "right" },
-      { pose: "fly", to: [13.4, 1.4], glide: true },
-      { pose: "idle", seconds: 4, face: "left" },
-      { pose: "fly", to: [15.7, 7.4], glide: true },
-      ...beamShot("left"),
-      { pose: "fly", to: [10.6, 10.6], glide: true },
-      { pose: "idle", seconds: 3 },
-      { pose: "fly", to: [5.1, 14.9], glide: true },
+      { pose: "idle", seconds: 4 },
+      ...flight([
+        [7.4, 12.7],
+        [11.6, 16.9],
+      ]),
       ...beamShot("right"),
-      { pose: "fly", to: [2, 7], glide: true },
+      ...flight([
+        [14.9, 14.9],
+        [17.8, 12.1],
+        [20.1, 9.1],
+      ]),
+      ...beamShot("left"),
+      ...flight([
+        [17.4, 4.6],
+        [10.4, -2.5],
+      ]),
+      { pose: "idle", seconds: 4, face: "left" },
+      ...flight([
+        [6.5, 1.4],
+        [4, -0.15],
+        [-0.2, 4.1],
+      ]),
+      { pose: "idle", seconds: 3, face: "right" },
+      ...flight([[1.7, 7]]),
     ],
     room: {
-      title: "THE SUMMIT",
+      title: "THE ZENITH",
       line: "Thin air and a long way down. The training ground is empty.",
     },
   },
@@ -254,7 +269,7 @@ export const AGENTS: readonly Agent[] = [
     act: "swim",
     frames: [deepRay],
     sprite: "slot-5",
-    width: 0,
+    width: 190,
     centred: true,
     room: {
       title: "THE DEEP",
@@ -270,8 +285,8 @@ export const AGENTS: readonly Agent[] = [
     frames: blackHole,
     sprite: "slot-6",
     width: 228,
-    // Off the platform, between its upper right edge and the corner of the space.
-    at: [5.1, -2.6],
+    // Well off the platform, toward the upper right corner of the space.
+    at: [5.2, -5.2],
     centred: true,
     room: {
       title: "THE HORIZON",
@@ -290,7 +305,7 @@ export const ORACLE: Figure = {
   routine: [
     { pose: "type", seconds: 12 },
     { pose: "swipe", seconds: 1.3, once: true },
-    { pose: "type", seconds: 6, cast: true, glide: true },
+    { pose: "type", seconds: 6, cast: true, ease: "both" },
   ],
 };
 

@@ -150,12 +150,12 @@ describe("Oracle circular access gate", () => {
     render(<AccessGate />);
     expect(await screen.findByRole("heading", { name: "THE CHAMBER" })).toBeVisible();
     expect(screen.queryByText("Private workspace")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "Open JOB.OS console" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open QUEST console" }));
     expect(screen.getByText("Private workspace")).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Chamber" }));
     expect(screen.getByRole("heading", { name: "THE CHAMBER" })).toBeVisible();
     expect(screen.getByText("Private workspace")).not.toBeVisible();
-    fireEvent.click(screen.getByRole("button", { name: "Open JOB.OS console" }));
+    fireEvent.click(screen.getByRole("button", { name: "Open QUEST console" }));
     fireEvent.click(screen.getByRole("button", { name: "Lock Oracle" }));
     await waitFor(() => expect(screen.queryByText("Private workspace")).not.toBeInTheDocument());
     await waitFor(() => expect(invoke).toHaveBeenCalledWith("shell_mode", { workspace: false }));

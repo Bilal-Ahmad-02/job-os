@@ -3,7 +3,17 @@ import { invoke } from "@tauri-apps/api/core";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Chamber from "./Chamber";
-import { AGENTS, home, ORACLE, SCENE, scenePercent, TIMERS } from "./chamber/agents";
+import {
+  AGENTS,
+  type Agent,
+  CORE,
+  home,
+  iso,
+  ORACLE,
+  SCENE,
+  scenePercent,
+  TIMERS,
+} from "./chamber/agents";
 import { compile } from "./chamber/choreography";
 import * as sprites from "./chamber/sprites";
 
@@ -34,7 +44,7 @@ vi.mock("./App", () => ({
 }));
 
 const rooms = AGENTS.flatMap((agent) => (agent.room ? [{ agent, room: agent.room }] : []));
-const openJobs = () => screen.getByRole("button", { name: "Open JOB.OS console" });
+const openJobs = () => screen.getByRole("button", { name: "Open QUEST console" });
 function parts(container: HTMLElement) {
   const scene = container.querySelector<HTMLElement>(".chamber-scene");
   const space = container.querySelector<HTMLElement>(".chamber-void");
@@ -69,7 +79,7 @@ describe("Oracle chamber", () => {
     expect(standing).toHaveLength(AGENTS.filter((agent) => agent.at).length);
   });
 
-  it("opens the console from JOB.OS and returns with its state and focus intact", () => {
+  it("opens the console from the first figure and returns with its state and focus intact", () => {
     render(<Chamber onLock={() => {}} />);
     fireEvent.click(openJobs());
     expect(screen.getByTestId("console")).toBeVisible();
@@ -140,23 +150,27 @@ describe("Oracle chamber", () => {
     expect(container.querySelector(".chamber-leash")).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("places figures inside the drawing and lets the swimmer use the whole space", () => {
+  it("places every figure inside the drawing, the swimmer beneath its floor", () => {
     const { container } = render(<Chamber />);
-    const { scene, space } = parts(container);
+    const { scene } = parts(container);
     for (const agent of AGENTS) {
       const figure = container.querySelector<HTMLElement>(`[data-agent="${agent.id}"]`);
       if (!figure) throw new Error(`Missing figure ${agent.id}`);
+      expect(scene.contains(figure)).toBe(true);
+      expect(Number.parseFloat(figure.style.width)).toBeCloseTo((agent.width / SCENE.width) * 100);
       if (!agent.at) {
-        // Outside the camera: it is not zoomed or dragged with the platform.
-        expect(figure.parentElement).toBe(space);
+        // Drawn before the floor, so the floor covers it; the stylesheet moves it.
+        const order = figure.compareDocumentPosition(
+          container.querySelector(".chamber-art") as Node,
+        );
+        expect(order & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         expect(figure).toHaveAttribute("data-act", "swim");
+        expect(figure.style.left).toBe("");
         continue;
       }
-      expect(scene.contains(figure)).toBe(true);
       const left = Number.parseFloat(figure.style.left);
       const top = Number.parseFloat(figure.style.top);
       expect(left > 0 && left < 100 && top > 0 && top < 100).toBe(true);
-      expect(Number.parseFloat(figure.style.width)).toBeCloseTo((agent.width / SCENE.width) * 100);
     }
     // The swimmer follows a closed path under the floor and turns one full circle per lap.
     const styles = readFileSync("src/styles/chamber.css", "utf8");
@@ -170,6 +184,95 @@ describe("Oracle chamber", () => {
     const hole = AGENTS.find((agent) => agent.act === "spin")?.at ?? [0, 0];
     expect(hole[1]).toBeLessThan(0);
     expect(container.querySelector('[data-agent="horizon"]')).toHaveAttribute("data-centred");
+  });
+
+  it("keeps moving figures clear of each other and of everything that stands", () => {
+    type Box = readonly [left: number, top: number, right: number, bottom: number];
+    const meet = (a: Box, b: Box) => a[0] < b[2] && b[0] < a[2] && a[1] < b[3] && b[1] < a[3];
+    // A figure's box, from where its feet are: as wide as it is drawn, and as tall unless told.
+    const box = ([x, y]: readonly number[], wide: number, tall = wide): Box => [
+      (x ?? 0) - wide / 2,
+      (y ?? 0) - tall,
+      (x ?? 0) + wide / 2,
+      y ?? 0,
+    ];
+    const named = (id: string) => {
+      const agent = AGENTS.find((entry) => entry.id === id);
+      if (!agent) throw new Error(`Missing figure ${id}`);
+      return agent;
+    };
+    const standing = (agent: Agent) => {
+      const drawing = (agent.prop ?? agent.frames)[0] ?? [];
+      const tall = (agent.width * drawing.length) / (drawing[0]?.length || 1);
+      const [x, y] = agent.at ?? [0, 0];
+      return box(iso(x, y, agent.lift), agent.width, tall);
+    };
+    // Every place a routine takes a figure: each straight leg, sampled closely.
+    const swept = (agent: Agent) => {
+      const stops = (agent.routine ?? []).flatMap((beat) => (beat.to ? [beat.to] : []));
+      return stops.flatMap((to, leg) => {
+        const from = stops.at(leg - 1) ?? to;
+        return Array.from({ length: 25 }, (_, step) => {
+          const k = step / 24;
+          const at = [from[0] + (to[0] - from[0]) * k, from[1] + (to[1] - from[1]) * k] as const;
+          return box(iso(...at, agent.lift), agent.width);
+        });
+      });
+    };
+    const [cx, cy] = iso(CORE.x, CORE.y);
+    const fixed: Record<string, Box> = {
+      // The dome with its orb, as the scene draws it.
+      dome: [cx - 92, cy - 165, cx + 92, cy + 46],
+      tree: standing(named("perch")),
+      hole: standing(named("horizon")),
+      watcher: standing(named("watch")),
+    };
+    for (const [side, at] of Object.entries({ left: TIMERS.left, right: TIMERS.right })) {
+      const [x, y] = iso(at[0], at[1]);
+      fixed[`${side} timer`] = [x - 33, y - TIMERS.bar, x + 33, y + 17];
+    }
+    // The ring of panes round the core is an ellipse, as the stylesheet lays it out: a box meets
+    // it if the box's nearest point to the ring's middle is inside it.
+    const ring = { x: cx, y: cy - 18, rx: 126, ry: 68 };
+    const meetsRing = ([left, top, right, bottom]: Box) =>
+      Math.hypot(
+        (Math.min(Math.max(ring.x, left), right) - ring.x) / ring.rx,
+        (Math.min(Math.max(ring.y, top), bottom) - ring.y) / ring.ry,
+      ) < 1;
+    const [walker, flyer] = [swept(named("jobs")), swept(named("zenith"))];
+    expect([...walker, ...flyer].filter(meetsRing)).toEqual([]);
+    expect(walker.length).toBeGreaterThan(100);
+    expect(flyer.length).toBeGreaterThan(100);
+    for (const [name, obstacle] of Object.entries(fixed)) {
+      expect([name, "walker", walker.filter((at) => meet(at, obstacle))]).toEqual([
+        name,
+        "walker",
+        [],
+      ]);
+      expect([name, "flyer", flyer.filter((at) => meet(at, obstacle))]).toEqual([
+        name,
+        "flyer",
+        [],
+      ]);
+    }
+    // The two never share ground, so they cannot meet whatever their timing.
+    expect(walker.filter((a) => flyer.some((b) => meet(a, b)))).toEqual([]);
+    // The swimmer's loop stays under the court, away from the black hole.
+    const styles = readFileSync("src/styles/chamber.css", "utf8");
+    const loop = /offset-path: ellipse\(([\d.]+)% ([\d.]+)% at ([\d.]+)% ([\d.]+)%\)/.exec(
+      styles.slice(styles.indexOf('.chamber-agent[data-act="swim"] {')),
+    );
+    const [rx = 0, ry = 0, ox = 0, oy = 0] = (loop ?? []).slice(1).map(Number);
+    expect(rx * ry).toBeGreaterThan(0);
+    const swimmer = named("deep").width;
+    for (let turn = 0; turn < 360; turn += 10) {
+      const x = ((ox + rx * Math.cos((turn * Math.PI) / 180)) / 100) * SCENE.width;
+      const y = ((oy + ry * Math.sin((turn * Math.PI) / 180)) / 100) * SCENE.height;
+      // Inside the court's diamond, which is 13 squares a side.
+      expect(Math.abs(x - cx) / (13 * 32) + Math.abs(y - cy) / (13 * 16)).toBeLessThan(1);
+      const body: Box = [x - swimmer / 2, y - swimmer / 2, x + swimmer / 2, y + swimmer / 2];
+      expect(meet(body, fixed.hole as Box)).toBe(false);
+    }
   });
 
   it("keeps the hub hideable and every animation behind the motion switch", () => {

@@ -16,11 +16,12 @@ const PANES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 const WITH_A_FUNCTION = AGENTS.filter((agent) => !agent.room).length;
 const [CORE_LEFT, CORE_TOP] = scenePercent([CORE.x, CORE.y], 10);
 
-/** Where a figure in the scene stands and how wide it is. Its height follows its drawing. */
-function placement(agent: Agent): CSSProperties | undefined {
-  if (!agent.at) return undefined;
+/** How wide a figure is and, unless the stylesheet moves it, where it stands. */
+function placement(agent: Agent): CSSProperties {
+  const width = `${(agent.width / SCENE.width) * 100}%`;
+  if (!agent.at) return { width };
   const [left, top] = scenePercent(agent.at, agent.lift);
-  return { left: `${left}%`, top: `${top}%`, width: `${(agent.width / SCENE.width) * 100}%` };
+  return { left: `${left}%`, top: `${top}%`, width };
 }
 
 /** A pressable figure with its tag. Its act runs only while the hub's motion is on. */
@@ -96,7 +97,7 @@ function Core({
 
 /**
  * Hub shown after unlock. Every figure opens its own page; pressing the core shows its state
- * and opens nothing. Only JOB.OS does anything: the other pages say they have no function and
+ * and opens nothing. Only the job console does anything: the other pages say they have no function and
  * the core says it is dormant. Lines, panes, movement and figures are decoration and never
  * represent model activity.
  */
@@ -176,15 +177,15 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
           onContextMenu={(event) => event.preventDefault()}
         >
           <ChamberSpace />
-          {/* A figure with no place on the platform swims beneath the whole space. */}
-          {AGENTS.filter((agent) => !agent.at).map((agent) => (
-            <AgentButton key={agent.id} agent={agent} moving={motion} onOpen={open} />
-          ))}
           <h1 id="chamber-title">THE CHAMBER</h1>
           <div
             className="chamber-scene"
             style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
           >
+            {/* Drawn before the floor, so it shows through it from beneath. */}
+            {AGENTS.filter((agent) => !agent.at).map((agent) => (
+              <AgentButton key={agent.id} agent={agent} moving={motion} onOpen={open} />
+            ))}
             <ChamberScene />
             <Core moving={motion} open={coreOpen} onToggle={() => setCoreOpen(!coreOpen)} />
             <section

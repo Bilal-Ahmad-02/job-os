@@ -189,7 +189,7 @@
   position: absolute;
   left: 50%;
   top: 100%;
-  width: 230%;
+  width: 195%;
   aspect-ratio: 2.1;
   transform: translate(-50%, -64%);
   pointer-events: none;
@@ -233,13 +233,16 @@
  * A figure's drawings. Each is a strip of frames in a window one frame wide, so the window's
  * height follows the art. A figure with several poses stacks them and shows the first.
  */
+/* Widths are stated: a button shrinks to fit its contents, which would undo the percentages. */
 .chamber-actor {
   position: relative;
   display: block;
+  width: 100%;
   isolation: isolate;
 }
 .chamber-reel {
   display: block;
+  width: 100%;
   overflow: hidden;
 }
 .chamber-reel + .chamber-reel {
@@ -309,18 +312,15 @@
 }
 
 /*
- * The one figure with no place on the platform swims a wide loop beneath it, seen from above like
- * a shadow under the floor. The loop is a path in the space's own box, so it is held at the
- * origin and placed along the path by its middle.
+ * The one figure with no place on the platform swims a loop beneath its floor, seen from above
+ * like a shadow. The loop is a path in the scene's own box that stays under the court, so the
+ * figure is held at the origin and placed along the path by its middle.
  */
 .chamber-agent[data-act="swim"] {
   left: 0;
   top: 0;
-  width: clamp(130px, 19vw, 260px);
-  font-size: 10px;
-  opacity: 0.85;
   transform: none;
-  offset-path: ellipse(44% 36% at 50% 50%);
+  offset-path: ellipse(30% 22% at 50% 56%);
   offset-rotate: 0deg;
   offset-distance: 8%;
 }

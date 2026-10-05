@@ -17,9 +17,9 @@ in more than one. A pose with no image of its own uses the figure's main drawing
 
 | Figure | Name | Poses its routine uses |
 | --- | --- | --- |
-| 01 / JOB.OS, walks the platform | `job-os` | `walk`, `cast` |
+| 01 / QUEST, walks the platform | `job-os` | `walk`, `cast` |
 | 02 / PERCH, the cat | `slot-2` | `sleep`, `wake`, `stretch`, `hop`, `sit`, `walk`, `hide`, `settle`; the tree is `slot-2-prop` |
-| 03 / SUMMIT, flies | `slot-3` | `idle`, `fly`, `charge`, `fire` |
+| 03 / ZENITH, flies | `slot-3` | `idle`, `fly`, `charge`, `fire` |
 | 04 / WATCH, on the sand timer | `slot-4` | none: one looping strip |
 | 05 / DEEP, swims under the floor | `slot-5` | none: one looping strip, drawn from above with the head at the top |
 | 06 / HORIZON, the black hole | `slot-6` | none: one looping strip |
@@ -35,7 +35,7 @@ in more than one. A pose with no image of its own uses the figure's main drawing
 - The cat's frames are placed by its paws on the tree, and its tree drawing should keep the
   perch, ledge, shelf, cubby door, hammock and base where the built-in one has them.
 - An animated GIF or WebP keeps playing even when the hub's Motion switch is off.
-- Every figure opens its own page except the core. Only 01 / JOB.OS has a function so far.
+- Every figure opens its own page except the core. Only 01 / QUEST has a function so far.
 
 A new image appears only after rebuilding and reinstalling the desktop. With Oracle closed, in
 PowerShell from `apps/desktop`:

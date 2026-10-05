@@ -417,6 +417,36 @@ running in real time by the coding session. Installed as desktop `9d121010213bfb
 specific to this PC. Not verified in the installed, unlocked window; in particular the bundled
 strips there have not been seen.
 
+### Nothing crosses anything: layout and routes (2026-10-05)
+
+The owner reported figures passing through each other and through the sand timers. Rather than
+time the routines against each other, each moving figure now has ground of its own, so they
+cannot meet whatever their timing or wherever one is halted under the pointer.
+
+- **01** is renamed **QUEST** (it still opens the job console) and **03** is renamed **ZENITH**.
+  The owner left the second name open; ZENITH is a placeholder choice.
+- The walker patrols the front of the court and its right side, out and back along one line.
+- The flyer circles outside that: down between the cat tree and the core, along the open floor
+  below the court, up the right-hand side and back across the top between the caption and the
+  dome. Its legs join without stopping; it gathers speed on the first and sheds it on the last.
+- The cat tree moved to the lower left wing and is drawn at its intended size. It had been
+  shown at the image's own small size because a button shrinks to fit its contents; widths are
+  now stated.
+- The swimmer is inside the scene, under the court only, so it zooms with the camera and never
+  reaches the black hole. Only one see-through layer now lies over it.
+- The black hole moved further from the court; the right sand timer moved along its wing; the
+  ring of panes is a little tighter.
+
+A test builds a box for every place each routine takes its figure and checks that none meets the
+dome, the ring of panes, the cat tree, the black hole, the watcher, either sand timer, or any box
+of the other mover, and that the swimmer's loop stays inside the court. Boxes are as wide as a
+figure is drawn and square, which fits the owner's art; the taller built-in walker could still
+brush something in a fresh clone. Tags are not counted and can pass over things.
+
+Verification: 144 frontend tests pass. The layout was viewed in a component preview at three
+moments. Installed as desktop `c813bd8fe9d000f31d30f3ac429491acd12ddeceba2ca7ee92a83f04adf2f9ee`, specific
+to this PC. Not watched in real time and not verified in the unlocked window.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves

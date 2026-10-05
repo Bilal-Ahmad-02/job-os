@@ -1,6 +1,8 @@
 import { type RefObject, useEffect } from "react";
 import { type Figure, home, type Point, SCENE, scenePercent } from "./agents";
 
+const EASING = { in: "ease-in", out: "ease-out", both: "ease-in-out" } as const;
+
 /** A span of the loop, as fractions of it. */
 type Span = readonly [start: number, end: number];
 
@@ -63,7 +65,7 @@ export function compile(agent: Figure): Timeline | undefined {
   for (const beat of beats) {
     const offset = clock / seconds;
     const until = (clock + beat.length) / seconds;
-    const easing = beat.glide ? "ease-in-out" : "linear";
+    const easing = beat.ease ? EASING[beat.ease] : "linear";
     line.left.push({ left: `${beat.from[0]}%`, offset, easing });
     if (beat.hop) {
       const peak = Math.min(beat.from[1], beat.end[1]) - beat.hop;

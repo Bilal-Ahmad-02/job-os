@@ -152,8 +152,13 @@ export default function ChamberScene() {
           <path d={tread} fill="#0c1b14b8" />
         </g>
       ))}
-      <polygon points={points(court, RISE)} fill="#020403b8" stroke="#1e3528" />
-      <polygon points={points(court)} fill="#07100cb8" stroke="#376347" strokeWidth="1.5" />
+      <path
+        d={`${foot(court, 0)}M${points(court)}Z`}
+        fillRule="evenodd"
+        fill="#020403b8"
+        stroke="#1e3528"
+      />
+      <polygon points={points(court)} fill="#07100c99" stroke="#376347" strokeWidth="1.5" />
       <g clipPath="url(#chamber-court)" stroke="#32ce7426" strokeWidth="1">
         {gridLines.map((line) => (
           <g key={line}>

@@ -274,6 +274,15 @@ Tauri builds; installed bytes verified and the process reopened responsive. Sing
 each animation were viewed in a browser preview. Not verified: any of it running in real time,
 and the chamber in the installed, unlocked window.
 
+### Desktop update — figures kept clear of each other, October 5, 2026
+
+Desktop SHA-256 is now `c813bd8fe9d000f31d30f3ac429491acd12ddeceba2ca7ee92a83f04adf2f9ee`,
+frontend only; backend `380671a6...` and schema `0012` are unchanged. The build bundles
+Git-ignored local images. Checks: TypeScript, Biome, 144 frontend tests across 19 files (one
+checks every routine's swept area against everything that stands and against the other mover),
+Vite and Tauri builds; installed bytes verified and the process reopened responsive. Not
+verified: the chamber running in the installed, unlocked window.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was
