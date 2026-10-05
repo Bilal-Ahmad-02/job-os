@@ -44,7 +44,7 @@ with tempfile.TemporaryDirectory(prefix='oracle-runtime-probe-') as folder:
     assert created.ok
     result=handle_request(database,json.dumps({'action':'task_advance','id':str(created.result.id),'version':1}).encode())
     assert result.ok and result.result.state=='failed' and result.result.error=='source_no_text'
-print(json.dumps({'ok':True,'schema':'0010','installed_package':True}))
+print(json.dumps({'ok':True,'schema':'0011','installed_package':True}))
 """
 
 

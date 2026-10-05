@@ -19,7 +19,12 @@ from app.schemas.listings import (
     ListingPage,
     ListingRecord,
     ListingsListRequest,
+    ListingTrackRequest,
     ListingUpdateRequest,
+    SearchDeleteRequest,
+    SearchListRequest,
+    SearchPage,
+    SearchSaveRequest,
 )
 from app.schemas.profile import CandidateProfile, ProfileGetRequest, ProfileSaveRequest
 from app.schemas.review import ReviewGetRequest, ReviewSaveRequest, ReviewState
@@ -47,7 +52,11 @@ DesktopRequest = Annotated[
     | ListingsListRequest
     | ListingGetRequest
     | ListingCreateRequest
-    | ListingUpdateRequest,
+    | ListingUpdateRequest
+    | ListingTrackRequest
+    | SearchListRequest
+    | SearchSaveRequest
+    | SearchDeleteRequest,
     Field(discriminator="action"),
 ]
 
@@ -63,6 +72,7 @@ DesktopResult = (
     | TaskPage
     | ListingRecord
     | ListingPage
+    | SearchPage
 )
 
 

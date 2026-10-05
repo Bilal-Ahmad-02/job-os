@@ -47,7 +47,7 @@ def create(engine, original_text="", **data):
     )
 
 
-def update(engine, row, archived=False, version=None, closed=False, **data):
+def update(engine, row, archived=False, version=None, closed=False, shortlisted=False, **data):
     return listings.update_listing(
         engine,
         ListingUpdateRequest(
@@ -57,12 +57,16 @@ def update(engine, row, archived=False, version=None, closed=False, **data):
             data=ListingFields(**data),
             archived=archived,
             closed=closed,
+            shortlisted=shortlisted,
         ),
     )
 
 
-def page(engine, **options):
-    return listings.list_listings(engine, ListingsListRequest(action="listings_list", **options))
+def page(engine, archived=False, **options):
+    view = "dismissed" if archived else options.pop("view", "incoming")
+    return listings.list_listings(
+        engine, ListingsListRequest(action="listings_list", view=view, **options)
+    )
 
 
 def test_pasted_text_is_stored_exactly_with_its_hash_and_collection_time(store):
@@ -138,6 +142,7 @@ def test_stale_and_missing_updates_are_rejected_without_changes(store):
                 data=ListingFields(),
                 archived=False,
                 closed=False,
+                shortlisted=False,
             ),
         )
     assert page(store).items[0].title == "Second"
@@ -234,6 +239,8 @@ def test_real_wire_requests_round_trip_and_redact_failures(tmp_path):
         "collected_at",
         "archived",
         "closed",
+        "shortlisted",
+        "application_id",
         "possible_duplicate",
     }
     stale = bridge.handle_request(
@@ -246,6 +253,7 @@ def test_real_wire_requests_round_trip_and_redact_failures(tmp_path):
                 "data": {},
                 "archived": True,
                 "closed": False,
+                "shortlisted": False,
             }
         ).encode(),
     )
@@ -260,17 +268,18 @@ def test_migration_from_0008_preserves_rows_and_snapshots_include_listings(tmp_p
     database = tmp_path / "oracle.sqlite3"
     engine = initialize_workspace(database)
     with engine.connect().execution_options(oracle_write=True) as connection, connection.begin():
+        connection.exec_driver_sql("DROP TABLE listing_searches")
         connection.exec_driver_sql("DROP TABLE job_listings")
         connection.exec_driver_sql("UPDATE alembic_version SET version_num='0008'")
         before = connection.exec_driver_sql("SELECT workspace_id FROM workspace_metadata").all()
     engine.dispose()
     prepare_workspace(database)
-    assert list((tmp_path / "migration-backups").glob("before-0010-*.sqlite3"))
+    assert list((tmp_path / "migration-backups").glob("before-0011-*.sqlite3"))
     upgraded = open_store(database)
     try:
         with upgraded.connect() as connection:
             assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").all() == [
-                ("0010",)
+                ("0011",)
             ]
             assert (
                 connection.exec_driver_sql("SELECT workspace_id FROM workspace_metadata").all()
@@ -280,7 +289,7 @@ def test_migration_from_0008_preserves_rows_and_snapshots_include_listings(tmp_p
     finally:
         upgraded.dispose()
     snapshot = tmp_path / "snapshot"
-    assert snapshot_workspace(database, snapshot).schema_revision == "0010"
+    assert snapshot_workspace(database, snapshot).schema_revision == "0011"
     verify_snapshot(snapshot)
     restored = open_store(snapshot / "oracle.sqlite3")
     try:

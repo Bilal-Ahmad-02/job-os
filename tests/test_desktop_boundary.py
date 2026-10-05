@@ -19,6 +19,24 @@ from app.services.profile import ProfileConflict
 
 IDENTITY = "12345678-1234-1234-1234-123456789012"
 ROUTES = [
+    (
+        {"action": "listing_track", "id": IDENTITY, "version": 1, "application_id": IDENTITY},
+        "track_listing",
+        True,
+    ),
+    ({"action": "listing_searches_list"}, "list_searches", False),
+    (
+        {
+            "action": "listing_search_save",
+            "id": IDENTITY,
+            "name": "Synthetic search",
+            "query": "",
+            "view": "shortlist",
+        },
+        "save_search",
+        True,
+    ),
+    ({"action": "listing_search_delete", "id": IDENTITY}, "delete_search", True),
     ({"action": "listings_list"}, "list_listings", True),
     ({"action": "listing_get", "id": IDENTITY}, "get_listing", True),
     (
@@ -34,6 +52,7 @@ ROUTES = [
             "data": {},
             "archived": True,
             "closed": False,
+            "shortlisted": False,
         },
         "update_listing",
         True,

@@ -15,6 +15,9 @@ Notes = Annotated[str, StringConstraints(max_length=4000)]
 Original = Annotated[str, StringConstraints(max_length=50000)]
 Identity = Annotated[UUID, Field(strict=False)]
 Origin = Literal["pasted", "manual"]
+# incoming: not dismissed, shortlisted or tracked. tracked: an application was started from it.
+View = Literal["incoming", "shortlist", "tracked", "dismissed"]
+Query = Annotated[str, StringConstraints(max_length=200)]
 
 
 class ListingFields(Contract):
@@ -28,9 +31,9 @@ class ListingFields(Contract):
 
 class ListingsListRequest(Contract):
     action: Literal["listings_list"]
-    query: Annotated[str, StringConstraints(max_length=200)] = ""
+    query: Query = ""
     offset: int = Field(default=0, ge=0, le=100000)
-    archived: bool = False
+    view: View = "incoming"
 
 
 class ListingGetRequest(Contract):
@@ -60,6 +63,16 @@ class ListingUpdateRequest(Contract):
     data: ListingFields
     archived: bool
     closed: bool
+    shortlisted: bool
+
+
+class ListingTrackRequest(Contract):
+    """Start an application dossier from a listing. The client supplies the new dossier ID."""
+
+    action: Literal["listing_track"]
+    id: Identity
+    version: int = Field(ge=1)
+    application_id: Identity
 
 
 class NormalizedListing(Contract):
@@ -103,6 +116,8 @@ class ListingRecord(Contract):
     updated_at: str = Field(max_length=40)
     archived: bool
     closed: bool
+    shortlisted: bool
+    application_id: Identity | None
     normalized: NormalizedListing
     matches: list[ListingMatch] = Field(max_length=10)
 
@@ -117,9 +132,35 @@ class ListingSummary(Contract):
     collected_at: str = Field(max_length=40)
     archived: bool
     closed: bool
+    shortlisted: bool
+    application_id: Identity | None
     possible_duplicate: bool
 
 
 class ListingPage(Contract):
     total: int = Field(ge=0)
     items: list[ListingSummary] = Field(max_length=50)
+
+
+class SavedSearch(Contract):
+    id: Identity
+    name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)]
+    query: Query
+    view: View
+
+
+class SearchListRequest(Contract):
+    action: Literal["listing_searches_list"]
+
+
+class SearchSaveRequest(SavedSearch):
+    action: Literal["listing_search_save"]
+
+
+class SearchDeleteRequest(Contract):
+    action: Literal["listing_search_delete"]
+    id: Identity
+
+
+class SearchPage(Contract):
+    items: list[SavedSearch] = Field(max_length=20)

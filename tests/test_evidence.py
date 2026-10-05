@@ -202,6 +202,7 @@ def test_previous_profile_snapshot_verifies_unchanged_then_upgrades(tmp_path):
     snapshot_workspace(database, target)
     old = target / DATABASE
     with sqlite3.connect(old) as connection:
+        connection.execute("DROP TABLE listing_searches")
         connection.execute("DROP TABLE job_listings")
         connection.execute("DROP TABLE background_tasks")
         connection.execute("DROP TABLE document_versions")

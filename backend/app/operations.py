@@ -15,7 +15,11 @@ from app.schemas.listings import (
     ListingCreateRequest,
     ListingGetRequest,
     ListingsListRequest,
+    ListingTrackRequest,
     ListingUpdateRequest,
+    SearchDeleteRequest,
+    SearchListRequest,
+    SearchSaveRequest,
 )
 from app.schemas.profile import ProfileGetRequest, ProfileSaveRequest
 from app.schemas.review import ReviewGetRequest, ReviewSaveRequest
@@ -23,7 +27,16 @@ from app.schemas.tasks import TaskChangeRequest, TaskCreateRequest, TaskListRequ
 from app.services.applications import get_application, list_applications, save_application
 from app.services.documents import list_documents
 from app.services.evidence import get_draft
-from app.services.listings import create_listing, get_listing, list_listings, update_listing
+from app.services.listings import (
+    create_listing,
+    delete_search,
+    get_listing,
+    list_listings,
+    list_searches,
+    save_search,
+    track_listing,
+    update_listing,
+)
 from app.services.profile import get_profile, save_profile
 from app.services.review import get_review, save_review
 from app.services.tasks import change_task, create_task, list_tasks
@@ -64,5 +77,13 @@ def execute_operation(engine: Engine, request: DesktopRequest) -> DesktopResult:
             return create_listing(engine, request)
         case ListingUpdateRequest():
             return update_listing(engine, request)
+        case ListingTrackRequest():
+            return track_listing(engine, request)
+        case SearchListRequest():
+            return list_searches(engine)
+        case SearchSaveRequest():
+            return save_search(engine, request)
+        case SearchDeleteRequest():
+            return delete_search(engine, request)
         case _:
             raise ValueError("Unsupported operation")

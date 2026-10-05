@@ -27,7 +27,7 @@ from app.models.applications import Base
 from app.models.document_versions import DocumentVersion  # noqa: F401 -- schema metadata
 from app.models.documents import SourceDocument  # noqa: F401 -- register current schema metadata
 from app.models.evidence import DocumentText, ProfileDraft  # noqa: F401 -- schema metadata
-from app.models.listings import JobListing  # noqa: F401 -- schema metadata
+from app.models.listings import JobListing, ListingSearch  # noqa: F401 -- schema metadata
 from app.models.profile import Profile  # noqa: F401 -- register current schema metadata
 from app.models.review import ProfileReview  # noqa: F401 -- schema metadata
 from app.models.tasks import BackgroundTask  # noqa: F401 -- schema metadata
@@ -100,15 +100,17 @@ def validate_contents(connection: Connection, revision: str) -> None:
         expected.difference_update({"document_text", "profile_draft"})
     if revision in ("0001", "0002", "0003", "0004", "0005"):
         expected.discard("profile_review")
-    if revision not in ("0009", "0010"):
+    if revision != "0011":
+        expected.discard("listing_searches")
+    if revision not in ("0009", "0010", "0011"):
         expected.discard("job_listings")
-    if revision not in ("0008", "0009", "0010"):
+    if revision not in ("0008", "0009", "0010", "0011"):
         expected.discard("background_tasks")
-    if revision not in ("0007", "0008", "0009", "0010"):
+    if revision not in ("0007", "0008", "0009", "0010", "0011"):
         expected.discard("document_versions")
     if not expected.issubset(tables):
         raise WorkspaceError("workspace_schema")
-    if revision in ("0007", "0008", "0009", "0010"):
+    if revision in ("0007", "0008", "0009", "0010", "0011"):
         broken = connection.exec_driver_sql("""
             SELECT d.id FROM source_documents d
             LEFT JOIN document_versions v ON v.document_id = d.id
@@ -122,8 +124,8 @@ def validate_contents(connection: Connection, revision: str) -> None:
         if broken is not None:
             raise WorkspaceError("workspace_invalid")
     for table in Base.metadata.sorted_tables:
-        if table.name == "job_listings" and revision == "0009":
-            continue  # 0010 adds columns; the current model cannot select from the older table.
+        if table.name == "job_listings" and revision in ("0009", "0010"):
+            continue  # Later revisions add columns the current model cannot select from these.
         if table.name in expected:
             connection.execute(select(table).limit(0))
 

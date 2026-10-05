@@ -1,6 +1,6 @@
 """Owner-supplied job listings. The pasted original and collection time never change."""
 
-from sqlalchemy import CheckConstraint, Integer, String, Text
+from sqlalchemy import CheckConstraint, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models.applications import Base
@@ -15,6 +15,7 @@ LISTING_CHECKS = (
     "length(text_key) IN (0, 64)",
     "keys_version >= 0",
     "closed IN (0, 1)",
+    "shortlisted IN (0, 1)",
 )
 
 
@@ -40,3 +41,23 @@ class JobListing(Base):
     keys_version: Mapped[int] = mapped_column(Integer, default=0)
     # Owner's statement that the role is no longer open. Oracle never sets it.
     closed: Mapped[int] = mapped_column(Integer, default=0)
+    # Owner review state. Dismissal is the existing archived flag.
+    shortlisted: Mapped[int] = mapped_column(Integer, default=0)
+    # Set once when the owner starts an application from this listing.
+    application_id: Mapped[str | None] = mapped_column(ForeignKey("applications.id"), default=None)
+
+
+class ListingSearch(Base):
+    """A filter the owner named. It stores no results and runs nothing by itself."""
+
+    __tablename__ = "listing_searches"
+    __table_args__ = (
+        CheckConstraint("length(name) BETWEEN 1 AND 80"),
+        CheckConstraint("length(query) <= 200"),
+        CheckConstraint("view IN ('incoming','shortlist','tracked','dismissed')"),
+    )
+    id: Mapped[str] = mapped_column(String(36), primary_key=True)
+    name: Mapped[str] = mapped_column(Text)
+    query: Mapped[str] = mapped_column(Text)
+    view: Mapped[str] = mapped_column(String(12))
+    created_at: Mapped[str] = mapped_column(String(40))

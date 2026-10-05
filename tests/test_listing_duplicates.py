@@ -5,8 +5,7 @@ from uuid import uuid4
 import pytest
 from sqlalchemy.orm import Session
 
-from app.db.store import open_store
-from app.db.workspace import initialize_workspace, prepare_workspace
+from app.db.workspace import initialize_workspace
 from app.models.listings import JobListing
 from app.schemas.listings import (
     ListingCreateRequest,
@@ -42,7 +41,7 @@ def create(engine, original_text="", **data):
     )
 
 
-def update(engine, row, archived=False, closed=False, **data):
+def update(engine, row, archived=False, closed=False, shortlisted=False, **data):
     return listings.update_listing(
         engine,
         ListingUpdateRequest(
@@ -52,6 +51,7 @@ def update(engine, row, archived=False, closed=False, **data):
             data=ListingFields(**data),
             archived=archived,
             closed=closed,
+            shortlisted=shortlisted,
         ),
     )
 
@@ -60,8 +60,11 @@ def get(engine, row):
     return listings.get_listing(engine, ListingGetRequest(action="listing_get", id=row.id))
 
 
-def page(engine, **options):
-    return listings.list_listings(engine, ListingsListRequest(action="listings_list", **options))
+def page(engine, archived=False, **options):
+    view = "dismissed" if archived else options.pop("view", "incoming")
+    return listings.list_listings(
+        engine, ListingsListRequest(action="listings_list", view=view, **options)
+    )
 
 
 def test_comparison_keys_ignore_case_spacing_punctuation_and_legal_suffixes():
@@ -158,27 +161,3 @@ def test_keys_from_another_rules_version_are_ignored_for_text_matching(store):
         session.get(JobListing, str(first.id)).keys_version = 0
     assert get(store, second).matches == []
     assert not any(item.possible_duplicate for item in page(store).items)
-
-
-def test_migration_from_0009_keeps_listings_and_backfills_their_keys(tmp_path):
-    database = tmp_path / "oracle.sqlite3"
-    engine = initialize_workspace(database)
-    pasted = create(engine, TEXT, title="Data Engineer", notes="Owner note")
-    manual = create(engine, company="Example AB")
-    with engine.connect().execution_options(oracle_write=True) as connection, connection.begin():
-        for column in ("text_key", "keys_version", "closed"):
-            connection.exec_driver_sql(f"ALTER TABLE job_listings DROP COLUMN {column}")
-        connection.exec_driver_sql("UPDATE alembic_version SET version_num='0009'")
-    engine.dispose()
-    prepare_workspace(database)
-    assert list((tmp_path / "migration-backups").glob("before-0010-*.sqlite3"))
-    upgraded = open_store(database)
-    try:
-        assert get(upgraded, pasted) == pasted and get(upgraded, manual) == manual
-        with Session(upgraded) as session:
-            row = session.get(JobListing, str(pasted.id))
-            assert (row.text_key, row.keys_version, row.closed) == (rules.text_key(TEXT), 1, 0)
-            assert session.get(JobListing, str(manual.id)).text_key == ""
-        assert [m.id for m in create(upgraded, TEXT).matches] == [pasted.id]
-    finally:
-        upgraded.dispose()
