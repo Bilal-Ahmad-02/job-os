@@ -147,10 +147,16 @@
 .chamber-agent:hover:not(:disabled) {
   background: none;
 }
-.chamber-agent svg {
+/* Owner-supplied pixel art is scaled without smoothing. */
+.chamber-figure {
+  image-rendering: pixelated;
+}
+.chamber-agent .chamber-figure {
   display: block;
   width: 100%;
   height: 100%;
+  object-fit: contain;
+  object-position: bottom;
 }
 .chamber-tag {
   position: absolute;
@@ -213,7 +219,7 @@
 .chamber[data-motion="on"] .chamber-tether {
   animation: chamber-tether 14s linear infinite alternate;
 }
-.chamber[data-motion="on"] .chamber-agent svg {
+.chamber[data-motion="on"] .chamber-agent .chamber-figure {
   animation: chamber-face 28s steps(1) infinite;
 }
 .chamber[data-motion="on"] .chamber-step {
@@ -225,7 +231,7 @@
 /* A moving target is hard to press: stop while the pointer or keyboard is on it. */
 .chamber[data-motion="on"]
   .chamber-scene:has(.chamber-agent:is(:hover, :focus-visible))
-  :is(.chamber-agent, .chamber-agent svg, .chamber-step, .chamber-tether) {
+  :is(.chamber-agent, .chamber-agent .chamber-figure, .chamber-step, .chamber-tether) {
   animation-play-state: paused;
 }
 @keyframes chamber-stars {

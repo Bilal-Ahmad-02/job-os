@@ -152,6 +152,8 @@ backups/
 /stepbystep.txt
 # Local assistant preferences may contain paths, credentials or session-specific settings.
 CLAUDE.local.md
+# Owner-supplied chamber artwork is bundled into local builds only, never published.
+/apps/desktop/src/chamber/private/
 /.claude/settings.local.json
 /.claude/worktrees/
 private/

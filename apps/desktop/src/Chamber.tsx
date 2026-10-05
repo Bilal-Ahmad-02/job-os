@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import App from "./App";
 import ChamberScene, { EMPTY_PADS } from "./chamber/ChamberScene";
+import { privateSprites } from "./chamber/privateSprites";
 import { investigator, PixelSprite } from "./chamber/sprites";
 import Icon from "./Icon";
 
@@ -78,7 +79,9 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
           </div>
           <h1 id="chamber-title">THE CHAMBER</h1>
           <div className="chamber-scene">
-            <ChamberScene />
+            <ChamberScene
+              {...(privateSprites.oracle ? { coreSprite: privateSprites.oracle } : {})}
+            />
             <section className="chamber-core" aria-labelledby="chamber-core-title">
               <h2 id="chamber-core-title">ORACLE / MASTER</h2>
               <p className="chamber-state">DORMANT</p>
@@ -100,14 +103,27 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
                     <span className="chamber-code">01 / JOB.OS</span>
                     <span className="chamber-detail">Job search / manual, no automation</span>
                   </span>
-                  <svg viewBox="0 0 36 54" aria-hidden="true" focusable="false">
-                    <PixelSprite rows={investigator[0] ?? []} scale={3} className="chamber-step" />
-                    <PixelSprite
-                      rows={investigator[1] ?? []}
-                      scale={3}
-                      className="chamber-step chamber-step-alternate"
-                    />
-                  </svg>
+                  {privateSprites.jobOs ? (
+                    <img className="chamber-figure" src={privateSprites.jobOs} alt="" />
+                  ) : (
+                    <svg
+                      className="chamber-figure"
+                      viewBox="0 0 36 54"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <PixelSprite
+                        rows={investigator[0] ?? []}
+                        scale={3}
+                        className="chamber-step"
+                      />
+                      <PixelSprite
+                        rows={investigator[1] ?? []}
+                        scale={3}
+                        className="chamber-step chamber-step-alternate"
+                      />
+                    </svg>
+                  )}
                 </button>
               </li>
               {EMPTY_PADS.map((pad) => (

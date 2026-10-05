@@ -119,7 +119,7 @@ function Hourglass({ x, y, id }: { x: number; y: number; id: string }) {
  * Decorative chamber drawing. Nothing in it reports activity: the orb and screen are dim and the
  * tether does not pulse, because the Oracle core is not running.
  */
-export default function ChamberScene() {
+export default function ChamberScene({ coreSprite }: { coreSprite?: string }) {
   const [cx, cy] = iso(5, 5);
   return (
     <svg
@@ -199,7 +199,19 @@ export default function ChamberScene() {
         strokeDasharray="3 5"
         vectorEffect="non-scaling-stroke"
       />
-      <PixelSprite rows={overseer} x={cx - 24} y={cy - 72} scale={4} />
+      {coreSprite ? (
+        <image
+          className="chamber-figure"
+          href={coreSprite}
+          x={cx - 24}
+          y={cy - 72}
+          width="48"
+          height="56"
+          preserveAspectRatio="xMidYMax meet"
+        />
+      ) : (
+        <PixelSprite rows={overseer} x={cx - 24} y={cy - 72} scale={4} />
+      )}
       <polygon
         points={`${cx - 34},${cy - 22} ${cx + 34},${cy - 22} ${cx + 44},${cy - 6} ${cx - 44},${cy - 6}`}
         fill="#12241a"

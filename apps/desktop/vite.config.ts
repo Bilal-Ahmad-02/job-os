@@ -16,5 +16,6 @@ export default defineConfig({
     },
     watch: { ignored: ["**/src-tauri/**"] },
   },
-  build: { target: "es2022", sourcemap: false },
+  // Never inline images as data: addresses; the production policy only allows files from the app.
+  build: { target: "es2022", sourcemap: false, assetsInlineLimit: 0 },
 });

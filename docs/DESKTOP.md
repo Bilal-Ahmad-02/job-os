@@ -135,6 +135,27 @@ hideable, and every animation must sit behind the motion switch. Installed as de
 Not verified: the scene inside the installed, unlocked app, and the walking-frame and facing
 changes, which were not inspected frame by frame.
 
+### Private chamber sprites (2026-10-05)
+
+The owner can replace the built-in figures with their own images without publishing them. Files
+named `job-os` or `oracle` with a `.png`, `.gif` or `.webp` extension, placed in
+`apps/desktop/src/chamber/private/`, are picked up at build time and bundled into the executable
+built on this PC. The folder is ignored by Git (by the general `private/` rule and an explicit
+one), so nothing in it reaches the public repository. With no file present the built-in figures
+are used. Instructions for the owner are in `apps/desktop/src/chamber/PRIVATE_SPRITES.md`.
+
+Images are resolved by the bundler, not read at runtime: no native command, file access, asset
+protocol or content-policy change was added. Vite's inlining of small images is switched off,
+because the production policy allows images only as files from the app and would block an
+inlined one. A new or changed image needs a rebuild and reinstall to appear.
+
+Verification: 116 frontend tests pass, including name and format selection and a guard that the
+folder stays ignored. A probe build with temporary PNG, GIF and WebP files emitted each as a
+separate bundled file with no inlined image, and Git reported the folder as ignored; the probe
+files were removed. Not verified: how a real owner-supplied sprite looks in the scene. This
+change is committed but not installed, since without private files the app looks the same as the
+installed desktop `76e4a70e...`.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves
