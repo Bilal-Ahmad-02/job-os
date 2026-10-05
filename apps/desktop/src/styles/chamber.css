@@ -120,12 +120,21 @@
 .chamber-agent:hover:not(:disabled) {
   background: none;
 }
-/* The one figure with no place on the platform starts at the lower left of the whole space. */
+/*
+ * The one figure with no place on the platform swims a wide loop beneath it, seen from above like
+ * a shadow under the floor. The loop is a path in the space's own box, so it is held at the
+ * origin and placed along the path by its middle.
+ */
 .chamber-agent[data-move="roam"] {
-  left: 8%;
-  top: 92%;
-  width: clamp(72px, 9vw, 132px);
+  left: 0;
+  top: 0;
+  width: clamp(110px, 15vw, 210px);
   font-size: 10px;
+  opacity: 0.8;
+  transform: none;
+  offset-path: ellipse(44% 36% at 50% 50%);
+  offset-rotate: 0deg;
+  offset-distance: 8%;
 }
 .chamber-body {
   display: block;
@@ -143,6 +152,8 @@
 }
 .chamber-agent[data-move="roam"] .chamber-figure {
   height: auto;
+  /* The loop starts at its right-hand end heading down; this is the heading at the resting point. */
+  rotate: 209deg;
 }
 .chamber-tag {
   position: absolute;
@@ -224,13 +235,13 @@
   animation: chamber-float 3.2s ease-in-out infinite alternate;
 }
 .chamber[data-motion="on"] .chamber-agent[data-move="roam"] {
-  animation: chamber-roam 48s linear infinite;
+  animation: chamber-swim 80s linear infinite;
 }
 .chamber[data-motion="on"] .chamber-agent[data-move="roam"] .chamber-body {
-  animation: chamber-float 1.6s ease-in-out infinite alternate;
+  animation: chamber-sway 2.6s ease-in-out infinite alternate;
 }
 .chamber[data-motion="on"] .chamber-agent[data-move="roam"] .chamber-figure {
-  animation: chamber-roam-face 48s steps(1) infinite;
+  animation: chamber-heading 80s linear infinite;
 }
 .chamber[data-motion="on"] .chamber-step {
   animation: chamber-step 0.7s steps(1) infinite;
@@ -267,35 +278,29 @@
     transform: scaleX(-1);
   }
 }
-/* A circuit around the platform: along the top, down the right, back along the bottom, up the left. */
-@keyframes chamber-roam {
-  0% {
-    left: 8%;
-    top: 20%;
+/* Once round the loop, turning a full circle so the head keeps leading, with a slow body sway. */
+@keyframes chamber-swim {
+  from {
+    offset-distance: 0%;
   }
-  35% {
-    left: 92%;
-    top: 18%;
-  }
-  50% {
-    left: 93%;
-    top: 90%;
-  }
-  85% {
-    left: 8%;
-    top: 94%;
-  }
-  100% {
-    left: 8%;
-    top: 20%;
+  to {
+    offset-distance: 100%;
   }
 }
-@keyframes chamber-roam-face {
-  42% {
-    transform: scaleX(-1);
+@keyframes chamber-heading {
+  from {
+    rotate: 180deg;
   }
-  92% {
-    transform: none;
+  to {
+    rotate: 540deg;
+  }
+}
+@keyframes chamber-sway {
+  from {
+    transform: rotate(-5deg);
+  }
+  to {
+    transform: rotate(5deg);
   }
 }
 @keyframes chamber-float {

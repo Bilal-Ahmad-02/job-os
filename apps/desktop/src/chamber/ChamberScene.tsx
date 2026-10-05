@@ -127,8 +127,9 @@ export default function ChamberScene({ coreSprite }: { coreSprite?: string | und
         </radialGradient>
       </defs>
 
-      <polygon points={points(court, 14)} fill="#020403" stroke="#1e3528" />
-      <polygon points={points(court)} fill="#07100c" stroke="#376347" strokeWidth="1.5" />
+      {/* The floor is slightly see-through so the space, and what swims in it, shows beneath. */}
+      <polygon points={points(court, 14)} fill="#020403b8" stroke="#1e3528" />
+      <polygon points={points(court)} fill="#07100cb8" stroke="#376347" strokeWidth="1.5" />
       <g clipPath="url(#chamber-court)" stroke="#32ce7426" strokeWidth="1">
         {gridLines.map((line) => (
           <g key={line}>

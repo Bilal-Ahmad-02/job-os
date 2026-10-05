@@ -11,7 +11,7 @@ desktop executable when you build it on this PC.
 | `slot-2.png` | 02 / PERCH (built in: a cat asleep on a cat tree) |
 | `slot-3.png` | 03 / SUMMIT (built in: a hovering fighter; it floats above its pad) |
 | `slot-4.png` | 04 / WATCH (built in: a cloaked watcher) |
-| `slot-5.png` | 05 / DEEP, which roams the whole space (built in: a winged glider). Draw it facing right; it is mirrored for the flight back |
+| `slot-5.png` | 05 / DEEP, which swims beneath the whole space (built in: a ray). Draw it from above with its head at the top; it is turned to face the way it swims |
 | `oracle.png` | The seated figure at the console in the middle |
 
 `.png`, `.gif` and `.webp` are accepted, for example `job-os.gif`. If more than one format exists

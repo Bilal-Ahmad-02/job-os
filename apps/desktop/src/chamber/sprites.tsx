@@ -144,18 +144,28 @@ export const cloakedWatcher = [
   "...BBB.BBB..",
 ];
 
-/** A winged glider seen from the side, facing right. An original figure for the roaming slot. */
-export const nightGlider = [
-  "......WW........",
-  ".....WCCW...WW..",
-  "....WCCCCW.WCCW.",
-  "..WWCCCCCCWCCECW",
+/**
+ * A ray seen from above, head at the top. An original figure for the one that swims under the
+ * platform; it is turned to face the way it is going.
+ */
+export const deepRay = [
+  ".......WW.......",
+  "......WCCW......",
+  "......WCCW......",
+  ".....WCCCCW.....",
+  "..WWWCCCCCCWWW..",
+  ".WCCCCCGGCCCCCW.",
+  "WCCCCCCGGCCCCCCW",
+  "WCCCCCCCCCCCCCCW",
   ".WCCCCCCCCCCCCW.",
-  "WCCCCCCCGGGCW...",
-  ".WWCCCCGGGWW....",
-  "...WCCWWW.......",
-  "..WCW...........",
-  ".WW.............",
+  "..WWCCCCCCCCWW..",
+  "....WCCCCCCW....",
+  ".....WCCCCW.....",
+  "......WCCW......",
+  "......WCCW......",
+  ".......WW.......",
+  ".......WW.......",
+  ".......WW.......",
 ];
 
 /** Draws one frame, merging each horizontal run of a colour into a single rectangle. */

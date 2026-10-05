@@ -157,6 +157,10 @@ describe("Oracle chamber", () => {
       expect(left > 0 && left < 100 && top > 0 && top < 100).toBe(true);
       expect(Number.parseFloat(figure.style.width)).toBeCloseTo((agent.width / SCENE.width) * 100);
     }
+    // The swimmer follows a closed path under the floor and turns one full circle per lap.
+    const styles = readFileSync("src/styles/chamber.css", "utf8");
+    expect(styles).toMatch(/\[data-move="roam"\] \{[^}]*offset-path: ellipse\(/);
+    expect(styles).toMatch(/@keyframes chamber-heading \{[^@]*180deg[^@]*540deg/);
     expect(container.querySelector('[data-agent="jobs"]')).toHaveAttribute("data-move", "walk");
     expect(container.querySelector('[data-agent="summit"]')).toHaveAttribute("data-move", "float");
   });

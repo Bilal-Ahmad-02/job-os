@@ -294,6 +294,34 @@ mid-word in one room was found there and fixed. Installed as desktop
 `4ae455ab11550a054e274871fbb9c8ff5a7254cc49fadf88596933d40874fd66` (specific to this PC because it
 bundles Git-ignored private images). Not verified in the installed, unlocked window.
 
+### The swimmer under the floor (2026-10-05)
+
+At the owner's request the fifth figure no longer flies around the platform. It is drawn from
+above and swims a wide loop beneath the whole space, like a shadow under the floor.
+
+- The platform floor is now slightly see-through, so the stars, the grid and the swimmer show
+  faintly beneath it while the figures standing on it stay solid.
+- The loop is one closed CSS motion path (an ellipse in the space's own box). The figure travels
+  it clockwise in 80 seconds and turns one full circle per lap so its head leads, with a slow
+  sway. It is larger than the other figures and partly transparent. With motion off it rests at a
+  fixed point on the loop, already facing along it.
+- Its line to the orb is held at its middle rather than its feet, since it is seen from above.
+- It is still pressable and opens THE DEEP. Its tag sits under the floor with it and is faint
+  there; the room it opens states that it has no function.
+- The built-in drawing is an original ray seen from above. On this PC the owner's own top-down
+  figure is in the Git-ignored private folder as `slot-5`.
+
+The heading is a linear turn while the true direction along an ellipse is not quite linear, so the
+head can be a few degrees off the path between the four compass points. That is a deliberate
+simplification over driving the figure from script.
+
+Verification: 133 frontend tests pass, with a guard that the swimmer uses a closed motion path and
+turns from 180 to 540 degrees. In a component preview the path was measured at five points (right,
+bottom, left and top of the loop in clockwise order), and the figure was viewed at two points with
+its head leading and its line attached. Installed as desktop
+`aad0bae068b79d3f381a88dadb4d09f9643d30098f877f478709895b5a34b893`, specific to this PC. Not verified
+in the unlocked window.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves

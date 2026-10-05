@@ -248,6 +248,14 @@ Tauri builds; installed bytes verified and the process reopened responsive. The 
 rooms were viewed in a browser preview. Not verified in the unlocked window. The new rooms make
 no native or backend call; a test asserts that opening one triggers none.
 
+### Desktop update — swimmer under the floor, October 5, 2026
+
+Desktop SHA-256 is now `aad0bae068b79d3f381a88dadb4d09f9643d30098f877f478709895b5a34b893`,
+frontend only; backend `380671a6...` and schema `0012` are unchanged. The build bundles
+Git-ignored local images. Checks: TypeScript, Biome, 133 frontend tests across 19 files, Vite and
+Tauri builds; installed bytes verified and the process reopened responsive. Viewed in a browser
+preview. Not verified in the unlocked window.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

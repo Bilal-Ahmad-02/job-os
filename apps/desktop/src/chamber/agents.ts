@@ -1,4 +1,4 @@
-import { cloakedWatcher, hoveringFighter, investigator, nightGlider, sleepingCat } from "./sprites";
+import { cloakedWatcher, deepRay, hoveringFighter, investigator, sleepingCat } from "./sprites";
 
 /** Scene coordinates: a fixed canvas with a 2:1 isometric grid, origin at the far corner. */
 export const SCENE = { width: 872, height: 560 } as const;
@@ -23,7 +23,7 @@ export type Agent = {
   sprite: string;
   /** Drawn width in scene units. */
   width: number;
-  /** Where its feet are on the platform grid. Absent for the figure that roams the whole space. */
+  /** Where its feet are on the platform grid. Absent for the one that swims beneath the space. */
   at?: readonly [number, number];
   /** Height above the platform for a figure that hovers. */
   lift?: number;
@@ -93,7 +93,7 @@ export const AGENTS: readonly Agent[] = [
     slot: "05",
     name: "DEEP",
     note: "No function yet",
-    frames: [nightGlider],
+    frames: [deepRay],
     sprite: "slot-5",
     width: 0,
     room: {
