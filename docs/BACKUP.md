@@ -17,6 +17,13 @@ that day, and the old folder four. The owner reports that the first snapshot pas
 verification and a repository check and that OneDrive showed it synced. The coding session did not
 decrypt, restore or check either repository and never saw a password.
 
+A second snapshot, `d154b193a3844b045e460e38da4b23d20aed2f86caa373f8807eaa68231b5382`, was
+created at 18:46 on 2026-10-05 with the workspace at schema `0012`, after the `0009`-`0012`
+migrations. The owner entered the password in a local window. The `create` command reported the
+snapshot restored and verified locally, the snapshot file is present in the folder, and the
+owner's OneDrive panel showed "Backed up and synced" with that snapshot and its index uploaded
+seconds earlier. This is the first encrypted copy that covers the current schema.
+
 Schema `0009` backups also retain collected job listings; see [LISTINGS.md](LISTINGS.md). Snapshots
 taken before the `0009` migration do not contain them.
 

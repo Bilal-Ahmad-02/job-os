@@ -188,6 +188,17 @@ frontend only; backend `57a5d2b2...` and schema `0012` are unchanged. Checks: Ty
 125 frontend tests across 19 files, Vite and Tauri builds; installed bytes verified and the
 process reopened responsive at the seal. Not verified: the key in the real seal window.
 
+### Encrypted backup at schema 0012 — October 5, 2026
+
+Snapshot `d154b193a3844b045e460e38da4b23d20aed2f86caa373f8807eaa68231b5382` was created at 18:46
+in `OracleBackups-2026-10`. Evidence: the owner pasted the command's output, which reported the
+snapshot created and its restore verified locally; the coding session saw the snapshot file in the
+repository folder beside the earlier one; the owner's screenshot of OneDrive showed "Backed up and
+synced" with that snapshot uploaded. Earlier notes in this file saying no backup had been taken
+since before the `0009` migration are superseded by this entry. Not done: a restore of this
+snapshot into separate staging on another machine. The earlier `OracleBackups` folder is unchanged
+at four snapshots.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was
