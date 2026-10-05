@@ -1,6 +1,6 @@
 ﻿import { invoke } from "@tauri-apps/api/core";
 import { type FormEvent, useEffect, useRef, useState } from "react";
-import App from "./App";
+import Chamber from "./Chamber";
 import RotationDial, { validSequence } from "./RotationDial";
 
 type Status = "loading" | "setup" | "locked" | "unlocked" | "error";
@@ -149,7 +149,7 @@ export default function AccessGate() {
       setError("Window control unavailable. Use Alt+F4 to close Oracle."),
     );
   }
-  if (status === "unlocked") return <App onLock={() => void lock()} />;
+  if (status === "unlocked") return <Chamber onLock={() => void lock()} />;
   const passwordPanel = panel === "password" || status === "setup";
   const enrolling = panel === "enroll" || panel === "confirm";
   return (

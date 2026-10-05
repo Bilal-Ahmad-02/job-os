@@ -12,6 +12,22 @@ function renderConsole(check = true) {
   return view;
 }
 
+describe("Oracle console header", () => {
+  it("offers a return to the chamber only when the hub provides one", () => {
+    const onChamber = vi.fn();
+    const view = render(<App onChamber={onChamber} onLock={() => {}} />);
+    const back = screen.getByRole("button", { name: "Return to the chamber" });
+    expect(back).toHaveTextContent("Chamber");
+    expect(back).toHaveFocus();
+    expect(screen.getByRole("button", { name: "Lock Oracle" })).toBeVisible();
+    fireEvent.click(back);
+    expect(onChamber).toHaveBeenCalledTimes(1);
+    view.unmount();
+    render(<App />);
+    expect(screen.queryByRole("button", { name: "Return to the chamber" })).not.toBeInTheDocument();
+  });
+});
+
 describe("Oracle connection panel", () => {
   it("does not contact the optional diagnostic on startup, focus or opening the panel", () => {
     vi.mocked(checkHealth).mockClear();

@@ -19,6 +19,7 @@ passwords or document text is included. Continue with concise dated entries and 
 | 2026-10-01 to 2026-10-02 | Optional HTTP diagnostic made manual and removed as a global app-connectivity indicator | Frontend checks and 83 tests passed; no record/backend contract change |
 | 2026-10-02 | Current setup/handoff guides, Claude prompt, advisory review, fresh-checkout verification and release preparation | See VALIDATION.md for final results, backup evidence and limits; do not infer completion from this log alone |
 | 2026-10-02 | Fresh Windows clone exposed missing line-ending policy: automatic CRLF conversion broke formatter checks | Added `.gitattributes` for LF source, CRLF PowerShell scripts and binary image assets; repeat fresh-checkout verification |
+| 2026-10-05 | Unlock now opens a hub, "the chamber": dormant Oracle master core, one real JOB.OS node that opens the unchanged console, three unnamed empty slots; console header gained a Chamber return control | Desktop frontend only; 89 frontend tests, TypeScript/Biome and Windows production build passed; desktop release `1884702b...` installed and reopened. Unlocked look in the installed app not visually verified; see VALIDATION.md |
 
 Fresh-checkout checks passed: 264 Linux tests in a new virtualenv, 83 frontend tests and a Windows
 frontend production build after the line-ending correction. The final Windows executable was

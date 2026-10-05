@@ -17,6 +17,9 @@ inside an eventual personal AI system. The visual direction is black/near-black 
 personal console with a circular emblem/rotation opening seal. Keep useful labels, keyboard access,
 visible state and truthful capability claims. Do not replace it with a generic website or dashboard.
 
+Since 2026-10-05 unlock opens a hub ("the chamber") whose only real node opens the Job OS console;
+its Oracle core is labelled dormant because no assistant exists. See DESKTOP.md.
+
 Implemented: application tracking and import provenance; immutable source PDFs and explicit version
 families; bounded local page-text extraction; an assisted-import semantic draft with citations;
 owner approval/rejection; an editable confirmed profile and job preferences; cooperative extraction

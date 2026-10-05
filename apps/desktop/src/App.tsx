@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Applications from "./Applications";
 import Documents from "./Documents";
 import { useBackendHealth } from "./hooks/useBackendHealth";
@@ -42,13 +42,26 @@ const views = {
   },
 } as const;
 
-export default function App({ onLock }: { onLock?: () => void }) {
+export default function App({
+  onLock,
+  onChamber,
+  active = true,
+}: {
+  onLock?: () => void;
+  onChamber?: () => void;
+  /** False while the console stays mounted behind the chamber. */
+  active?: boolean;
+}) {
   const [view, setView] = useState<View>("applications");
   const [profileOpened, setProfileOpened] = useState(false);
   const [tasksOpened, setTasksOpened] = useState(false);
   const [systemOpen, setSystemOpen] = useState(false);
   const systemButton = useRef<HTMLButtonElement>(null);
+  const chamberButton = useRef<HTMLButtonElement>(null);
   const health = useBackendHealth();
+  useEffect(() => {
+    if (active) chamberButton.current?.focus();
+  }, [active]);
   return (
     <div className="console-shell">
       <header className="console-header">
@@ -58,6 +71,18 @@ export default function App({ onLock }: { onLock?: () => void }) {
           <small>PERSONAL OPERATIONS</small>
         </div>
         <div className="header-actions">
+          {onChamber ? (
+            <button
+              className="quiet-button"
+              type="button"
+              aria-label="Return to the chamber"
+              ref={chamberButton}
+              onClick={onChamber}
+            >
+              <Icon name="back" />
+              Chamber
+            </button>
+          ) : null}
           <button
             type="button"
             className="quiet-button"
@@ -111,7 +136,7 @@ export default function App({ onLock }: { onLock?: () => void }) {
           </header>
           {/* Keep drafts in memory when changing modules; locking unmounts the workspace. */}
           <div hidden={view !== "applications"}>
-            <Applications active={view === "applications"} />
+            <Applications active={active && view === "applications"} />
           </div>
           {profileOpened && (
             <div hidden={view !== "profile"}>

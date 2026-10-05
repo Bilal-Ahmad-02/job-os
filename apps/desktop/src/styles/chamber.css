@@ -1,0 +1,201 @@
+.chamber {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: 60px minmax(0, 1fr) 30px;
+}
+.chamber-void {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  justify-items: center;
+  padding: 28px 24px;
+  overflow: hidden auto;
+  background:
+    radial-gradient(ellipse 60% 46% at 50% 54%, #0c231799 0, transparent 100%),
+    linear-gradient(#020403 0, #050c08 54%, #020403 100%);
+  scrollbar-color: var(--border-strong) var(--canvas);
+  scrollbar-width: thin;
+}
+.chamber-void h1 {
+  position: relative;
+  color: var(--muted);
+  font-size: 10px;
+  letter-spacing: 6px;
+}
+/* The horizon sits on the top edge; the plane recedes from the bottom edge toward it. */
+.chamber-floor {
+  position: absolute;
+  inset: 54% 0 0;
+  overflow: hidden;
+  perspective: 420px;
+  perspective-origin: 50% 0;
+  border-top: 1px solid #70ee9c2e;
+  mask-image: linear-gradient(transparent 0, #000 70%);
+  pointer-events: none;
+}
+.chamber-grid {
+  position: absolute;
+  left: -150%;
+  bottom: 0;
+  width: 400%;
+  height: 2400px;
+  transform-origin: 50% 100%;
+  transform: rotateX(80deg);
+  background:
+    linear-gradient(90deg, #32ce7459 0, #32ce7459 2px, transparent 2px),
+    linear-gradient(#32ce7459 0, #32ce7459 4px, transparent 4px);
+  background-size: 80px 80px;
+}
+.chamber-board {
+  position: relative;
+  align-self: center;
+  display: grid;
+  grid-template-columns: minmax(170px, 230px) minmax(200px, 280px) minmax(170px, 230px);
+  grid-template-rows: auto auto;
+  align-items: center;
+  gap: 36px 44px;
+  padding: 16px 0;
+}
+.chamber-core {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  text-align: center;
+}
+.chamber-core .oracle-mark {
+  width: min(100%, 210px);
+  margin-bottom: 14px;
+}
+.chamber-core h2 {
+  font-size: 13px;
+  letter-spacing: 3px;
+}
+.chamber-core p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font: 12px / 1.5 var(--body);
+}
+.chamber-core .chamber-state {
+  color: var(--warning);
+  font: 10px / 1.5 var(--mono);
+  letter-spacing: 2px;
+}
+.chamber-nodes {
+  display: contents;
+  list-style: none;
+}
+.chamber-slot {
+  position: relative;
+  grid-column: 1;
+  min-height: 96px;
+}
+.chamber-slot:nth-child(even) {
+  grid-column: 3;
+}
+.chamber-slot:nth-child(-n + 2) {
+  grid-row: 1;
+}
+.chamber-slot:nth-child(n + 3) {
+  grid-row: 2;
+}
+/* Tether toward the core. */
+.chamber-slot::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 100%;
+  width: 44px;
+  border-top: 1px dashed var(--border);
+}
+.chamber-slot:nth-child(even)::after {
+  left: auto;
+  right: 100%;
+}
+.chamber-slot[data-slot="01"]::after {
+  border-top: 1px solid var(--icon);
+}
+.chamber-node,
+.chamber-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+  padding: 14px 16px;
+  text-align: left;
+}
+.chamber-node {
+  width: 100%;
+  min-height: 96px;
+  border-color: var(--icon);
+  background: #0a1a12e6;
+}
+.chamber-empty {
+  border: 1px dashed var(--border);
+  border-radius: 2px;
+  background: #050a07b3;
+  color: var(--muted);
+}
+.chamber-code {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+}
+.chamber-node .chamber-code,
+.chamber-enter {
+  color: var(--accent);
+}
+.chamber-name {
+  font-size: 15px;
+  letter-spacing: 0.5px;
+}
+.chamber-detail {
+  color: var(--muted);
+  font: 11px / 1.4 var(--body);
+}
+.chamber-enter {
+  margin-top: 4px;
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+@media (max-width: 760px), (max-height: 520px) {
+  .chamber-void {
+    padding: 20px 16px;
+  }
+  .chamber-board {
+    grid-template-columns: minmax(0, 320px);
+    grid-template-rows: none;
+    gap: 12px;
+    align-self: start;
+  }
+  .chamber-core,
+  .chamber-slot:nth-child(n) {
+    grid-column: 1;
+    grid-row: auto;
+  }
+  .chamber-core .oracle-mark {
+    width: 140px;
+  }
+  .chamber-slot {
+    min-height: 0;
+  }
+  .chamber-slot::after {
+    content: none;
+  }
+  .chamber-node {
+    min-height: 0;
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .chamber-grid {
+    animation: chamber-drift 9s linear infinite;
+  }
+}
+@keyframes chamber-drift {
+  to {
+    transform: rotateX(80deg) translateY(80px);
+  }
+}
+@media (forced-colors: active) {
+  .chamber-floor {
+    display: none;
+  }
+}

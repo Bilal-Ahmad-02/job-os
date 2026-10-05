@@ -40,6 +40,17 @@ Schema: `0008`. This stabilization changes the optional diagnostic UI and docume
 backend contract or database. No personal profile entry, provider key or external connection is
 created by the stabilization work.
 
+### Desktop update — October 5, 2026
+
+Desktop SHA-256 is now `1884702bbf449641b0d04ac43a898724f0122b708809c744074009696f97189e`,
+built from the chamber hub change (see DESKTOP.md). Backend release and schema are unchanged. The
+previous desktop release `51346906...` is retained. Checks run for this update: TypeScript, Biome,
+89 frontend tests across 16 files, Vite build and the Tauri production build; installed bytes were
+hash-verified by the install script and the installed process reopened responsive at the locked
+seal. Not rerun: native Rust tests and WSL probes (no native or backend change), Python tests.
+Not verified: the hub and console as they appear in the installed window after a real unlock, which
+only the owner can perform, and the hub's narrow-window layout.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

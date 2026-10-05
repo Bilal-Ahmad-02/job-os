@@ -59,6 +59,33 @@ The frontend tests cover navigation/draft preservation, query/pagination recover
 source filtering, and existing access/save behavior. The automated desktop/browser capture tools
 were unavailable during this change; live visual review is still needed.
 
+## The chamber (2026-10-05)
+
+Unlocking now opens a hub instead of the Job OS console. It is a black void with a green
+perspective floor grid (CSS only, no new assets or dependencies). The centre shows the existing
+emblem as **ORACLE / MASTER**, labelled **DORMANT** with "No assistant yet. Nothing is running
+here." That label is literal: no assistant, model or background activity exists behind it, and the
+slow floor drift is decoration that stops under `prefers-reduced-motion`.
+
+One node is real: **01 / JOB.OS**, described as a manual console with no automation. Activating it
+(click, Enter or Space) opens the existing console with all five modules unchanged. The other three
+positions are non-interactive **UNASSIGNED** empty slots; they name nothing and promise nothing.
+
+The console header has a **Chamber** control that returns to the hub; **Lock Oracle** is available
+in both places. The console is mounted on its first opening rather than at unlock, so record
+requests start only after JOB.OS is chosen. It then stays mounted but hidden while the hub is shown,
+so in-memory drafts survive a return. Locking still unmounts everything. Ctrl+K is ignored while
+the console is hidden. Below 760 px wide or 520 px tall the board stacks into one scrolling column.
+
+`Chamber.tsx` owns the hub and the hub/console switch; `AccessGate` renders it after native unlock.
+No native command, capability, backend operation or schema changed.
+
+Validation: 89 frontend tests, TypeScript, Biome, Vite and the Tauri production build passed. Tests
+cover the hub after unlock, the dormant label, the single interactive node, opening and returning
+with state and focus preserved, and locking from both places. The hub was viewed once in a browser
+preview of the component at the default 1100x760 size. The narrow layout, the installed window after
+a real unlock and the real console behind the hub were not visually checked.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves

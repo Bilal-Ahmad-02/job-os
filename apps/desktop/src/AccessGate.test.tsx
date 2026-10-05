@@ -5,9 +5,12 @@ import AccessGate from "./AccessGate";
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
 vi.mock("./App", () => ({
-  default: ({ onLock }: { onLock: () => void }) => (
+  default: ({ onLock, onChamber }: { onLock: () => void; onChamber: () => void }) => (
     <div>
       Private workspace
+      <button type="button" onClick={onChamber}>
+        Chamber
+      </button>
       <button type="button" onClick={onLock}>
         Lock Oracle
       </button>
@@ -44,10 +47,10 @@ describe("Oracle circular access gate", () => {
     render(<AccessGate />);
     await screen.findByRole("button", { name: "Unseal" });
     expect(screen.queryByLabelText("Password")).not.toBeInTheDocument();
-    expect(screen.queryByText("Private workspace")).not.toBeInTheDocument();
+    expect(screen.queryByText("THE CHAMBER")).not.toBeInTheDocument();
     turns();
     fireEvent.click(screen.getByRole("button", { name: "Unseal" }));
-    expect(await screen.findByText("Private workspace")).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "THE CHAMBER" })).toBeVisible();
     expect(invoke).toHaveBeenCalledWith("unlock_rotation", { steps: [1, -1, 1, -1] });
     expect(invoke).toHaveBeenCalledWith("shell_mode", { workspace: true });
   });
@@ -61,13 +64,13 @@ describe("Oracle circular access gate", () => {
     await recovery();
     expect(await screen.findByRole("alert")).toHaveTextContent("Oracle could not unlock");
     expect(screen.getByLabelText("Password")).toHaveValue("");
-    expect(screen.queryByText("Private workspace")).not.toBeInTheDocument();
+    expect(screen.queryByText("THE CHAMBER")).not.toBeInTheDocument();
     expect(screen.queryByText("sensitive internal details")).not.toBeInTheDocument();
   });
   it("uses the existing password for recovery", async () => {
     render(<AccessGate />);
     await recovery();
-    expect(await screen.findByText("Private workspace")).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "THE CHAMBER" })).toBeVisible();
     expect(invoke).toHaveBeenCalledWith("unlock", { password: "test-only passphrase" });
   });
   it("enrolls only after password authentication and a repeated sequence, then requires a real unlock", async () => {
@@ -86,14 +89,14 @@ describe("Oracle circular access gate", () => {
       confirmation: [1, -1, 1, -1],
     });
     expect(invoke).toHaveBeenCalledWith("lock");
-    expect(screen.queryByText("Private workspace")).not.toBeInTheDocument();
+    expect(screen.queryByText("THE CHAMBER")).not.toBeInTheDocument();
   });
   it("permits postponing enrollment without changing the password", async () => {
     native("locked", false);
     render(<AccessGate />);
     await recovery();
     fireEvent.click(await screen.findByRole("button", { name: "Set up later / open workspace" }));
-    expect(await screen.findByText("Private workspace")).toBeVisible();
+    expect(await screen.findByRole("heading", { name: "THE CHAMBER" })).toBeVisible();
     expect(invoke).not.toHaveBeenCalledWith("enroll_rotation", expect.anything());
   });
   it("requires matching recovery passwords on first installation", async () => {
@@ -113,7 +116,7 @@ describe("Oracle circular access gate", () => {
     native(status);
     render(<AccessGate />);
     expect(await screen.findByRole("alert")).toHaveTextContent("Access remains locked");
-    expect(screen.queryByText("Private workspace")).not.toBeInTheDocument();
+    expect(screen.queryByText("THE CHAMBER")).not.toBeInTheDocument();
   });
   it("does not mount records while native unlock is pending or rejected", async () => {
     let reject: (reason: string) => void = () => {};
@@ -129,7 +132,7 @@ describe("Oracle circular access gate", () => {
     await screen.findByRole("button", { name: "Unseal" });
     turns();
     fireEvent.click(screen.getByRole("button", { name: "Unseal" }));
-    expect(screen.queryByText("Private workspace")).not.toBeInTheDocument();
+    expect(screen.queryByText("THE CHAMBER")).not.toBeInTheDocument();
     reject("Sequence not recognized. Wait a moment and try again.");
     expect(await screen.findByRole("alert")).toHaveTextContent("Sequence not recognized");
     expect(invoke).not.toHaveBeenCalledWith("shell_mode", { workspace: true });
@@ -139,6 +142,21 @@ describe("Oracle circular access gate", () => {
     native("unlocked");
     render(<AccessGate />);
     fireEvent.click(await screen.findByRole("button", { name: "Lock Oracle" }));
+    await waitFor(() => expect(screen.queryByText("THE CHAMBER")).not.toBeInTheDocument());
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith("shell_mode", { workspace: false }));
+  });
+  it("opens the console only from the chamber, returns to it, and locks from the console", async () => {
+    native("unlocked");
+    render(<AccessGate />);
+    expect(await screen.findByRole("heading", { name: "THE CHAMBER" })).toBeVisible();
+    expect(screen.queryByText("Private workspace")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Open JOB.OS console" }));
+    expect(screen.getByText("Private workspace")).toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Chamber" }));
+    expect(screen.getByRole("heading", { name: "THE CHAMBER" })).toBeVisible();
+    expect(screen.getByText("Private workspace")).not.toBeVisible();
+    fireEvent.click(screen.getByRole("button", { name: "Open JOB.OS console" }));
+    fireEvent.click(screen.getByRole("button", { name: "Lock Oracle" }));
     await waitFor(() => expect(screen.queryByText("Private workspace")).not.toBeInTheDocument());
     await waitFor(() => expect(invoke).toHaveBeenCalledWith("shell_mode", { workspace: false }));
   });
