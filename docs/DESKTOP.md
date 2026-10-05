@@ -184,6 +184,26 @@ nothing focused, an incomplete sequence, the eighth turn, a disabled dial and En
 button. Installed as desktop `4855d897478de4662c9b42a108a3a19d01a9a324a9711cd52b865ea7ab6ff476`. Not
 verified in the real seal window, where the owner enters their own sequence.
 
+### Figures on the agentless slots (2026-10-05)
+
+At the owner's request the three unassigned pads now carry figures: a dark grey cat asleep on a cat
+stand on slot 02, a hovering fighter in a glow on slot 03, and a cloaked watcher on slot 04. They
+are scenery. Each slot is still labelled **UNASSIGNED — Figure only / no agent yet**, the figures
+are not buttons, cannot be focused and have no tether to the core, and the footer reads "1 MODULE /
+3 SLOTS WITHOUT AN AGENT". A figure becomes pressable only when an agent is built for its slot.
+With motion on, the hovering figure bobs; that is decoration, not activity.
+
+The owner asked for slots 03 and 04 to be two named characters from a television series and a
+comic. As with the first figures, the built-in drawings are original designs for those roles and
+not likenesses, because the repository is public. The private sprite folder now also accepts
+`slot-2`, `slot-3` and `slot-4` images, so the owner can show their own artwork locally.
+
+Verification: 127 frontend tests pass, including that the figures are decorative, unpressable and
+untethered. The scene was viewed in a component preview at 1100x720; the first pass was too small
+and too dark to read, so the figures were enlarged and lightened and viewed again. Installed as
+desktop `c5d526506a1c5377953bcab8dc6cd923241e0a6ab5e374a48e2fdfc3da1e4b92`. Not verified in the
+installed, unlocked window.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves

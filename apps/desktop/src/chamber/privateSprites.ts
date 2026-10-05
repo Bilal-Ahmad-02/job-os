@@ -22,4 +22,9 @@ export function pickSprite(files: Record<string, string>, name: string): string 
 export const privateSprites = {
   jobOs: pickSprite(found, "job-os"),
   oracle: pickSprite(found, "oracle"),
+  slots: {
+    "02": pickSprite(found, "slot-2"),
+    "03": pickSprite(found, "slot-3"),
+    "04": pickSprite(found, "slot-4"),
+  } as Record<string, string | undefined>,
 };

@@ -186,6 +186,7 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
           >
             <ChamberScene
               {...(privateSprites.oracle ? { coreSprite: privateSprites.oracle } : {})}
+              slotSprites={privateSprites.slots}
             />
             <section className="chamber-core" aria-labelledby="chamber-core-title">
               <h2 id="chamber-core-title">ORACLE / MASTER</h2>
@@ -234,7 +235,7 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
               {EMPTY_PADS.map((pad) => (
                 <li key={pad.slot} className="chamber-slot chamber-empty" data-slot={pad.slot}>
                   <span className="chamber-code">{pad.slot} / UNASSIGNED</span>
-                  <span className="chamber-detail">Empty slot</span>
+                  <span className="chamber-detail">Figure only / no agent yet</span>
                 </li>
               ))}
             </ul>
@@ -245,7 +246,7 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
             <span className="status-dot" aria-hidden="true" />
             PRIVATE WORKSPACE
           </span>
-          <span>1 MODULE / 3 EMPTY SLOTS</span>
+          <span>1 MODULE / 3 SLOTS WITHOUT AN AGENT</span>
           <span>ORACLE / 00</span>
         </footer>
       </div>

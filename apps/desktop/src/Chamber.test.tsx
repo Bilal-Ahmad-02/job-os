@@ -46,7 +46,7 @@ describe("Oracle chamber", () => {
     const [jobs, ...empty] = slots;
     expect(jobs).toContainElement(screen.getByRole("button", { name: "Open JOB.OS console" }));
     for (const slot of empty) {
-      expect(slot).toHaveTextContent(/UNASSIGNED.*Empty slot/);
+      expect(slot).toHaveTextContent(/UNASSIGNED.*Figure only \/ no agent yet/);
       expect(within(slot).queryByRole("button")).not.toBeInTheDocument();
     }
     // The only other controls are the camera buttons and the decorative motion switch.
@@ -160,5 +160,22 @@ describe("Oracle chamber", () => {
       fireEvent.click(screen.getByRole("button", { name: "Zoom out" }));
     expect(scene.style.transform).toContain("scale(0.6)");
     expect(screen.getByRole("button", { name: "Zoom out" })).toBeDisabled();
+  });
+  it("draws a figure on each agentless slot as scenery that cannot be pressed or focused", () => {
+    const { container } = render(<Chamber />);
+    const figures = container.querySelectorAll(".chamber-occupant");
+    expect([...figures].map((figure) => figure.getAttribute("data-slot"))).toEqual([
+      "02",
+      "03",
+      "04",
+    ]);
+    for (const figure of figures) {
+      expect(figure.closest("[aria-hidden='true']")).not.toBeNull();
+      expect(figure.querySelector("a, button, [tabindex], [role='button']")).toBeNull();
+      expect(figure.querySelectorAll("rect").length).toBeGreaterThan(20);
+    }
+    // Only the real module is tethered to the core.
+    expect(container.querySelectorAll(".chamber-tether")).toHaveLength(1);
+    expect(screen.getByText("1 MODULE / 3 SLOTS WITHOUT AN AGENT")).toBeVisible();
   });
 });

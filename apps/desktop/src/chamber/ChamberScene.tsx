@@ -1,14 +1,15 @@
-import { overseer, PixelSprite } from "./sprites";
+import { cloakedWatcher, hoveringFighter, overseer, PixelSprite, sleepingCat } from "./sprites";
 
 /** Scene coordinates: a 760 x 480 canvas with a 2:1 isometric grid, origin at the far corner. */
 export const SCENE = { width: 760, height: 480 } as const;
 export const ORB = { x: 380, y: 170 } as const;
 /** The far end of the JOB.OS figure's walk; its tether runs from the orb to this point. */
 export const WALK_END = { x: 156, y: 382 } as const;
+/** Slots with no agent. Each shows a decorative figure; `lift` raises one that floats. */
 export const EMPTY_PADS = [
-  { slot: "02", x: 9, y: 1.2 },
-  { slot: "03", x: 1.5, y: 8.5 },
-  { slot: "04", x: 8.5, y: 8.5 },
+  { slot: "02", x: 9, y: 1.2, figure: sleepingCat, lift: 0 },
+  { slot: "03", x: 1.5, y: 8.5, figure: hoveringFighter, lift: 22 },
+  { slot: "04", x: 8.5, y: 8.5, figure: cloakedWatcher, lift: 0 },
 ] as const;
 
 export function iso(x: number, y: number, z = 0): [number, number] {
@@ -119,7 +120,14 @@ function Hourglass({ x, y, id }: { x: number; y: number; id: string }) {
  * Decorative chamber drawing. Nothing in it reports activity: the orb and screen are dim and the
  * tether does not pulse, because the Oracle core is not running.
  */
-export default function ChamberScene({ coreSprite }: { coreSprite?: string }) {
+export default function ChamberScene({
+  coreSprite,
+  slotSprites = {},
+}: {
+  coreSprite?: string;
+  /** Owner-supplied images for the agentless slots, keyed by slot number. */
+  slotSprites?: Record<string, string | undefined>;
+}) {
   const [cx, cy] = iso(5, 5);
   return (
     <svg
@@ -222,6 +230,39 @@ export default function ChamberScene({ coreSprite }: { coreSprite?: string }) {
       <path d={`M${cx - 11} ${cy - 33}h22`} stroke="#1e3528" strokeWidth="2" />
       <circle cx={ORB.x} cy={ORB.y} r="15" fill="#32ce7414" />
       <circle cx={ORB.x} cy={ORB.y} r="10" fill="url(#chamber-orb)" stroke="#376347" />
+
+      {/* Figures on slots that have no agent. They are scenery: not pressable and not connected. */}
+      {EMPTY_PADS.map((pad) => {
+        const [px, py] = iso(pad.x, pad.y);
+        const width = (pad.figure[0]?.length ?? 0) * 4;
+        const height = pad.figure.length * 4;
+        const custom = slotSprites[pad.slot];
+        return (
+          <g key={pad.slot} className="chamber-occupant" data-slot={pad.slot}>
+            {pad.lift ? <ellipse cx={px} cy={py + 4} rx="16" ry="6" fill="#00000066" /> : null}
+            <g className={pad.lift ? "chamber-float" : undefined}>
+              {custom ? (
+                <image
+                  className="chamber-figure"
+                  href={custom}
+                  x={px - 28}
+                  y={py + 6 - pad.lift - 66}
+                  width="56"
+                  height="66"
+                  preserveAspectRatio="xMidYMax meet"
+                />
+              ) : (
+                <PixelSprite
+                  rows={pad.figure}
+                  x={px - width / 2}
+                  y={py + 6 - pad.lift - height}
+                  scale={4}
+                />
+              )}
+            </g>
+          </g>
+        );
+      })}
 
       <Hourglass x={11.5} y={6} id="chamber-glass-b" />
     </svg>

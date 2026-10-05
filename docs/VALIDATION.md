@@ -216,6 +216,13 @@ live workspace for planning, numbers only: 29 approved entries (20 skills, 4 pro
 preference lists empty, no listings stored. Not verified: the fit section on screen, and the
 rules against a real listing and the owner's real skill names.
 
+### Desktop update — slot figures, October 5, 2026
+
+Desktop SHA-256 is now `c5d526506a1c5377953bcab8dc6cd923241e0a6ab5e374a48e2fdfc3da1e4b92`,
+frontend only; backend `380671a6...` and schema `0012` are unchanged. Checks: TypeScript, Biome,
+127 frontend tests across 19 files, Vite and Tauri builds; installed bytes verified and the
+process reopened responsive. Viewed in a browser preview. Not verified in the unlocked window.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

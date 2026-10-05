@@ -120,17 +120,18 @@
   color: var(--muted);
   white-space: nowrap;
 }
+/* Labels sit just below each slot's figure. */
 .chamber-empty[data-slot="02"] {
   left: 82.84%;
-  top: 56.92%;
+  top: 62.6%;
 }
 .chamber-empty[data-slot="03"] {
   left: 20.53%;
-  top: 56.25%;
+  top: 62%;
 }
 .chamber-empty[data-slot="04"] {
   left: 50%;
-  top: 79.58%;
+  top: 85.3%;
 }
 
 /* The one real module. Its feet sit on the near end of the tether drawn in the scene. */
@@ -207,6 +208,9 @@
 .chamber[data-motion="on"] .chamber-streaks {
   animation: chamber-streaks 9s linear infinite;
 }
+.chamber[data-motion="on"] .chamber-float {
+  animation: chamber-float 3.2s ease-in-out infinite alternate;
+}
 .chamber[data-motion="on"] .chamber-sand-upper {
   animation: chamber-sand-upper 24s linear infinite;
 }
@@ -245,6 +249,11 @@
 @keyframes chamber-streaks {
   to {
     transform: translate(-88.33px, 44.16px);
+  }
+}
+@keyframes chamber-float {
+  to {
+    transform: translateY(-7px);
   }
 }
 @keyframes chamber-sand-upper {

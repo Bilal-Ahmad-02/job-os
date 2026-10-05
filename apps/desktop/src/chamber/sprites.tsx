@@ -11,6 +11,11 @@ const palette: Record<string, string> = {
   S: "#8aa397",
   s: "#4c6157",
   E: "#70ee9c",
+  A: "#7f8d87",
+  a: "#4d5a55",
+  T: "#1e3528",
+  W: "#376347",
+  Z: "#70ee9c",
 };
 
 const investigatorTop = [
@@ -52,6 +57,67 @@ export const overseer = [
   "...Ss..sS...",
   "...Ss..sS...",
   "..sss..sss..",
+];
+
+/** A dark grey cat asleep on a cat stand. Decoration for a slot that has no agent yet. */
+export const sleepingCat = [
+  "............Z...",
+  "..........Z.....",
+  "...a..a.........",
+  "..aAaaAa........",
+  "..AAAAAAAAAA....",
+  ".AAaAAaAAAAAAA..",
+  ".AAAAAAAAAAAAAa.",
+  "..AAAAAAAAAAAAa.",
+  "...aaaaaaaaaaa..",
+  "WWWWWWWWWWWWWWWW",
+  ".WWWWWWWWWWWWWW.",
+  "......TTTT......",
+  "......TTTT......",
+  "......TTTT......",
+  "....TTTTTTTT....",
+  "...WWWWWWWWWW...",
+];
+
+/** A hovering fighter inside a glow. An original figure, not a likeness of any character. */
+export const hoveringFighter = [
+  "....GGGG....",
+  "...G....G...",
+  "..G.HHHH.G..",
+  "..G.FFFF.G..",
+  ".G..EFFE..G.",
+  ".G..FFFF..G.",
+  ".G.CCCCCC.G.",
+  "G.FCCCCCCF.G",
+  "G.FCDCCDCF.G",
+  "G..CCCCCC..G",
+  ".G.CCGGCC.G.",
+  ".G.CC..CC.G.",
+  "..G.K..K.G..",
+  "..G.B..B.G..",
+  "...G....G...",
+  "....GGGG....",
+];
+
+/** A cloaked night watcher. An original figure, not a likeness of any character. */
+export const cloakedWatcher = [
+  "....WWWW....",
+  "...WWWWWW...",
+  "...WFFFFW...",
+  "...WEFFEW...",
+  "...WWFFWW...",
+  "..WWWWWWWW..",
+  ".WWDCCCCDWW.",
+  ".WWDCCCCDWW.",
+  ".WWDCGGCDWW.",
+  ".WWDCCCCDWW.",
+  ".WWDCCCCDWW.",
+  ".WW.CCCC.WW.",
+  ".W..CCCC..W.",
+  ".W..CC.CC.W.",
+  "....HH.HH...",
+  "....HH.HH...",
+  "...BBB.BBB..",
 ];
 
 /** Draws one frame, merging each horizontal run of a colour into a single rectangle. */

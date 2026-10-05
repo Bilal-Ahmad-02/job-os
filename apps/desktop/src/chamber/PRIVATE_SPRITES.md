@@ -9,6 +9,9 @@ desktop executable when you build it on this PC.
 | --- | --- |
 | `job-os.png` | The walking figure that opens the job-search console |
 | `oracle.png` | The seated figure at the console in the middle |
+| `slot-2.png` | The figure on slot 02 (built in: a sleeping cat on a stand) |
+| `slot-3.png` | The figure on slot 03 (built in: a hovering fighter; it floats above the pad) |
+| `slot-4.png` | The figure on slot 04 (built in: a cloaked watcher) |
 
 `.png`, `.gif` and `.webp` are accepted, for example `job-os.gif`. If more than one format exists
 for a name, PNG wins, then GIF, then WebP.
@@ -17,7 +20,10 @@ Drawing notes:
 
 - Use a transparent background. Pixel art stays sharp; it is scaled without smoothing.
 - The walking figure is shown about 2 wide by 3 tall and stands on its bottom edge. The seated
-  figure is about 6 wide by 7 tall. Other proportions are fitted inside the same space.
+  figure and the slot figures are about 6 wide by 7 tall. Other proportions are fitted inside the
+  same space.
+- Slot figures are scenery for slots that have no agent yet. They cannot be clicked until an
+  agent is built for that slot.
 - An animated GIF or WebP keeps playing even when the hub's Motion switch is off.
 - Draw the walking figure facing left; the app mirrors it for the walk back.
 
