@@ -196,7 +196,57 @@ and `listing_track`, `listing_searches_list`, `listing_search_save` and `listing
 are new operations on the existing authenticated pipe. Backend and desktop must be deployed
 together. The step-16 backend cannot open a `0011` workspace.
 
+## Fit against the confirmed profile (steps 17 and 18)
+
+Status on 2026-10-05: implemented and tested in source, **not deployed**. No schema change and no
+migration: the comparison is rebuilt on each read and never stored. The owner returned to these
+skipped steps after approving all 29 draft entries; the saved profile then held 1 experience, 2
+education, 20 skill, 4 project and 1 certification entries, and every job-preference list was
+still empty.
+
+Step 17, the rules (`app/services/listing_fit.py`, rules version 1):
+
+- **Skills and technologies.** Each confirmed skill name and each project technology is searched
+  for in the cleaned listing text as a whole term, ignoring letter case and spacing. "C" does not
+  match inside "C++" or "C#", nor "Go" inside "Google". One-character names are skipped.
+- **Preferences.** Target roles are looked for in the title and text, locations in the location
+  field and text, excluded phrases in the title and text. An excluded employer is a conflict when
+  it equals the listing's company (ignoring case, punctuation and a legal suffix) or is named in
+  the text. Work modes and employment types compare what the text mentions with what the owner
+  chose: a chosen one is a match; if only others are mentioned, each is a conflict.
+- Every preference topic always reports one of four outcomes: match, conflict, not mentioned in
+  the listing, or not set by the owner. "Not set" and "not mentioned" are not judgements.
+
+Step 18, the explanation shown in **06 / FIT AGAINST YOUR PROFILE**:
+
+- Every match or conflict carries the term from the profile or preferences and a quote of the
+  listing's wording around the hit, so the owner can see why.
+- **Lines that read like requirements**: lines containing wording such as "requirements",
+  "experience with", "krav" or "meriterande", each with the owner's terms found in it, or a note
+  that none was found and it needs a human look. These are possible gaps, not established ones.
+- The stated profile revision, how many terms were checked, and the rule limits.
+- The index shows how many of the owner's terms a listing mentions and how many conflicts it has.
+
+What it is not: there is no score, ranking, percentage or recommendation, and nothing is filtered,
+hidden, shortlisted or dismissed because of it. A match means a word appears, not that the owner
+qualifies; a listing saying "no Python needed" still mentions Python. Only exact names are found:
+"Postgres" does not match "PostgreSQL", and a skill stored as "Python (pandas)" does not match
+"Python". Experience, education and certifications are not compared. Requirement lines are picked
+by wording, so some are missed and some are not requirements.
+
+Authority and privacy: only the saved profile is read, which holds what the owner approved or
+entered. The unreviewed draft is never read for matching. Nothing leaves the machine and no model
+is involved. Records gained a `fit` object and pages gained `matched_terms` and `conflicts`, so
+backend and desktop must be deployed together.
+
 ## Verification
+
+Steps 17-18 add 7 backend tests (352 total) and 1 frontend test (126 total): whole-term matching
+with quoted evidence and the look-alike cases above, unset preferences reported as unset, saved
+preferences as match, conflict or unmentioned, an excluded employer named only in the text,
+requirement-like lines with covered terms, bounds under hostile input, records and pages that
+follow the saved profile without changing the stored listing, strict validation of the new
+response fields including rejection of a score field, and the on-screen wording.
 
 Step 19 brings the backend to 333 tests (15 more, net) and the frontend to 108 (4 more): one view per listing,
 a single linked dossier with idempotent retry, stated title provenance and bounded description,

@@ -79,6 +79,46 @@
 .listing-matches li > span:nth-child(2) {
   color: var(--muted);
 }
+.fit-heading {
+  margin: 18px 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+.listing-derived .fit-list {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+}
+.fit-list li {
+  display: grid;
+  grid-template-columns: minmax(120px, 190px) minmax(140px, 260px) minmax(0, 1fr);
+  gap: 14px;
+  padding: 8px 0 8px 10px;
+  border-bottom: 1px solid var(--border);
+  border-left: 2px solid var(--border);
+  font: 13px / 1.5 var(--body);
+  overflow-wrap: anywhere;
+}
+.fit-list li[data-outcome="match"] {
+  border-left-color: var(--icon);
+}
+.fit-list li[data-outcome="conflict"] {
+  border-left-color: var(--warning);
+}
+.fit-list li[data-outcome="conflict"] strong {
+  color: var(--warning);
+}
+.fit-list li > span:first-child,
+.fit-list q {
+  color: var(--muted);
+}
+.fit-list q {
+  display: block;
+  font-style: italic;
+}
 .listing-derived ul {
   margin: 0;
   padding-left: 18px;

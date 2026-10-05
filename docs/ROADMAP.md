@@ -88,8 +88,8 @@ was completed early. The owner resumed the roadmap on 2026-10-05. Step 14's manu
 hand-entered listings) is implemented and deployed; see LISTINGS.md. Step 15 normalization for
 those listings is implemented and deployed, with no schema change. Step 16 duplicate flags and
 the owner-set closed flag are implemented and deployed with schema `0010`. Steps 17-18 (matching
-and its explanations) are skipped for now at the owner's request, pending a confirmed profile and
-preferences. Step 19's review workflow is implemented and deployed with schema `0011`. Step 20 is
+and its explanations) were skipped at first and built on 2026-10-05 after the owner approved the
+draft entries; they are implemented in source, not yet deployed, and need no schema change. Step 19's review workflow is implemented and deployed with schema `0011`. Step 20 is
 being done in parts: part 1 (deadline and follow-up dates, link from a dossier to its source
 listing) is implemented and deployed with schema `0012`. Tasks and reminders,
 interview preparation and document links are not started. Its

@@ -59,6 +59,32 @@ export type ListingMatch = {
   closed: boolean;
   reasons: (keyof typeof matchReasons)[];
 };
+export const fitTopics = {
+  target_role: "Target role",
+  location: "Location",
+  work_mode: "Work mode",
+  employment_type: "Employment type",
+  excluded_employer: "Excluded employer",
+  excluded_keyword: "Excluded phrase",
+  skill: "Skill",
+} as const;
+export const fitOutcomes = ["match", "conflict", "not_mentioned", "not_set"] as const;
+export const fitSources = ["", "preference", "skill", "project_technology"] as const;
+export type FitFinding = {
+  topic: keyof typeof fitTopics;
+  outcome: (typeof fitOutcomes)[number];
+  term: string;
+  source: (typeof fitSources)[number];
+  excerpts: string[];
+};
+/** Fixed-rule comparison with the confirmed profile and preferences. No score, no decision. */
+export type ListingFit = {
+  rules_version: 1;
+  profile_version: number;
+  terms_checked: number;
+  findings: FitFinding[];
+  requirement_lines: { text: string; covered_by: string[] }[];
+};
 export type ListingRecord = {
   id: string;
   version: number;
@@ -74,6 +100,7 @@ export type ListingRecord = {
   application_id: string | null;
   normalized: NormalizedListing;
   matches: ListingMatch[];
+  fit: ListingFit;
 };
 export type ListingSummary = {
   id: string;
@@ -88,6 +115,8 @@ export type ListingSummary = {
   shortlisted: boolean;
   application_id: string | null;
   possible_duplicate: boolean;
+  matched_terms: number;
+  conflicts: number;
 };
 export type ListingPage = { total: number; items: ListingSummary[] };
 
@@ -106,6 +135,13 @@ export function blankListing(): ListingRecord {
     shortlisted: false,
     application_id: null,
     matches: [],
+    fit: {
+      rules_version: 1,
+      profile_version: 0,
+      terms_checked: 0,
+      findings: [],
+      requirement_lines: [],
+    },
     normalized: {
       rules_version: 1,
       text: "",
@@ -178,6 +214,46 @@ function matches(value: unknown, own: unknown): boolean {
     )
   );
 }
+function strings(value: unknown, most: number, limit: number): value is string[] {
+  return Array.isArray(value) && value.length <= most && value.every((item) => text(item, limit));
+}
+function fitReport(value: unknown): boolean {
+  return (
+    object(value) &&
+    keys(value, [
+      "rules_version",
+      "profile_version",
+      "terms_checked",
+      "findings",
+      "requirement_lines",
+    ]) &&
+    value.rules_version === 1 &&
+    integer(value.profile_version) &&
+    integer(value.terms_checked, 0, 1600) &&
+    Array.isArray(value.findings) &&
+    value.findings.length <= 200 &&
+    value.findings.every(
+      (item: unknown) =>
+        object(item) &&
+        keys(item, ["topic", "outcome", "term", "source", "excerpts"]) &&
+        typeof item.topic === "string" &&
+        Object.hasOwn(fitTopics, item.topic) &&
+        fitOutcomes.some((outcome) => outcome === item.outcome) &&
+        fitSources.some((source) => source === item.source) &&
+        text(item.term, 300) &&
+        strings(item.excerpts, 2, 300),
+    ) &&
+    Array.isArray(value.requirement_lines) &&
+    value.requirement_lines.length <= 30 &&
+    value.requirement_lines.every(
+      (item: unknown) =>
+        object(item) &&
+        keys(item, ["text", "covered_by"]) &&
+        text(item.text, 300) &&
+        strings(item.covered_by, 10, 300),
+    )
+  );
+}
 function listingResult(value: unknown): ListingRecord {
   if (
     !object(value) ||
@@ -196,6 +272,7 @@ function listingResult(value: unknown): ListingRecord {
       "application_id",
       "normalized",
       "matches",
+      "fit",
     ]) ||
     !uuid(value.id) ||
     !integer(value.version, 1) ||
@@ -217,7 +294,8 @@ function listingResult(value: unknown): ListingRecord {
     typeof value.shortlisted !== "boolean" ||
     !(value.application_id === null || uuid(value.application_id)) ||
     !normalized(value.normalized) ||
-    !matches(value.matches, value.id)
+    !matches(value.matches, value.id) ||
+    !fitReport(value.fit)
   )
     throw new Error("Invalid listing response");
   return value as ListingRecord;
@@ -260,7 +338,11 @@ export async function listListings(
           "shortlisted",
           "application_id",
           "possible_duplicate",
+          "matched_terms",
+          "conflicts",
         ]) &&
+        integer(item.matched_terms, 0, 1600) &&
+        integer(item.conflicts, 0, 200) &&
         uuid(item.id) &&
         origin(item.origin) &&
         text(item.title, 300) &&

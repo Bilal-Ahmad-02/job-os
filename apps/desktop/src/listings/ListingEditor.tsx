@@ -1,6 +1,8 @@
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import {
   employmentTypes,
+  type FitFinding,
+  fitTopics,
   type ListingField,
   type ListingRecord,
   listingError,
@@ -13,6 +15,21 @@ import {
   workModes,
 } from "../api/listings";
 import Icon from "../Icon";
+
+const outcomes: Record<FitFinding["outcome"], string> = {
+  match: "Match",
+  conflict: "Conflict",
+  not_mentioned: "Not mentioned in the listing",
+  not_set: "You have not set this",
+};
+/** Preference choices are stored as codes; show the same words as elsewhere on the page. */
+function fitTerm(finding: FitFinding): string {
+  if (finding.topic === "work_mode" && Object.hasOwn(workModes, finding.term))
+    return workModes[finding.term as keyof typeof workModes];
+  if (finding.topic === "employment_type" && Object.hasOwn(employmentTypes, finding.term))
+    return employmentTypes[finding.term as keyof typeof employmentTypes];
+  return finding.term;
+}
 
 function collected(value: string): string {
   const date = new Date(value);
@@ -296,6 +313,104 @@ export default function ListingEditor({
               </li>
             ))}
           </ul>
+        </section>
+      )}
+      {unsaved ? null : (
+        <section className="listing-derived" aria-labelledby="listing-fit-heading">
+          <h3 className="field-sector" id="listing-fit-heading">
+            06 / FIT AGAINST YOUR PROFILE
+          </h3>
+          <p className="input-help">
+            Fixed rules compared this listing with your confirmed profile (revision{" "}
+            {record.fit.profile_version}) and saved preferences. A match means the listing uses one
+            of your words, shown in the quote beside it. It is not a judgement of whether you
+            qualify, and there is no score. Unreviewed draft entries are never used.
+          </p>
+          {(() => {
+            const skills = record.fit.findings.filter((item) => item.topic === "skill");
+            const others = record.fit.findings.filter((item) => item.topic !== "skill");
+            return (
+              <>
+                <h4 className="fit-heading">Your preferences</h4>
+                <ul className="fit-list">
+                  {others.map((finding, index) => (
+                    <li
+                      // biome-ignore lint/suspicious/noArrayIndexKey: findings are a fixed list rebuilt on every read.
+                      key={`${finding.topic}-${finding.term}-${index}`}
+                      data-outcome={finding.outcome}
+                    >
+                      <span>{fitTopics[finding.topic]}</span>
+                      <strong>
+                        {outcomes[finding.outcome]}
+                        {finding.term ? `: ${fitTerm(finding)}` : ""}
+                      </strong>
+                      <span>
+                        {finding.excerpts.map((quote) => (
+                          <q key={quote}>{quote}</q>
+                        ))}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <h4 className="fit-heading">
+                  Your skills and technologies found in the text ({skills.length} of{" "}
+                  {record.fit.terms_checked} checked)
+                </h4>
+                {skills.length ? (
+                  <ul className="fit-list">
+                    {skills.map((finding) => (
+                      <li key={`${finding.source}-${finding.term}`} data-outcome="match">
+                        <span>
+                          {finding.source === "project_technology" ? "Project technology" : "Skill"}
+                        </span>
+                        <strong>{finding.term}</strong>
+                        <span>
+                          {finding.excerpts.map((quote) => (
+                            <q key={quote}>{quote}</q>
+                          ))}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="input-help">
+                    {record.fit.terms_checked
+                      ? "None of your confirmed skill or technology names appears as a whole word."
+                      : "Your confirmed profile has no skills or project technologies to look for."}
+                  </p>
+                )}
+                <h4 className="fit-heading">Lines that read like requirements</h4>
+                {record.fit.requirement_lines.length ? (
+                  <ul className="fit-list">
+                    {record.fit.requirement_lines.map((line, index) => (
+                      <li
+                        // biome-ignore lint/suspicious/noArrayIndexKey: lines keep their order in the listing.
+                        key={`${index}-${line.text}`}
+                        data-outcome={line.covered_by.length ? "match" : "not_mentioned"}
+                      >
+                        <span>
+                          {line.covered_by.length
+                            ? `Contains: ${line.covered_by.join(", ")}`
+                            : "None of your terms found: check this one yourself"}
+                        </span>
+                        <q>{line.text}</q>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="input-help">
+                    No line used wording such as "requirements", "experience with" or "krav".
+                  </p>
+                )}
+                <p className="input-help">
+                  Limits: only exact names are found, so "Postgres" does not match "PostgreSQL" and
+                  a skill written as "Python (pandas)" will not match "Python". One-letter names
+                  such as "C" or "R" are skipped. Requirement lines are picked by wording, so some
+                  are missed and some are not real requirements.
+                </p>
+              </>
+            );
+          })()}
         </section>
       )}
       {record.application_id ? (

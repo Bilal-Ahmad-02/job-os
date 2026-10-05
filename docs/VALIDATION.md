@@ -199,6 +199,16 @@ since before the `0009` migration are superseded by this entry. Not done: a rest
 snapshot into separate staging on another machine. The earlier `OracleBackups` folder is unchanged
 at four snapshots.
 
+### Steps 17-18 source state — October 5, 2026
+
+Rule-based fit is committed locally and not deployed or pushed. Checks run: 352 Linux tests with
+Ruff clean; TypeScript, Biome, 126 frontend tests across 19 files and the Vite build. No native
+code or schema changed; native tests and WSL probes were not rerun. The installed backend
+`57a5d2b2...`, desktop `4855d897...` and schema `0012` are still what runs. Counts read from the
+live workspace for planning, numbers only: 29 approved entries (20 skills, 4 projects), all
+preference lists empty, no listings stored. Not verified: the fit section on screen, and the
+rules against a real listing and the owner's real skill names.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

@@ -68,6 +68,8 @@ beforeEach(() => {
                 shortlisted: false,
                 application_id: null,
                 possible_duplicate: false,
+                matched_terms: 0,
+                conflicts: 0,
               },
             ],
     }));
@@ -199,6 +201,8 @@ describe("Listing intake", () => {
           shortlisted: false,
           application_id: null,
           possible_duplicate: false,
+          matched_terms: 0,
+          conflicts: 0,
         },
       ],
     });
@@ -280,6 +284,8 @@ describe("Listing intake", () => {
           shortlisted: false,
           application_id: null,
           possible_duplicate: true,
+          matched_terms: 2,
+          conflicts: 1,
         },
       ],
     });
@@ -438,5 +444,58 @@ describe("Listing intake", () => {
     expect(screen.getByRole("heading", { name: "Synthetic Engineer" })).toBeVisible();
     fireEvent.click(screen.getByRole("button", { name: "Open it and leave this listing" }));
     expect(await screen.findByRole("heading", { name: "Other listing" })).toBeVisible();
+  });
+
+  it("shows rule-based fit with quotes, plain limits and no score", async () => {
+    record.fit = {
+      rules_version: 1,
+      profile_version: 29,
+      terms_checked: 20,
+      findings: [
+        { topic: "target_role", outcome: "not_set", term: "", source: "", excerpts: [] },
+        {
+          topic: "work_mode",
+          outcome: "match",
+          term: "hybrid",
+          source: "preference",
+          excerpts: [],
+        },
+        {
+          topic: "excluded_keyword",
+          outcome: "conflict",
+          term: "unpaid",
+          source: "preference",
+          excerpts: ["an unpaid trial week"],
+        },
+        {
+          topic: "skill",
+          outcome: "match",
+          term: "Python",
+          source: "skill",
+          excerpts: ["Requirements: Python and SQL"],
+        },
+      ],
+      requirement_lines: [
+        { text: "Requirements: Python and SQL", covered_by: ["Python"] },
+        { text: "Meriterande: Kubernetes", covered_by: [] },
+      ],
+    };
+    render(<Listings />);
+    fireEvent.click(await screen.findByRole("button", { name: /Synthetic Engineer/ }));
+    const section = await screen.findByRole("region", { name: "06 / FIT AGAINST YOUR PROFILE" });
+    expect(section).toHaveTextContent(/confirmed profile \(revision 29\)/);
+    expect(section).toHaveTextContent(
+      /not a judgement of whether you qualify, and there is no score/,
+    );
+    expect(section).toHaveTextContent("Target roleYou have not set this");
+    expect(section).toHaveTextContent("Work modeMatch: Hybrid");
+    expect(section).toHaveTextContent("Excluded phraseConflict: unpaid");
+    expect(section).toHaveTextContent("an unpaid trial week");
+    expect(section).toHaveTextContent("found in the text (1 of 20 checked)");
+    expect(section).toHaveTextContent("Contains: Python");
+    expect(section).toHaveTextContent("None of your terms found: check this one yourself");
+    expect(section).toHaveTextContent(/"Postgres" does not match "PostgreSQL"/);
+    expect(section).not.toHaveTextContent(/%|score:|qualified/i);
+    expect(saveListing).not.toHaveBeenCalled();
   });
 });

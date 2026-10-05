@@ -344,6 +344,17 @@ export default function Listings({
                       {item.shortlisted && view !== "shortlist" ? <span>Shortlisted</span> : null}
                       {item.closed ? <span>Role closed</span> : null}
                       {item.possible_duplicate ? <span>Possible duplicate</span> : null}
+                      {item.matched_terms > 0 ? (
+                        <span>
+                          {item.matched_terms} of your {item.matched_terms === 1 ? "term" : "terms"}{" "}
+                          mentioned
+                        </span>
+                      ) : null}
+                      {item.conflicts > 0 ? (
+                        <span>
+                          {item.conflicts} {item.conflicts === 1 ? "conflict" : "conflicts"}
+                        </span>
+                      ) : null}
                       <span>Collected {collectedDate(item.collected_at)}</span>
                     </span>
                   </button>

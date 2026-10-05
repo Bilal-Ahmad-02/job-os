@@ -23,8 +23,8 @@ its Oracle core is labelled dormant because no assistant exists. See DESKTOP.md.
 Step 14 manual listing intake (schema `0009`, **06 / INGRESS**) was implemented and deployed on
 2026-10-05, followed the same day by step 15 read-time normalization, step 16 duplicate flags
 (schema `0010`) and the step 19 review workflow (schema `0011`); see LISTINGS.md. Step 20 part 1
-(application dates, schema `0012`) is in APPLICATIONS.md. Steps 17-18 are skipped for now at the
-owner's request. The roadmap
+(application dates, schema `0012`) is in APPLICATIONS.md. Steps 17-18 (rule-based fit) are
+implemented in source and not yet deployed. The roadmap
 is resumed one scoped step at a time.
 
 Implemented: application tracking and import provenance; immutable source PDFs and explicit version
