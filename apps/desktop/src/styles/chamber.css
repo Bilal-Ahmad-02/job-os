@@ -3,6 +3,10 @@
   display: grid;
   grid-template-rows: 60px minmax(0, 1fr) 30px;
 }
+/* The grid display above would otherwise override the hidden attribute. */
+.chamber[hidden] {
+  display: none;
+}
 .chamber-void {
   position: relative;
   display: grid;
