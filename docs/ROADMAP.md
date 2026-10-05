@@ -87,7 +87,7 @@ Steps 4-13 have been implemented at their documented scope. Step 10's Linux runt
 was completed early. The owner resumed the roadmap on 2026-10-05. Step 14's manual part (pasted and
 hand-entered listings) is implemented and deployed; see LISTINGS.md. Step 15 normalization for
 those listings is implemented and deployed, with no schema change. Step 16 duplicate flags and
-the owner-set closed flag are implemented in source with schema `0010`, not yet deployed. Its
+the owner-set closed flag are implemented and deployed with schema `0010`. Its
 "selected supported external sources" part is not started. Later steps may
 build on partial foundations already present; provider connection testing is not AI execution,
 source-text extraction is not semantic profile generation, and manual backups are not scheduling.

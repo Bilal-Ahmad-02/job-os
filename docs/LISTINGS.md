@@ -108,9 +108,9 @@ strictly, so the step-15 backend and desktop must be deployed together.
 
 ## Possible duplicates and closed roles (step 16)
 
-Status on 2026-10-05: implemented and tested in source, **not deployed**. It needs schema `0010`,
-so deployment includes a live migration; see "Deploying step 16" below. The installed app runs
-steps 14-15 at schema `0009` until then.
+Status on 2026-10-05: implemented, tested and deployed on the owner's instruction. The live
+workspace is at schema `0010`; see "Deploying step 16" below. Not seen in the unlocked app by the
+coding session.
 
 What it does:
 
@@ -142,14 +142,16 @@ pages gained fields, so backend and desktop must be deployed together.
 
 ### Deploying step 16
 
-Not done. In order: close Oracle; build and install a new backend release; fingerprint the live
-tables; run the release's explicit Linux `prepare`, which takes the integrity-checked local copy
-and migrates to `0010`; compare tables (every table other than `alembic_version` and
-`job_listings` must be identical, and each existing listing must keep its original text, hash,
-collection time and owner fields); select the release; install the desktop; reopen. Afterwards
-the step-15 backend can no longer open the workspace. On 2026-10-05 the active backup repository
-still held a single snapshot from before the `0009` migration, so no encrypted backup covers the
-current schema or any listings added since.
+Done on 2026-10-05. Backend release `79a4fd8ca8bdabcd59e8a48473ed9e3873a2a709b48167656ca3ba9b7a19a04a`
+passed its offline install probe and both Windows/WSL native integration tests and is selected.
+With Oracle closed, the release's explicit Linux `prepare` took the integrity-checked local copy
+(`migration-backups/before-0010-*.sqlite3`) and migrated the workspace. Of 14 tables, only
+`alembic_version` and the `job_listings` definition changed; the other 12 and the identity marker
+were identical by typed-row hash. The workspace held no listings, so there was nothing to
+backfill. Desktop `2abb755640b9d6952b9983aab93d04f61cd2737eb39e2d744e7fd0e6c85f7ca7` was installed and
+reopened. The step-15 backend can no longer open the workspace. The active backup repository still
+held a single snapshot from before the `0009` migration, so no encrypted backup covers the current
+schema.
 
 ## Verification
 

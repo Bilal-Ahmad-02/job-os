@@ -77,6 +77,10 @@ requests start only after JOB.OS is chosen. It then stays mounted but hidden whi
 so in-memory drafts survive a return. Locking still unmounts everything. Ctrl+K is ignored while
 the console is hidden. Below 760 px wide or 520 px tall the board stacks into one scrolling column.
 
+Correction, 2026-10-05: the first hub release left the hub visible above the console, because the
+hub's `display: grid` overrode the `hidden` attribute. `.chamber[hidden]` now hides it. Component
+tests could not catch this; they do not apply stylesheets.
+
 `Chamber.tsx` owns the hub and the hub/console switch; `AccessGate` renders it after native unlock.
 No native command, capability, backend operation or schema changed.
 
