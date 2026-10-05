@@ -74,9 +74,10 @@ to protect listings and the upgraded schema.
 
 ## Normalized view (step 15)
 
-Status on 2026-10-05: implemented and tested in source, **not deployed**. The installed app shows
-step 14 only until a new backend release and matching desktop build are installed together. No
-schema change or live migration is involved: nothing derived is stored.
+Status on 2026-10-05: implemented, tested and deployed on the owner's instruction as backend
+`b033929bb789bec11303a2e4d632a1c1b3a4fffe0c6b67be645d9e4071ea7946` and desktop
+`e53b70cb903ee48ee3cef13dacd28547a0edb4554bc77444fede04d237e27d84`. No schema change or live
+migration was involved: nothing derived is stored. Not seen in the unlocked app by the session.
 
 Each listing record now carries a `normalized` object computed on request from the stored original
 text and the owner's link by `app/services/listing_normalizer.py` (rules version 1):

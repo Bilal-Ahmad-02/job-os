@@ -4,11 +4,11 @@ Owner instruction, 2026-10-05: the roadmap is resumed ("focus on finishing the 4
 earlier pause notes below are historical. Work proceeds one scoped step at a time; later steps are
 still not authorized in bulk, and frontend redesign beyond the chamber hub is deferred.
 
-Source checkpoint, 2026-10-05: step 15 normalizes pasted listings at read time with fixed rules
+Implementation checkpoint, 2026-10-05: step 15 normalizes pasted listings at read time with fixed rules
 (cleaned text, first-line title suggestion, links, canonical link, mentioned work modes and
 employment types). Nothing derived is stored, owner fields are never changed automatically, and
-there is no schema change, network access or model. It is committed locally and **not deployed**;
-backend and desktop must ship together. Deduplication (step 16) is next. See LISTINGS.md.
+there is no schema change, network access or model. Deployed as backend `b033929b...` and desktop
+`e53b70cb...`; backend and desktop must ship together. Deduplication (step 16) is next. See LISTINGS.md.
 
 Implementation checkpoint, 2026-10-05: step 14's manual intake is implemented and deployed. Schema `0009` adds `job_listings`; pasted text, its hash and collection time are
 write-once, owner fields and an archive flag are editable with revision checks, and creation is

@@ -21,7 +21,8 @@ Since 2026-10-05 unlock opens a hub ("the chamber") whose only real node opens t
 its Oracle core is labelled dormant because no assistant exists. See DESKTOP.md.
 
 Step 14 manual listing intake (schema `0009`, **06 / INGRESS**) was implemented and deployed on
-2026-10-05; see LISTINGS.md. The roadmap is resumed one scoped step at a time.
+2026-10-05, followed the same day by step 15 read-time normalization; see LISTINGS.md. The roadmap
+is resumed one scoped step at a time.
 
 Implemented: application tracking and import provenance; immutable source PDFs and explicit version
 families; bounded local page-text extraction; an assisted-import semantic draft with citations;
@@ -67,7 +68,7 @@ documented threat boundary before expanding capabilities; do not claim hardened 
 | Provider key | Windows Credential Manager, `Oracle.Provider.OpenAI.v1` |
 | Encrypted backup repository | Owner's OneDrive `OracleBackups-2026-10` folder; the older `OracleBackups` is retained but unreadable (password lost) |
 
-Selected backend since 2026-10-05: `dd8f41728b147c3e544e4ea1e227a21fdae36c8e54327f341398867d20513c91`
+Selected backend since 2026-10-05: `b033929bb789bec11303a2e4d632a1c1b3a4fffe0c6b67be645d9e4071ea7946`
 (previously `bda6f25fbb0f4fdf1efa25b47ebeb0f16b29de16930d6c0086276c1844ef6f25`, which cannot open
 the current schema). The desktop digest is recorded in VALIDATION.md. Schema is `0009`; profile JSON
 includes step-13 exclusions. An older backend can reject that JSON despite sharing the database schema.

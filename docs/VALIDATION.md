@@ -85,10 +85,15 @@ session confirmed only that the folder holds one snapshot file dated 2026-10-05.
 
 ### Step 15 source state — October 5, 2026
 
-Read-time listing normalization is committed locally and not deployed or pushed. Checks run: 309
-Linux tests with Ruff clean; TypeScript, Biome, 102 frontend tests across 18 files and the Vite
-build. No native code or schema changed; native tests and WSL probes were not rerun. The installed
-backend `dd8f4172...` and desktop `1b579d1f...` from step 14 are still what runs.
+Checks run: 309 Linux tests with Ruff clean; TypeScript, Biome, 102 frontend tests across 18 files
+and the Vite build. No native code or schema changed; the ordinary native suite was not rerun.
+
+Deployed 2026-10-05. Backend release: `b033929bb789bec11303a2e4d632a1c1b3a4fffe0c6b67be645d9e4071ea7946`.
+Desktop SHA-256: `e53b70cb903ee48ee3cef13dacd28547a0edb4554bc77444fede04d237e27d84`. Schema stays `0009`;
+no migration ran. The release passed its offline install probe and both Windows/WSL native
+integration tests; selection verified it opens the existing workspace; the install script verified
+the desktop bytes and the process reopened responsive at the locked seal. Earlier releases are
+retained. Not verified: the normalized view in the unlocked app.
 
 ## Private backup and remaining manual evidence
 
