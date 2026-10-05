@@ -4,6 +4,13 @@ Owner instruction, 2026-10-05: the roadmap is resumed ("focus on finishing the 4
 earlier pause notes below are historical. Work proceeds one scoped step at a time; later steps are
 still not authorized in bulk, and frontend redesign beyond the chamber hub is deferred.
 
+Source checkpoint, 2026-10-05: step 16 flags possible duplicate listings by fixed rules (identical
+cleaned text, same canonical link, same owner title and company) and adds an owner-set closed
+flag. Schema `0010` adds a derived text key, its rule version and the flag to `job_listings`.
+Nothing is merged, hidden, closed or deleted automatically, and no site is contacted. Committed
+locally and **not deployed**; deployment needs the live `0010` migration. See LISTINGS.md.
+Deterministic matching against the confirmed profile and preferences (step 17) is next.
+
 Implementation checkpoint, 2026-10-05: step 15 normalizes pasted listings at read time with fixed rules
 (cleaned text, first-line title suggestion, links, canonical link, mentioned work modes and
 employment types). Nothing derived is stored, owner fields are never changed automatically, and

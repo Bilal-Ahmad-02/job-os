@@ -54,12 +54,22 @@ it("updates only owner fields, the archive flag and the revision", async () => {
       version: 1,
       data: record.data,
       archived: true,
+      closed: false,
     },
   });
 });
 
 it("rejects malformed, inconsistent or extended listing records", async () => {
   const record = stored();
+  const match = {
+    id: crypto.randomUUID(),
+    title: "Synthetic role",
+    company: "",
+    collected_at: "2026-10-01T12:00:00+00:00",
+    archived: true,
+    closed: false,
+    reasons: ["same_text"],
+  };
   for (const value of [
     null,
     { ...record, version: 0 },
@@ -71,6 +81,13 @@ it("rejects malformed, inconsistent or extended listing records", async () => {
     { ...record, data: { title: "Only" } },
     { ...record, path: "/private" },
     { ...record, normalized: undefined },
+    { ...record, closed: "yes" },
+    { ...record, matches: undefined },
+    { ...record, matches: [{ ...match, id: record.id }] },
+    { ...record, matches: [match, match] },
+    { ...record, matches: [{ ...match, reasons: [] }] },
+    { ...record, matches: [{ ...match, reasons: ["same_vibe"] }] },
+    { ...record, matches: [{ ...match, original_text: "private" }] },
     { ...record, normalized: { ...record.normalized, rules_version: 2 } },
     { ...record, normalized: { ...record.normalized, links: ["javascript:alert(1)"] } },
     { ...record, normalized: { ...record.normalized, mentioned_work_modes: ["remote", "remote"] } },
@@ -80,8 +97,9 @@ it("rejects malformed, inconsistent or extended listing records", async () => {
     invoke.mockResolvedValue(value);
     await expect(getListing(record.id)).rejects.toThrow("Invalid listing response");
   }
-  invoke.mockResolvedValue(record);
-  expect(await getListing(record.id)).toEqual(record);
+  const flagged = { ...record, closed: true, matches: [match] };
+  invoke.mockResolvedValue(flagged);
+  expect(await getListing(record.id)).toEqual(flagged);
 });
 
 it("rejects pages that are oversized, malformed or from the other archive view", async () => {
@@ -94,6 +112,8 @@ it("rejects pages that are oversized, malformed or from the other archive view",
     location: "",
     collected_at: "2026-10-05T12:00:00+00:00",
     archived: false,
+    closed: false,
+    possible_duplicate: true,
   };
   invoke.mockResolvedValue({ total: 1, items: [item] });
   expect((await listListings("", 0, false)).items).toEqual([item]);
@@ -105,6 +125,7 @@ it("rejects pages that are oversized, malformed or from the other archive view",
     { total: 1, items: [{ ...item, archived: true }] },
     { total: 1, items: [{ ...item, original_text: "private" }] },
     { total: 1, items: [{ ...item, id: "bad" }] },
+    { total: 1, items: [{ ...item, possible_duplicate: "maybe" }] },
     { total: 1, items: [item], extra: true },
   ]) {
     invoke.mockResolvedValue(value);

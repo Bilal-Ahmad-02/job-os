@@ -35,6 +35,21 @@ export type NormalizedListing = {
   mentioned_work_modes: (keyof typeof workModes)[];
   mentioned_employment_types: (keyof typeof employmentTypes)[];
 };
+export const matchReasons = {
+  same_text: "Identical text",
+  same_link: "Same link",
+  same_title_company: "Same title and company",
+} as const;
+/** Another stored listing that fixed rules flag for review. Oracle never merges or removes one. */
+export type ListingMatch = {
+  id: string;
+  title: string;
+  company: string;
+  collected_at: string;
+  archived: boolean;
+  closed: boolean;
+  reasons: (keyof typeof matchReasons)[];
+};
 export type ListingRecord = {
   id: string;
   version: number;
@@ -45,7 +60,9 @@ export type ListingRecord = {
   collected_at: string;
   updated_at: string;
   archived: boolean;
+  closed: boolean;
   normalized: NormalizedListing;
+  matches: ListingMatch[];
 };
 export type ListingSummary = {
   id: string;
@@ -56,6 +73,8 @@ export type ListingSummary = {
   location: string;
   collected_at: string;
   archived: boolean;
+  closed: boolean;
+  possible_duplicate: boolean;
 };
 export type ListingPage = { total: number; items: ListingSummary[] };
 
@@ -70,6 +89,8 @@ export function blankListing(): ListingRecord {
     collected_at: "",
     updated_at: "",
     archived: false,
+    closed: false,
+    matches: [],
     normalized: {
       rules_version: 1,
       text: "",
@@ -120,6 +141,28 @@ function normalized(value: unknown): boolean {
     distinct(value.mentioned_employment_types, employmentTypes)
   );
 }
+function matches(value: unknown, own: unknown): boolean {
+  return (
+    Array.isArray(value) &&
+    value.length <= 10 &&
+    new Set(value.map((item) => (object(item) ? item.id : item))).size === value.length &&
+    value.every(
+      (item) =>
+        object(item) &&
+        keys(item, ["id", "title", "company", "collected_at", "archived", "closed", "reasons"]) &&
+        uuid(item.id) &&
+        item.id !== own &&
+        text(item.title, 300) &&
+        text(item.company, 300) &&
+        text(item.collected_at, 40) &&
+        typeof item.archived === "boolean" &&
+        typeof item.closed === "boolean" &&
+        Array.isArray(item.reasons) &&
+        item.reasons.length > 0 &&
+        distinct(item.reasons, matchReasons),
+    )
+  );
+}
 function listingResult(value: unknown): ListingRecord {
   if (
     !object(value) ||
@@ -133,7 +176,9 @@ function listingResult(value: unknown): ListingRecord {
       "collected_at",
       "updated_at",
       "archived",
+      "closed",
       "normalized",
+      "matches",
     ]) ||
     !uuid(value.id) ||
     !integer(value.version, 1) ||
@@ -151,7 +196,9 @@ function listingResult(value: unknown): ListingRecord {
     !text(value.collected_at, 40) ||
     !text(value.updated_at, 40) ||
     typeof value.archived !== "boolean" ||
-    !normalized(value.normalized)
+    typeof value.closed !== "boolean" ||
+    !normalized(value.normalized) ||
+    !matches(value.matches, value.id)
   )
     throw new Error("Invalid listing response");
   return value as ListingRecord;
@@ -184,6 +231,8 @@ export async function listListings(
           "location",
           "collected_at",
           "archived",
+          "closed",
+          "possible_duplicate",
         ]) &&
         uuid(item.id) &&
         origin(item.origin) &&
@@ -192,7 +241,9 @@ export async function listListings(
         text(item.company, 300) &&
         text(item.location, 300) &&
         text(item.collected_at, 40) &&
-        item.archived === archived,
+        item.archived === archived &&
+        typeof item.closed === "boolean" &&
+        typeof item.possible_duplicate === "boolean",
     )
   )
     throw new Error("Invalid listing response");
@@ -219,6 +270,7 @@ export async function saveListing(record: ListingRecord): Promise<ListingRecord>
           version: record.version,
           data: record.data,
           archived: record.archived,
+          closed: record.closed,
         };
   return listingResult(await invoke<unknown>("applications", { payload }));
 }

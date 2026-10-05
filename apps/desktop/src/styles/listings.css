@@ -28,6 +28,24 @@
   margin-left: 12px;
   padding: 4px 8px;
 }
+.listing-derived .listing-matches {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+}
+.listing-matches li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  font: 13px / 1.6 var(--body);
+  overflow-wrap: anywhere;
+}
+.listing-matches li > span:nth-child(2) {
+  color: var(--muted);
+}
 .listing-derived ul {
   margin: 0;
   padding-left: 18px;

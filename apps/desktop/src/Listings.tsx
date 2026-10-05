@@ -82,6 +82,7 @@ export default function Listings() {
         key={selected.id}
         initial={selected}
         onClose={() => setSelected(null)}
+        onOpen={(id) => void open(id)}
         onSaved={() => setReload((value) => value + 1)}
       />
     );
@@ -217,6 +218,8 @@ export default function Listings() {
                       <span className="record-status" data-status="Unspecified">
                         {item.origin === "pasted" ? "Pasted" : "By hand"}
                       </span>
+                      {item.closed ? <span>Role closed</span> : null}
+                      {item.possible_duplicate ? <span>Possible duplicate</span> : null}
                       <span>Collected {collectedDate(item.collected_at)}</span>
                     </span>
                   </button>

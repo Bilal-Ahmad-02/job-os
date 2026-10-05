@@ -106,7 +106,60 @@ what is shown for every listing, and `rules_version` says which rules produced i
 Compatibility: record and list responses gained fields, and the desktop validates responses
 strictly, so the step-15 backend and desktop must be deployed together.
 
+## Possible duplicates and closed roles (step 16)
+
+Status on 2026-10-05: implemented and tested in source, **not deployed**. It needs schema `0010`,
+so deployment includes a live migration; see "Deploying step 16" below. The installed app runs
+steps 14-15 at schema `0009` until then.
+
+What it does:
+
+- When a listing is opened or saved, Oracle lists up to 10 other stored listings that fixed rules
+  flag as possibly the same role, each with its reasons, collection time and whether you archived
+  it or marked it closed. Identical-text matches come first, then newest first.
+- Reasons: **identical text** (same cleaned text ignoring letter case and spacing), **same link**
+  (same canonical link, so tracking parameters and fragments do not hide a match) and **same title
+  and company** (your own fields compared without case, punctuation or a trailing legal suffix
+  such as AB, Inc or Ltd; both must be filled in on both listings).
+- A match without identical text may be an updated posting of the same role; the two texts are
+  both kept so you can compare them.
+- The index marks listings that share any of those keys with another listing, in either the active
+  or archived view, so a role you already reviewed and archived is recognized when pasted again.
+- **Mark role closed** / **Reopen role** records your own statement that a role is no longer open.
+
+What it never does: merge, hide, archive, close, delete or re-rank a listing by itself, block you
+from saving a duplicate, or decide that two listings are the same. Oracle cannot know that a role
+has closed because it contacts no website; only you set that flag. There is no fuzzy or semantic
+similarity, and paste-only listings without your title and company match on text or link only.
+
+Storage: schema `0010` adds three columns to `job_listings` and changes no other table. `text_key`
+is a SHA-256 of the cleaned, case-folded text, derived from the unchanged original, with
+`keys_version` recording the rule version that produced it; keys from another version are ignored
+rather than trusted. `closed` is the owner flag. The migration backfills keys for existing
+listings from their stored originals and alters nothing else in them. Link and title/company keys
+are computed at read time and not stored. `listing_update` now requires `closed`, and records and
+pages gained fields, so backend and desktop must be deployed together.
+
+### Deploying step 16
+
+Not done. In order: close Oracle; build and install a new backend release; fingerprint the live
+tables; run the release's explicit Linux `prepare`, which takes the integrity-checked local copy
+and migrates to `0010`; compare tables (every table other than `alembic_version` and
+`job_listings` must be identical, and each existing listing must keep its original text, hash,
+collection time and owner fields); select the release; install the desktop; reopen. Afterwards
+the step-15 backend can no longer open the workspace. On 2026-10-05 the active backup repository
+still held a single snapshot from before the `0009` migration, so no encrypted backup covers the
+current schema or any listings added since.
+
 ## Verification
+
+Step 16 adds 9 backend tests (318 total) and 2 frontend tests (104 total): key normalization,
+two-way flags with nothing merged, link and title/company reasons kept distinct from identical
+text, no flags for unrelated or incomplete listings, recognition of archived and closed listings,
+match changes after owner edits without touching the other listing, the 10-match bound and
+ordering, ignored keys from another rule version, migration from `0009` with backfill and its local
+copy, strict validation of match data, open-on-request and close-on-request in the interface. The
+33 ordinary native tests pass with the new migration chain.
 
 Step 15 adds 19 backend tests (309 total) and 2 frontend tests (102 total), covering idempotent
 text cleaning, keyword boundaries in both languages, link bounding, canonical links including

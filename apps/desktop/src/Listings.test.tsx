@@ -53,6 +53,8 @@ beforeEach(() => {
               location: "Remote",
               collected_at: record.collected_at,
               archived: false,
+              closed: false,
+              possible_duplicate: false,
             },
           ],
     }));
@@ -170,6 +172,8 @@ describe("Listing intake", () => {
           location: "",
           collected_at: record.collected_at,
           archived: false,
+          closed: false,
+          possible_duplicate: false,
         },
       ],
     });
@@ -194,6 +198,77 @@ describe("Listing intake", () => {
     expect(saveListing).not.toHaveBeenCalled();
     expect(screen.getByText("Unsaved changes")).toBeVisible();
     expect(screen.queryByRole("button", { name: "Use as job title" })).not.toBeInTheDocument();
+  });
+
+  it("lists possible duplicates for review, opens one on request and never acts on them", async () => {
+    const other = structuredClone(record);
+    other.id = "other-listing";
+    other.data.title = "Earlier Engineer";
+    record.matches = [
+      {
+        id: other.id,
+        title: "Earlier Engineer",
+        company: "Example AB",
+        collected_at: "2026-10-01T12:00:00+00:00",
+        archived: true,
+        closed: true,
+        reasons: ["same_link", "same_title_company"],
+      },
+    ];
+    vi.mocked(getListing).mockImplementation(async (id) =>
+      structuredClone(id === other.id ? other : record),
+    );
+    render(<Listings />);
+    fireEvent.click(await screen.findByRole("button", { name: /Synthetic Engineer/ }));
+    const section = await screen.findByRole("region", { name: "05 / POSSIBLE DUPLICATES" });
+    expect(section).toHaveTextContent(/never merges, archives, closes or deletes/);
+    expect(section).toHaveTextContent("Earlier Engineer / Example AB");
+    expect(section).toHaveTextContent("Same link, Same title and company");
+    expect(section).toHaveTextContent("archived / role closed");
+    fireEvent.change(screen.getByLabelText("Company"), { target: { value: "Draft" } });
+    expect(screen.getByRole("button", { name: "Open listing" })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Company"), { target: { value: "" } });
+    fireEvent.click(screen.getByRole("button", { name: "Open listing" }));
+    expect(await screen.findByRole("heading", { name: "Earlier Engineer" })).toBeVisible();
+    expect(getListing).toHaveBeenLastCalledWith(other.id);
+    expect(saveListing).not.toHaveBeenCalled();
+  });
+
+  it("marks a role closed or open only on request and shows it in the index", async () => {
+    render(<Listings />);
+    fireEvent.click(await screen.findByRole("button", { name: /Synthetic Engineer/ }));
+    const close = await screen.findByRole("button", { name: "Mark role closed" });
+    // The index reloads after each save.
+    vi.mocked(listListings).mockResolvedValue({
+      total: 1,
+      items: [
+        {
+          id: record.id,
+          origin: "pasted",
+          title: "Synthetic Engineer",
+          suggested_title: "",
+          company: "",
+          location: "",
+          collected_at: record.collected_at,
+          archived: false,
+          closed: true,
+          possible_duplicate: true,
+        },
+      ],
+    });
+    fireEvent.click(close);
+    expect(await screen.findByText("Marked as closed. Nothing was deleted.")).toBeVisible();
+    expect(vi.mocked(saveListing).mock.calls[0]?.[0]).toMatchObject({
+      closed: true,
+      archived: false,
+      original_text: ORIGINAL,
+    });
+    expect(screen.getByText(/ROLE CLOSED/)).toBeVisible();
+    expect(screen.getByRole("button", { name: "Reopen role" })).toBeEnabled();
+    fireEvent.click(screen.getByRole("button", { name: "Back to list" }));
+    const entry = await screen.findByRole("button", { name: /Synthetic Engineer/ });
+    expect(entry).toHaveTextContent("Role closed");
+    expect(entry).toHaveTextContent("Possible duplicate");
   });
 
   it("offers no derived view for a listing entered by hand", async () => {

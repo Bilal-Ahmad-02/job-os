@@ -5,6 +5,7 @@ import {
   type ListingRecord,
   listingError,
   listingFields,
+  matchReasons,
   ORIGINAL_LIMIT,
   saveListing,
   validLink,
@@ -20,10 +21,12 @@ function collected(value: string): string {
 export default function ListingEditor({
   initial,
   onClose,
+  onOpen,
   onSaved,
 }: {
   initial: ListingRecord;
   onClose: () => void;
+  onOpen?: (id: string) => void;
   onSaved: () => void;
 }) {
   const [record, setRecord] = useState(initial);
@@ -81,6 +84,7 @@ export default function ListingEditor({
           <p className="eyebrow">
             LISTING / {unsaved ? "UNSAVED" : `REV.${record.version}`}
             {record.archived ? " / ARCHIVED" : ""}
+            {record.closed ? " / ROLE CLOSED" : ""}
           </p>
           <h2>{record.data.title || record.data.company || "NEW.LISTING"}</h2>
         </div>
@@ -251,6 +255,46 @@ export default function ListingEditor({
           </details>
         </section>
       )}
+      {unsaved || record.matches.length === 0 ? null : (
+        <section className="listing-derived" aria-labelledby="listing-matches-heading">
+          <h3 className="field-sector" id="listing-matches-heading">
+            05 / POSSIBLE DUPLICATES
+          </h3>
+          <p className="input-help">
+            Other listings you collected that fixed rules flag as possibly the same role. This is a
+            prompt to compare, not a decision: Oracle never merges, archives, closes or deletes a
+            listing for you. A match without identical text may be an updated posting.
+          </p>
+          <ul className="listing-matches">
+            {record.matches.map((match) => (
+              <li key={match.id}>
+                <span>
+                  <strong>{match.title || "Job title not provided"}</strong>
+                  {" / "}
+                  {match.company || "Company not provided"}
+                </span>
+                <span>
+                  {match.reasons.map((reason) => matchReasons[reason]).join(", ")} / collected{" "}
+                  {collected(match.collected_at)}
+                  {match.archived ? " / archived" : ""}
+                  {match.closed ? " / role closed" : ""}
+                </span>
+                {onOpen ? (
+                  <button
+                    type="button"
+                    className="quiet-button"
+                    disabled={busy || dirty}
+                    title={dirty ? "Save or discard your changes first" : undefined}
+                    onClick={() => onOpen(match.id)}
+                  >
+                    Open listing
+                  </button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="editor-actions">
         <div>
           {error ? (
@@ -276,6 +320,22 @@ export default function ListingEditor({
             }
           >
             {record.archived ? "Restore listing" : "Archive listing"}
+          </button>
+        )}
+        {unsaved ? null : (
+          <button
+            type="button"
+            className="quiet-button"
+            disabled={busy || dirty}
+            title={dirty ? "Save or discard your changes first" : undefined}
+            onClick={() =>
+              void save(
+                { ...record, closed: !record.closed },
+                record.closed ? "Marked as open again." : "Marked as closed. Nothing was deleted.",
+              )
+            }
+          >
+            {record.closed ? "Reopen role" : "Mark role closed"}
           </button>
         )}
         <button type="submit" disabled={busy || !identified || !linkOk || (!unsaved && !dirty)}>

@@ -95,6 +95,15 @@ integration tests; selection verified it opens the existing workspace; the insta
 the desktop bytes and the process reopened responsive at the locked seal. Earlier releases are
 retained. Not verified: the normalized view in the unlocked app.
 
+### Step 16 source state — October 5, 2026
+
+Duplicate flags and the closed flag are committed locally and not deployed or pushed. Checks run:
+318 Linux tests with Ruff clean; TypeScript, Biome, 104 frontend tests across 18 files and the Vite
+build; 33 ordinary native tests. Not run: WSL native probes (they need an installed `0010`
+release). Not done: release build/install, live migration to `0010`, selection, desktop install.
+The installed backend `b033929b...`, desktop `e53b70cb...` and schema `0009` are still what runs.
+The active backup repository held one snapshot, taken before the `0009` migration.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was
