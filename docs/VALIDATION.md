@@ -231,6 +231,14 @@ Git-ignored local images, so the hash cannot be reproduced from the repository a
 TypeScript, Biome, 128 frontend tests across 19 files, Vite and Tauri builds; installed bytes
 verified and the process reopened responsive. Not verified in the unlocked window.
 
+### Desktop update — roaming figure and cat tree, October 5, 2026
+
+Desktop SHA-256 is now `49bbe82657d560271d9e7b122d639c9a862417cb3ee8e16d169a47fdea90e596`,
+frontend only; backend `380671a6...` and schema `0012` are unchanged. The build bundles three
+Git-ignored local images and cannot be reproduced from the repository alone. Checks: TypeScript,
+Biome, 129 frontend tests across 19 files, Vite and Tauri builds; installed bytes verified and the
+process reopened responsive. Not verified in the unlocked window.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

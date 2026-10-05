@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import App from "./App";
 import ChamberScene, { EMPTY_PADS } from "./chamber/ChamberScene";
 import { privateSprites } from "./chamber/privateSprites";
-import { investigator, PixelSprite } from "./chamber/sprites";
+import { investigator, nightGlider, PixelSprite } from "./chamber/sprites";
 import Icon from "./Icon";
 
 type Place = "chamber" | "jobs";
@@ -178,6 +178,25 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
           <div className="chamber-space" aria-hidden="true">
             <div className="chamber-stars" />
             <div className="chamber-streaks" />
+            {/* A figure that roams the whole space below the platform. Scenery: no agent behind it. */}
+            <div className="chamber-roamer" data-slot="05">
+              <span className="chamber-roamer-body">
+                {privateSprites.slots["05"] ? (
+                  <img className="chamber-figure" src={privateSprites.slots["05"]} alt="" />
+                ) : (
+                  <svg
+                    className="chamber-figure"
+                    viewBox="0 0 64 40"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <PixelSprite rows={nightGlider} scale={4} />
+                  </svg>
+                )}
+              </span>
+              <span className="chamber-code">05 / UNASSIGNED</span>
+              <span className="chamber-detail">Figure only / no agent yet</span>
+            </div>
           </div>
           <h1 id="chamber-title">THE CHAMBER</h1>
           <div
@@ -246,7 +265,7 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
             <span className="status-dot" aria-hidden="true" />
             PRIVATE WORKSPACE
           </span>
-          <span>1 MODULE / 3 SLOTS WITHOUT AN AGENT</span>
+          <span>1 MODULE / 4 FIGURES WITHOUT AN AGENT</span>
           <span>ORACLE / 00</span>
         </footer>
       </div>

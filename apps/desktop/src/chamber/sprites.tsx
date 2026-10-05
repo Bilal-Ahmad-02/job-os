@@ -11,14 +11,14 @@ const palette: Record<string, string> = {
   S: "#8aa397",
   s: "#4c6157",
   E: "#70ee9c",
-  A: "#7f8d87",
-  a: "#4d5a55",
-  T: "#1e3528",
   W: "#376347",
   Z: "#70ee9c",
-  z: "#32ce74",
-  k: "#39433f",
-  w: "#2a4a37",
+  L: "#8d949c",
+  l: "#666d75",
+  Y: "#b9a063",
+  N: "#2b2420",
+  n: "#4a3d36",
+  e: "#5a463c",
 };
 
 const investigatorTop = [
@@ -63,40 +63,44 @@ export const overseer = [
 ];
 
 /**
- * A dark grey cat curled asleep on top of a cat tower three boxes high. Decoration for a slot
- * that has no agent yet.
+ * A slim dark cat curled asleep on the top perch of a grey cat tree with a cubby, a side
+ * platform, a hammock shelf and sisal posts. Decoration for a slot that has no agent yet.
  */
 export const sleepingCat = [
-  "...............Z....",
-  ".............Z......",
-  "............z.......",
-  "....a...a...........",
-  "...aAa.aAa..........",
-  "...AAAAAAAAAAAA.....",
-  "..AAaAAaAAAAAAAAA...",
-  "..AAAAkAAAAkAAAAAA..",
-  "..AAAAAAAAAAkAAAAAa.",
-  "...AAAAAAAAAAAAAAaa.",
-  "....aaaaaaaaaaaaaa..",
-  ".WWWWWWWWWWWWWWWWWW.",
-  "..WWWWWWWWWWWWWWWW..",
-  "....wwwwwwwwwwww....",
-  "....wTTTTTTTTTTw....",
-  "....wTTBBBBBBTTw....",
-  "....wTTBBBBBBTTw....",
-  "....wwwwwwwwwwww....",
-  "...WWWWWWWWWWWWWW...",
-  "....wwwwwwwwwwww....",
-  "....wTTTTTTTTTTw....",
-  "....wTTTTTTTTTTw....",
-  "....wwwwwwwwwwww....",
-  "...WWWWWWWWWWWWWW...",
-  "....wwwwwwwwwwww....",
-  "....wTTTTTTTTTTw....",
-  "....wTTTTTTTTTTw....",
-  "....wwwwwwwwwwww....",
-  "..WWWWWWWWWWWWWWWW..",
-  ".WWWWWWWWWWWWWWWWWW.",
+  "...................Z..",
+  ".................Z....",
+  ".............NNNN.....",
+  "...........NnNNNNNN...",
+  "..........eNNNnNNNNN..",
+  "..........LNNNNNNNNNL.",
+  "..........LLLLLLLLLLL.",
+  "...........lllllllll..",
+  "..............YY......",
+  "..............YY......",
+  "..............YY......",
+  "..............YY......",
+  "..LLLLLLLL....YY......",
+  "...llllll.....YY......",
+  ".....LL..LLLLLLLLLLLL.",
+  ".....LL..LllllllllllL.",
+  ".....LL..LlllBBBBlllL.",
+  ".....LL..LllBBBBBBllL.",
+  ".....LL..LllBBBBBBllL.",
+  ".....LL..LlllBBBBlllL.",
+  ".....LL..LllllllllllL.",
+  ".....LL..LLLLLLLLLLLL.",
+  "...LLLLLLLLLLLLLLLLLL.",
+  "....llllllllllllllll..",
+  ".....LL......LL...LL..",
+  ".....LL......LL...LL..",
+  ".....LL......LL...LL..",
+  "LLLLLLLLLLLLLLL...LL..",
+  ".lllllllllllll....LL..",
+  "...YY.LL.....LL...LL..",
+  "...YY.LL.....LL...LL..",
+  "...YY.LL.....LL...LL..",
+  ".LLLLLLLLLLLLLLLLLLLL.",
+  "LLLLLLLLLLLLLLLLLLLLLL",
 ];
 
 /** A hovering fighter inside a glow. An original figure, not a likeness of any character. */
@@ -138,6 +142,20 @@ export const cloakedWatcher = [
   "....HH.HH...",
   "....HH.HH...",
   "...BBB.BBB..",
+];
+
+/** A winged glider seen from the side, facing right. An original figure for the roaming slot. */
+export const nightGlider = [
+  "......WW........",
+  ".....WCCW...WW..",
+  "....WCCCCW.WCCW.",
+  "..WWCCCCCCWCCECW",
+  ".WCCCCCCCCCCCCW.",
+  "WCCCCCCCGGGCW...",
+  ".WWCCCCGGGWW....",
+  "...WCCWWW.......",
+  "..WCW...........",
+  ".WW.............",
 ];
 
 /** Draws one frame, merging each horizontal run of a colour into a single rectangle. */

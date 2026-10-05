@@ -178,7 +178,7 @@ describe("Oracle chamber", () => {
     }
     // Only the real module is tethered to the core.
     expect(container.querySelectorAll(".chamber-tether")).toHaveLength(1);
-    expect(screen.getByText("1 MODULE / 3 SLOTS WITHOUT AN AGENT")).toBeVisible();
+    expect(screen.getByText("1 MODULE / 4 FIGURES WITHOUT AN AGENT")).toBeVisible();
   });
   it("keeps every built-in figure a clean rectangle of known colours", async () => {
     const sprites = await import("./chamber/sprites");
@@ -193,7 +193,20 @@ describe("Oracle chamber", () => {
       expect(new Set(rows.map((row) => row.length)).size).toBe(1);
       expect(rows.join("")).toMatch(/^[.A-Za-z]+$/);
     }
-    // The cat sleeps on a tower: its stand is well over half of the drawing.
-    expect(sprites.sleepingCat.length).toBeGreaterThanOrEqual(28);
+    // The cat sleeps on top of a tall tree: the cat itself is only the first few rows.
+    expect(sprites.sleepingCat.length).toBeGreaterThanOrEqual(30);
+    expect(sprites.sleepingCat.slice(8).join("")).not.toMatch(/[Nn]/);
+  });
+  it("lets one figure roam the space under the platform as labelled, unpressable scenery", () => {
+    const { container } = render(<Chamber />);
+    const roamer = container.querySelector(".chamber-roamer");
+    expect(roamer?.parentElement).toHaveClass("chamber-space");
+    // Outside the camera and behind the platform: it is not inside the scene that zooms and pans.
+    expect(container.querySelector(".chamber-scene .chamber-roamer")).toBeNull();
+    expect(roamer?.closest("[aria-hidden='true']")).not.toBeNull();
+    expect(roamer).toHaveTextContent("05 / UNASSIGNEDFigure only / no agent yet");
+    expect(roamer?.querySelector("a, button, [tabindex], [role='button']")).toBeNull();
+    const styles = readFileSync("src/styles/chamber.css", "utf8");
+    expect(styles).toContain('.chamber[data-motion="on"] .chamber-roamer {');
   });
 });

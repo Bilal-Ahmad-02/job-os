@@ -26,7 +26,7 @@ it("keeps private artwork out of Git", () => {
 
 it("falls back to the built-in figures when a name has no private file", () => {
   const { slots, ...figures } = privateSprites;
-  expect(Object.keys(slots)).toEqual(["02", "03", "04"]);
+  expect(Object.keys(slots)).toEqual(["02", "03", "04", "05"]);
   for (const address of [...Object.values(figures), ...Object.values(slots)])
     expect(address === undefined || typeof address === "string").toBe(true);
 });

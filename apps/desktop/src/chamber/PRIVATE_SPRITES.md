@@ -12,6 +12,7 @@ desktop executable when you build it on this PC.
 | `slot-2.png` | The figure on slot 02 (built in: a sleeping cat on a stand) |
 | `slot-3.png` | The figure on slot 03 (built in: a hovering fighter; it floats above the pad) |
 | `slot-4.png` | The figure on slot 04 (built in: a cloaked watcher) |
+| `slot-5.png` | The figure that roams the space under the platform (built in: a winged glider). Draw it facing right; it is mirrored for the flight back |
 
 `.png`, `.gif` and `.webp` are accepted, for example `job-os.gif`. If more than one format exists
 for a name, PNG wins, then GIF, then WebP.

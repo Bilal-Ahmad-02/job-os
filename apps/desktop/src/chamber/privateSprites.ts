@@ -26,5 +26,6 @@ export const privateSprites = {
     "02": pickSprite(found, "slot-2"),
     "03": pickSprite(found, "slot-3"),
     "04": pickSprite(found, "slot-4"),
+    "05": pickSprite(found, "slot-5"),
   } as Record<string, string | undefined>,
 };

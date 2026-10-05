@@ -221,6 +221,33 @@ viewed in a component preview with the private images present. Git reports the p
 ignored. Installed as desktop `b85d5d0b2c222c315e0ca5ee2d8bc994d76d63f5a22efa6e29a6a6a720c72704`.
 Not verified in the installed, unlocked window.
 
+### Roaming figure and cat tree (2026-10-05)
+
+A fifth figure now roams the space under the platform instead of standing on it. It lives in the
+background layer, outside the camera, so it is not zoomed or dragged with the platform and passes
+behind it. With motion on it flies a 48-second circuit around the platform (along the top, down
+the right, back along the bottom, up the left), turning to face its direction and bobbing; with
+motion off it rests at the lower left. It carries the tag **05 / UNASSIGNED — Figure only / no
+agent yet**, is not pressable or focusable, and the footer reads "1 MODULE / 4 FIGURES WITHOUT AN
+AGENT". The built-in drawing is an original winged glider; a private `slot-5` image replaces it.
+On this PC the owner asked for their own figure there, which is in the Git-ignored private folder.
+
+The owner has said that agents should eventually move over the whole interface rather than being
+confined to the platform. This figure is the first element placed that way. Nothing else has been
+moved, and a real agent's figure would also need to stay easy to press while it moves.
+
+The built-in cat on slot 02 was redrawn again from the owner's reference photos: a slim dark
+brown-black cat curled on the top perch of a grey cat tree with a cubby box and round opening, a
+side platform, a hammock shelf, sisal posts and a base.
+
+Verification: 129 frontend tests pass, including that the roaming figure sits in the background
+layer outside the scene, is labelled and unpressable, and animates only behind the motion switch.
+In a component preview the cat tree and the figure at two points of its circuit were viewed; on
+the lower stretch the figure is hidden behind the platform, by design, with only its tag showing
+below the platform's edge. Installed as desktop
+`49bbe82657d560271d9e7b122d639c9a862417cb3ee8e16d169a47fdea90e596`, a build specific to this PC
+because it bundles three Git-ignored local images. Not verified in the unlocked window.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves
