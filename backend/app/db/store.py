@@ -8,8 +8,18 @@ from sqlalchemy import Connection, Engine, create_engine, event, text
 from sqlalchemy.exc import DBAPIError
 from sqlalchemy.pool import NullPool
 
-SCHEMA_VERSION = "0008"
-SUPPORTED_REVISIONS = ("0001", "0002", "0003", "0004", "0005", "0006", "0007", SCHEMA_VERSION)
+SCHEMA_VERSION = "0009"
+SUPPORTED_REVISIONS = (
+    "0001",
+    "0002",
+    "0003",
+    "0004",
+    "0005",
+    "0006",
+    "0007",
+    "0008",
+    SCHEMA_VERSION,
+)
 APPLICATION_ID = 0x4F52434C
 
 

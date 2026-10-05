@@ -27,6 +27,7 @@ from app.models.applications import Base
 from app.models.document_versions import DocumentVersion  # noqa: F401 -- schema metadata
 from app.models.documents import SourceDocument  # noqa: F401 -- register current schema metadata
 from app.models.evidence import DocumentText, ProfileDraft  # noqa: F401 -- schema metadata
+from app.models.listings import JobListing  # noqa: F401 -- schema metadata
 from app.models.profile import Profile  # noqa: F401 -- register current schema metadata
 from app.models.review import ProfileReview  # noqa: F401 -- schema metadata
 from app.models.tasks import BackgroundTask  # noqa: F401 -- schema metadata
@@ -99,13 +100,15 @@ def validate_contents(connection: Connection, revision: str) -> None:
         expected.difference_update({"document_text", "profile_draft"})
     if revision in ("0001", "0002", "0003", "0004", "0005"):
         expected.discard("profile_review")
-    if revision != "0008":
+    if revision != "0009":
+        expected.discard("job_listings")
+    if revision not in ("0008", "0009"):
         expected.discard("background_tasks")
-    if revision not in ("0007", "0008"):
+    if revision not in ("0007", "0008", "0009"):
         expected.discard("document_versions")
     if not expected.issubset(tables):
         raise WorkspaceError("workspace_schema")
-    if revision in ("0007", "0008"):
+    if revision in ("0007", "0008", "0009"):
         broken = connection.exec_driver_sql("""
             SELECT d.id FROM source_documents d
             LEFT JOIN document_versions v ON v.document_id = d.id

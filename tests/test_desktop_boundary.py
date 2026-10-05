@@ -19,6 +19,18 @@ from app.services.profile import ProfileConflict
 
 IDENTITY = "12345678-1234-1234-1234-123456789012"
 ROUTES = [
+    ({"action": "listings_list"}, "list_listings", True),
+    ({"action": "listing_get", "id": IDENTITY}, "get_listing", True),
+    (
+        {"action": "listing_create", "id": IDENTITY, "data": {"title": "Synthetic role"}},
+        "create_listing",
+        True,
+    ),
+    (
+        {"action": "listing_update", "id": IDENTITY, "version": 1, "data": {}, "archived": True},
+        "update_listing",
+        True,
+    ),
     ({"action": "tasks_list"}, "list_tasks", False),
     ({"action": "task_create", "id": IDENTITY, "document_ids": [IDENTITY]}, "create_task", True),
     ({"action": "task_advance", "id": IDENTITY, "version": 1}, "change_task", True),

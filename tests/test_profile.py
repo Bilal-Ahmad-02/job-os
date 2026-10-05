@@ -229,6 +229,7 @@ def test_previous_document_snapshot_restores_then_upgrades_without_changes(tmp_p
     snapshot_workspace(path, tmp_path / "snapshot")
     old = tmp_path / "snapshot" / DATABASE
     with sqlite3.connect(old) as connection:
+        connection.execute("DROP TABLE job_listings")
         connection.execute("DROP TABLE background_tasks")
         connection.execute("DROP TABLE document_versions")
         connection.execute("DROP TABLE profile_review")

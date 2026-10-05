@@ -96,6 +96,7 @@ def test_old_snapshot_verifies_without_mutation_then_explicitly_upgrades(tmp_pat
     old = target / DATABASE
     # Model the previously shipped schema, before document/profile tables existed.
     with sqlite3.connect(old) as connection:
+        connection.execute("DROP TABLE job_listings")
         connection.execute("DROP TABLE background_tasks")
         connection.execute("DROP TABLE document_versions")
         connection.execute("DROP TABLE profile_review")

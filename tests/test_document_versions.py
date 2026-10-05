@@ -150,6 +150,7 @@ def test_schema_six_snapshot_restores_without_mutation_and_backfills_version_one
     snapshot_workspace(tmp_path / DATABASE, tmp_path / "backup")
     old = tmp_path / "backup" / DATABASE
     with sqlite3.connect(old) as connection:
+        connection.execute("DROP TABLE job_listings")
         connection.execute("DROP TABLE background_tasks")
         connection.execute("DROP TABLE document_versions")
         connection.execute("UPDATE alembic_version SET version_num = '0006'")

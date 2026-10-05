@@ -33,6 +33,8 @@ with tempfile.TemporaryDirectory(prefix='oracle-runtime-probe-') as folder:
     prepare_workspace(database)
     result=handle_request(database,b'{"action":"tasks_list"}')
     assert result.ok and result.result.items==[]
+    result=handle_request(database,b'{"action":"listings_list"}')
+    assert result.ok and result.result.total==0
     pdf=Path(folder)/'synthetic.pdf'
     writer=PdfWriter(); writer.add_blank_page(width=72,height=72); writer.write(pdf)
     engine=open_store(database)
@@ -42,7 +44,7 @@ with tempfile.TemporaryDirectory(prefix='oracle-runtime-probe-') as folder:
     assert created.ok
     result=handle_request(database,json.dumps({'action':'task_advance','id':str(created.result.id),'version':1}).encode())
     assert result.ok and result.result.state=='failed' and result.result.error=='source_no_text'
-print(json.dumps({'ok':True,'schema':'0008','installed_package':True}))
+print(json.dumps({'ok':True,'schema':'0009','installed_package':True}))
 """
 
 

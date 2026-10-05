@@ -47,6 +47,7 @@ def test_migrations_are_repeatable_and_data_survives_restart(tmp_path):
             "profile_draft",
             "profile_review",
             "background_tasks",
+            "job_listings",
         }
     finally:
         second.dispose()

@@ -13,6 +13,14 @@ from app.schemas.applications import (
 )
 from app.schemas.documents import DocumentListRequest, DocumentPage
 from app.schemas.evidence import DraftGetRequest, DraftResponse
+from app.schemas.listings import (
+    ListingCreateRequest,
+    ListingGetRequest,
+    ListingPage,
+    ListingRecord,
+    ListingsListRequest,
+    ListingUpdateRequest,
+)
 from app.schemas.profile import CandidateProfile, ProfileGetRequest, ProfileSaveRequest
 from app.schemas.review import ReviewGetRequest, ReviewSaveRequest, ReviewState
 from app.schemas.tasks import (
@@ -35,7 +43,11 @@ DesktopRequest = Annotated[
     | ReviewSaveRequest
     | TaskListRequest
     | TaskCreateRequest
-    | TaskChangeRequest,
+    | TaskChangeRequest
+    | ListingsListRequest
+    | ListingGetRequest
+    | ListingCreateRequest
+    | ListingUpdateRequest,
     Field(discriminator="action"),
 ]
 
@@ -49,6 +61,8 @@ DesktopResult = (
     | ReviewState
     | TaskRecord
     | TaskPage
+    | ListingRecord
+    | ListingPage
 )
 
 
