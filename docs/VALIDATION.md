@@ -51,6 +51,15 @@ seal. Not rerun: native Rust tests and WSL probes (no native or backend change),
 Not verified: the hub and console as they appear in the installed window after a real unlock, which
 only the owner can perform, and the hub's narrow-window layout.
 
+### Step 14 source state — October 5, 2026
+
+Manual listing intake is committed locally in both checkouts and is not deployed. Checks run:
+290 Linux tests with Ruff clean; TypeScript, Biome, 100 frontend tests across 18 files and the Vite
+build on Windows. Not run: native Rust tests (no native change) and the WSL native probes, which
+need an installed `0009` release. Not done: backend release build/install, live migration to
+`0009`, release selection, desktop install. The installed desktop above and backend `bda6f25...`
+with schema `0008` are still what runs. The new module has not been seen in a running app.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

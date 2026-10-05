@@ -20,6 +20,10 @@ visible state and truthful capability claims. Do not replace it with a generic w
 Since 2026-10-05 unlock opens a hub ("the chamber") whose only real node opens the Job OS console;
 its Oracle core is labelled dormant because no assistant exists. See DESKTOP.md.
 
+Step 14 manual listing intake (schema `0009`, **06 / INGRESS**) exists in source since 2026-10-05
+but is not installed: the selected backend and live workspace remain at `0008`. See LISTINGS.md
+before deploying; do not assume the installed app has it.
+
 Implemented: application tracking and import provenance; immutable source PDFs and explicit version
 families; bounded local page-text extraction; an assisted-import semantic draft with citations;
 owner approval/rejection; an editable confirmed profile and job preferences; cooperative extraction

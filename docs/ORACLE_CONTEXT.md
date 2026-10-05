@@ -1,5 +1,18 @@
 # Oracle — current long-term context
 
+Owner instruction, 2026-10-05: the roadmap is resumed ("focus on finishing the 40 steps"). The
+earlier pause notes below are historical. Work proceeds one scoped step at a time; later steps are
+still not authorized in bulk, and frontend redesign beyond the chamber hub is deferred.
+
+Source checkpoint, 2026-10-05: step 14's manual intake is implemented in source and **not
+deployed**. Schema `0009` adds `job_listings`; pasted text, its hash and collection time are
+write-once, owner fields and an archive flag are editable with revision checks, and creation is
+idempotent. Four pipe operations and a **06 / INGRESS** console module were added; no native
+command, dependency, network access, parsing, matching or model call. 290 Linux and 100 frontend
+tests pass. The installed backend `bda6f25...`, schema `0008` and the live workspace are unchanged.
+Deployment needs the explicit Linux `prepare` migration with a before/after table comparison; see
+LISTINGS.md. External listing sources, normalization and deduplication (steps 14b-16) are next.
+
 Owner priority, 2026-10-01 / handoff work 2026-10-02: pause new roadmap features after step 13.
 Stabilize the implemented scope, preserve source on GitHub, verify recovery, and prepare a Claude
 handoff before the owner's Codex subscription ends. This supersedes earlier "next step" directions

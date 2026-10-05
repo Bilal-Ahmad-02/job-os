@@ -3,13 +3,20 @@ import Applications from "./Applications";
 import Documents from "./Documents";
 import { useBackendHealth } from "./hooks/useBackendHealth";
 import Icon from "./Icon";
+import Listings from "./Listings";
 import ProfileWorkspace from "./ProfileWorkspace";
 import ProviderSettings from "./ProviderSettings";
 import SystemPanel from "./SystemPanel";
 import Tasks from "./Tasks";
 
-type View = "applications" | "documents" | "profile" | "tasks" | "providers";
+type View = "applications" | "documents" | "profile" | "tasks" | "providers" | "listings";
 const views = {
+  listings: {
+    code: "06 / INGRESS",
+    label: "Job listings",
+    title: "LISTING.INTAKE",
+    detail: "Pasted and hand-entered listings",
+  },
   providers: {
     code: "05 / CONTROL",
     label: "Provider settings",
@@ -55,6 +62,7 @@ export default function App({
   const [view, setView] = useState<View>("applications");
   const [profileOpened, setProfileOpened] = useState(false);
   const [tasksOpened, setTasksOpened] = useState(false);
+  const [listingsOpened, setListingsOpened] = useState(false);
   const [systemOpen, setSystemOpen] = useState(false);
   const systemButton = useRef<HTMLButtonElement>(null);
   const chamberButton = useRef<HTMLButtonElement>(null);
@@ -103,21 +111,24 @@ export default function App({
         </div>
       </header>
       <nav className="module-navigation" aria-label="Workspace modules">
-        {(["applications", "documents", "profile", "tasks", "providers"] as View[]).map((key) => (
-          <button
-            key={key}
-            type="button"
-            aria-label={views[key].label}
-            aria-current={view === key ? "page" : undefined}
-            onClick={() => {
-              setView(key);
-              if (key === "profile") setProfileOpened(true);
-              if (key === "tasks") setTasksOpened(true);
-            }}
-          >
-            {views[key].code}
-          </button>
-        ))}
+        {(["applications", "documents", "profile", "tasks", "providers", "listings"] as View[]).map(
+          (key) => (
+            <button
+              key={key}
+              type="button"
+              aria-label={views[key].label}
+              aria-current={view === key ? "page" : undefined}
+              onClick={() => {
+                setView(key);
+                if (key === "profile") setProfileOpened(true);
+                if (key === "tasks") setTasksOpened(true);
+                if (key === "listings") setListingsOpened(true);
+              }}
+            >
+              {views[key].code}
+            </button>
+          ),
+        )}
         <span className="module-caption">JOB.OS / LOCAL</span>
       </nav>
       <main className="console-main" data-system-open={systemOpen}>
@@ -148,6 +159,11 @@ export default function App({
               <Tasks />
             </div>
           )}
+          {listingsOpened && (
+            <div hidden={view !== "listings"}>
+              <Listings />
+            </div>
+          )}
           {view === "providers" && <ProviderSettings />}
           <div hidden={view !== "documents"}>
             <Documents />
@@ -171,13 +187,15 @@ export default function App({
         <span>
           {view === "applications"
             ? "CTRL K / QUERY INDEX"
-            : view === "tasks"
-              ? "TASKS / COOPERATIVE EXECUTION"
-              : view === "providers"
-                ? "CONNECTIONS / EXPLICIT PERMISSION"
-                : view === "profile"
-                  ? "EVIDENCE / OWNER REVIEW"
-                  : "SOURCE MATERIAL / UNREVIEWED"}
+            : view === "listings"
+              ? "INGRESS / MANUAL INTAKE ONLY"
+              : view === "tasks"
+                ? "TASKS / COOPERATIVE EXECUTION"
+                : view === "providers"
+                  ? "CONNECTIONS / EXPLICIT PERMISSION"
+                  : view === "profile"
+                    ? "EVIDENCE / OWNER REVIEW"
+                    : "SOURCE MATERIAL / UNREVIEWED"}
         </span>
         <span>ORACLE / 01</span>
       </footer>

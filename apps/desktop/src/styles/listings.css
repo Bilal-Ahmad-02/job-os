@@ -1,0 +1,19 @@
+.listing-original {
+  margin-top: 28px;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+.listing-original pre {
+  max-height: 360px;
+  margin: 0 0 12px;
+  padding: 14px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font: 13px / 1.6 var(--body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  scrollbar-color: var(--border-strong) var(--canvas);
+  scrollbar-width: thin;
+}
