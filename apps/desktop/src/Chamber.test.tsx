@@ -172,10 +172,28 @@ describe("Oracle chamber", () => {
     for (const figure of figures) {
       expect(figure.closest("[aria-hidden='true']")).not.toBeNull();
       expect(figure.querySelector("a, button, [tabindex], [role='button']")).toBeNull();
-      expect(figure.querySelectorAll("rect").length).toBeGreaterThan(20);
+      // Built-in pixel figure, or one owner-supplied image when a private file exists locally.
+      const drawn = figure.querySelectorAll("rect").length > 20;
+      expect(drawn || figure.querySelectorAll("image").length === 1).toBe(true);
     }
     // Only the real module is tethered to the core.
     expect(container.querySelectorAll(".chamber-tether")).toHaveLength(1);
     expect(screen.getByText("1 MODULE / 3 SLOTS WITHOUT AN AGENT")).toBeVisible();
+  });
+  it("keeps every built-in figure a clean rectangle of known colours", async () => {
+    const sprites = await import("./chamber/sprites");
+    const figures = [
+      ...sprites.investigator,
+      sprites.overseer,
+      sprites.sleepingCat,
+      sprites.hoveringFighter,
+      sprites.cloakedWatcher,
+    ];
+    for (const rows of figures) {
+      expect(new Set(rows.map((row) => row.length)).size).toBe(1);
+      expect(rows.join("")).toMatch(/^[.A-Za-z]+$/);
+    }
+    // The cat sleeps on a tower: its stand is well over half of the drawing.
+    expect(sprites.sleepingCat.length).toBeGreaterThanOrEqual(28);
   });
 });

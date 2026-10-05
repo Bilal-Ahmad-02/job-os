@@ -16,6 +16,9 @@ const palette: Record<string, string> = {
   T: "#1e3528",
   W: "#376347",
   Z: "#70ee9c",
+  z: "#32ce74",
+  k: "#39433f",
+  w: "#2a4a37",
 };
 
 const investigatorTop = [
@@ -59,24 +62,41 @@ export const overseer = [
   "..sss..sss..",
 ];
 
-/** A dark grey cat asleep on a cat stand. Decoration for a slot that has no agent yet. */
+/**
+ * A dark grey cat curled asleep on top of a cat tower three boxes high. Decoration for a slot
+ * that has no agent yet.
+ */
 export const sleepingCat = [
-  "............Z...",
-  "..........Z.....",
-  "...a..a.........",
-  "..aAaaAa........",
-  "..AAAAAAAAAA....",
-  ".AAaAAaAAAAAAA..",
-  ".AAAAAAAAAAAAAa.",
-  "..AAAAAAAAAAAAa.",
-  "...aaaaaaaaaaa..",
-  "WWWWWWWWWWWWWWWW",
-  ".WWWWWWWWWWWWWW.",
-  "......TTTT......",
-  "......TTTT......",
-  "......TTTT......",
-  "....TTTTTTTT....",
-  "...WWWWWWWWWW...",
+  "...............Z....",
+  ".............Z......",
+  "............z.......",
+  "....a...a...........",
+  "...aAa.aAa..........",
+  "...AAAAAAAAAAAA.....",
+  "..AAaAAaAAAAAAAAA...",
+  "..AAAAkAAAAkAAAAAA..",
+  "..AAAAAAAAAAkAAAAAa.",
+  "...AAAAAAAAAAAAAAaa.",
+  "....aaaaaaaaaaaaaa..",
+  ".WWWWWWWWWWWWWWWWWW.",
+  "..WWWWWWWWWWWWWWWW..",
+  "....wwwwwwwwwwww....",
+  "....wTTTTTTTTTTw....",
+  "....wTTBBBBBBTTw....",
+  "....wTTBBBBBBTTw....",
+  "....wwwwwwwwwwww....",
+  "...WWWWWWWWWWWWWW...",
+  "....wwwwwwwwwwww....",
+  "....wTTTTTTTTTTw....",
+  "....wTTTTTTTTTTw....",
+  "....wwwwwwwwwwww....",
+  "...WWWWWWWWWWWWWW...",
+  "....wwwwwwwwwwww....",
+  "....wTTTTTTTTTTw....",
+  "....wTTTTTTTTTTw....",
+  "....wwwwwwwwwwww....",
+  "..WWWWWWWWWWWWWWWW..",
+  ".WWWWWWWWWWWWWWWWWW.",
 ];
 
 /** A hovering fighter inside a glow. An original figure, not a likeness of any character. */

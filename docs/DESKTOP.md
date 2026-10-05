@@ -204,6 +204,23 @@ and too dark to read, so the figures were enlarged and lightened and viewed agai
 desktop `c5d526506a1c5377953bcab8dc6cd923241e0a6ab5e374a48e2fdfc3da1e4b92`. Not verified in the
 installed, unlocked window.
 
+### Cat tower and local private figures (2026-10-05)
+
+The built-in cat on slot 02 was redrawn at the owner's request: curled asleep, with ears, closed
+eyes, stripes and a wrapped tail, on a tower three boxes high with ledges and a base.
+
+Separately, the owner asked for their own figures on slots 03 and 04. Two small images were drawn
+for them and placed in the Git-ignored `apps/desktop/src/chamber/private/` folder on this PC as
+`slot-3.png` and `slot-4.png`. They are not part of this repository and are not described further
+here; a fresh clone shows the built-in figures. This PC's installed desktop is therefore built
+from the repository plus those two local files, so its hash is specific to this machine.
+
+Verification: 128 frontend tests pass; one test was changed so it accepts either a built-in figure
+or a locally supplied image, since it must pass with and without private files. The scene was
+viewed in a component preview with the private images present. Git reports the private folder as
+ignored. Installed as desktop `b85d5d0b2c222c315e0ca5ee2d8bc994d76d63f5a22efa6e29a6a6a720c72704`.
+Not verified in the installed, unlocked window.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves

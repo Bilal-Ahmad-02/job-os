@@ -7,9 +7,9 @@ export const ORB = { x: 380, y: 170 } as const;
 export const WALK_END = { x: 156, y: 382 } as const;
 /** Slots with no agent. Each shows a decorative figure; `lift` raises one that floats. */
 export const EMPTY_PADS = [
-  { slot: "02", x: 9, y: 1.2, figure: sleepingCat, lift: 0 },
-  { slot: "03", x: 1.5, y: 8.5, figure: hoveringFighter, lift: 22 },
-  { slot: "04", x: 8.5, y: 8.5, figure: cloakedWatcher, lift: 0 },
+  { slot: "02", x: 9, y: 1.2, figure: sleepingCat, lift: 0, scale: 3 },
+  { slot: "03", x: 1.5, y: 8.5, figure: hoveringFighter, lift: 22, scale: 4 },
+  { slot: "04", x: 8.5, y: 8.5, figure: cloakedWatcher, lift: 0, scale: 4 },
 ] as const;
 
 export function iso(x: number, y: number, z = 0): [number, number] {
@@ -234,8 +234,8 @@ export default function ChamberScene({
       {/* Figures on slots that have no agent. They are scenery: not pressable and not connected. */}
       {EMPTY_PADS.map((pad) => {
         const [px, py] = iso(pad.x, pad.y);
-        const width = (pad.figure[0]?.length ?? 0) * 4;
-        const height = pad.figure.length * 4;
+        const width = (pad.figure[0]?.length ?? 0) * pad.scale;
+        const height = pad.figure.length * pad.scale;
         const custom = slotSprites[pad.slot];
         return (
           <g key={pad.slot} className="chamber-occupant" data-slot={pad.slot}>
@@ -256,7 +256,7 @@ export default function ChamberScene({
                   rows={pad.figure}
                   x={px - width / 2}
                   y={py + 6 - pad.lift - height}
-                  scale={4}
+                  scale={pad.scale}
                 />
               )}
             </g>

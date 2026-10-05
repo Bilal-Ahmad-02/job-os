@@ -223,6 +223,14 @@ frontend only; backend `380671a6...` and schema `0012` are unchanged. Checks: Ty
 127 frontend tests across 19 files, Vite and Tauri builds; installed bytes verified and the
 process reopened responsive. Viewed in a browser preview. Not verified in the unlocked window.
 
+### Desktop update — cat tower and local figures, October 5, 2026
+
+Desktop SHA-256 is now `b85d5d0b2c222c315e0ca5ee2d8bc994d76d63f5a22efa6e29a6a6a720c72704`,
+frontend only; backend `380671a6...` and schema `0012` are unchanged. This build bundles two
+Git-ignored local images, so the hash cannot be reproduced from the repository alone. Checks:
+TypeScript, Biome, 128 frontend tests across 19 files, Vite and Tauri builds; installed bytes
+verified and the process reopened responsive. Not verified in the unlocked window.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was
