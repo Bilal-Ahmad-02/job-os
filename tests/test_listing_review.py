@@ -244,7 +244,7 @@ def workspace_at(database: Path, revision: str) -> None:
     database.with_suffix(".workspace-id").write_bytes((identity + "\n").encode("ascii"))
 
 
-@pytest.mark.parametrize("revision", ["0009", "0010"])
+@pytest.mark.parametrize("revision", ["0009", "0010", "0011"])
 def test_migration_from_earlier_listing_schemas_keeps_rows_and_defaults(tmp_path, revision):
     database = tmp_path / "oracle.sqlite3"
     workspace_at(database, revision)
@@ -270,7 +270,7 @@ def test_migration_from_earlier_listing_schemas_keeps_rows_and_defaults(tmp_path
     finally:
         engine.dispose()
     prepare_workspace(database)
-    assert list((tmp_path / "migration-backups").glob("before-0011-*.sqlite3"))
+    assert list((tmp_path / "migration-backups").glob("before-0012-*.sqlite3"))
     upgraded = open_store(database)
     try:
         row = listings.get_listing(upgraded, ListingGetRequest(action="listing_get", id=identity))

@@ -201,6 +201,8 @@ def test_migration_from_0007_preserves_existing_rows(tmp_path):
     database = tmp_path / "oracle.sqlite3"
     engine = initialize_workspace(database)
     with engine.connect().execution_options(oracle_write=True) as connection, connection.begin():
+        connection.exec_driver_sql("ALTER TABLE applications DROP COLUMN deadline_date")
+        connection.exec_driver_sql("ALTER TABLE applications DROP COLUMN follow_up_date")
         connection.exec_driver_sql("DROP TABLE listing_searches")
         connection.exec_driver_sql("DROP TABLE job_listings")
         connection.exec_driver_sql("DROP TABLE background_tasks")
@@ -213,7 +215,7 @@ def test_migration_from_0007_preserves_existing_rows(tmp_path):
         with restored.connect() as connection:
             assert (
                 connection.execute(text("SELECT version_num FROM alembic_version")).scalar_one()
-                == "0011"
+                == "0012"
             )
     finally:
         restored.dispose()

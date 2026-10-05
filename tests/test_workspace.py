@@ -68,17 +68,22 @@ def test_explicit_initialization_does_not_overwrite_and_paths_are_uri_safe(tmp_p
 
 def test_legacy_upgrade_preserves_records_and_creates_verified_recovery_copy(tmp_path):
     path = tmp_path / "oracle.sqlite3"
-    engine = legacy(path)
-    saved = execute(
-        engine,
-        SaveRequest(
-            action="create",
-            id=uuid4(),
-            version=0,
-            data=ApplicationData(company="Synthetic", notes="Keep this history"),
-        ),
-    )
-    engine.dispose()
+    legacy(path).dispose()
+    identity, job = str(uuid4()), str(uuid4())
+    # Written as the first release stored it; current models no longer fit the 0001 tables.
+    with sqlite3.connect(path) as connection:
+        connection.execute(
+            "INSERT INTO jobs (id, title, company, website, source, learning, description) "
+            "VALUES (?, '', 'Synthetic', '', '', '', '')",
+            (job,),
+        )
+        connection.execute(
+            "INSERT INTO applications (id, job_id, resume_sent, how_sent, references_sent, "
+            "status_notes, interview, follow_up, notes, status, version, updated_at) VALUES "
+            "(?, ?, '', '', '', '', '', '', 'Keep this history', 'Unspecified', 1, "
+            "'2026-09-27T00:00:00+00:00')",
+            (identity, job),
+        )
     workspace.prepare_workspace(path)
     backups = list((tmp_path / "migration-backups").glob("*.sqlite3"))
     assert len(backups) == 1
@@ -91,7 +96,13 @@ def test_legacy_upgrade_preserves_records_and_creates_verified_recovery_copy(tmp
     assert read_identity(path) == marker
     assert len(list((tmp_path / "migration-backups").glob("*.sqlite3"))) == 1
     engine = open_store(path)
-    assert execute(engine, GetRequest(action="get", id=saved["id"])) == saved
+    saved = execute(engine, GetRequest(action="get", id=identity))
+    assert (saved["version"], saved["updated_at"]) == (1, "2026-09-27T00:00:00+00:00")
+    assert (
+        saved["data"]
+        == ApplicationData(company="Synthetic", notes="Keep this history").model_dump()
+    )
+    assert saved["imported"] is None and saved["listing_id"] is None
     engine.dispose()
 
 

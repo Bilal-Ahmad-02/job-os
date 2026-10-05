@@ -150,6 +150,8 @@ def test_schema_six_snapshot_restores_without_mutation_and_backfills_version_one
     snapshot_workspace(tmp_path / DATABASE, tmp_path / "backup")
     old = tmp_path / "backup" / DATABASE
     with sqlite3.connect(old) as connection:
+        connection.execute("ALTER TABLE applications DROP COLUMN deadline_date")
+        connection.execute("ALTER TABLE applications DROP COLUMN follow_up_date")
         connection.execute("DROP TABLE listing_searches")
         connection.execute("DROP TABLE job_listings")
         connection.execute("DROP TABLE background_tasks")

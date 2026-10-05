@@ -40,6 +40,9 @@ class Application(Base):
     status: Mapped[str] = mapped_column(String(32))
     version: Mapped[int] = mapped_column(Integer)
     updated_at: Mapped[str] = mapped_column(String(40))
+    # Owner-entered ISO dates or empty. Oracle never sets them and nothing fires on them.
+    deadline_date: Mapped[str] = mapped_column(String(10), default="")
+    follow_up_date: Mapped[str] = mapped_column(String(10), default="")
 
 
 class ImportBatch(Base):

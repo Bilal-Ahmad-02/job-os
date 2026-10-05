@@ -7,6 +7,7 @@ from sqlalchemy import Engine, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.applications import Application, ImportedRow, Job
+from app.models.listings import JobListing
 from app.schemas.applications import (
     ApplicationData,
     ApplicationPage,
@@ -69,6 +70,9 @@ def detail(session: Session, identity: str) -> ApplicationRecord:
                 "original": imported.original,
                 "links": imported.links,
             },
+            "listing_id": session.scalar(
+                select(JobListing.id).where(JobListing.application_id == identity)
+            ),
         }
     )
 
@@ -99,6 +103,8 @@ def list_applications(engine: Engine, request: ListRequest) -> ApplicationPage:
                     company=j.company,
                     status=a.status,
                     resume_sent=a.resume_sent,
+                    deadline_date=a.deadline_date,
+                    follow_up_date=a.follow_up_date,
                 )
                 for a, j in rows
             ],
