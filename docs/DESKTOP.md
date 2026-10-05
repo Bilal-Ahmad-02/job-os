@@ -368,6 +368,55 @@ pane was unreliable for close-ups, so the cat frames were small and the routine 
 running in real time. Installed as desktop `2b563ae11256fe02a5e3fb7a93e0caf85292daefc5ba45e6216b85b2ce18eb7a`, specific to this PC. Not verified in the
 installed, unlocked window.
 
+### Routines, pose strips, a floor with steps, a sixth figure (2026-10-05)
+
+This supersedes the previous section where it describes the beam's random aim, the thrown piece,
+the cat's keyframes, the continuously circling panes and the moving grid.
+
+**How movement works now.** A figure may have a `routine` in `chamber/agents.ts`: a loop of
+beats, each naming a pose and optionally where to go, how long, a jump height, a side to face, or
+that its effect should run. `chamber/choreography.ts` turns a routine into one timeline (place,
+facing, which pose shows, effect progress as `--cast`) and runs it with the Web Animations API
+while Motion is on. Nothing about a routine is written by hand in the stylesheet.
+
+**How figures are drawn.** A pose is a strip of frames shown through a window one frame wide
+(`chamber/AgentFigure.tsx`). Looping poses are stepped by one stylesheet rule; poses that play
+once (a stretch, a jump, a charge) are stepped across their beat by the choreography. Built-in
+drawings and owner-supplied images go through the same component.
+
+| Figure | Now |
+| --- | --- |
+| 01 / JOB.OS | Walks the platform with a looping walk pose; at three stops shows a cast pose under slanted star trails that end in a flare |
+| 02 / PERCH | The cat sleeps, wakes, stretches, jumps ledge to ledge, goes into the cubby (only its eyes show), sits in the hammock, goes down to the base, jumps back up and settles |
+| 03 / SUMMIT | Flies a circuit that leaves the platform on every side, easing in and out, hovers at some stops, and at two stops charges and then fires a beam straight ahead |
+| 04 / WATCH | Stands on a bar across the top of the left sand timer. No throw |
+| 05 / DEEP | Swims as before, with rings spreading round it |
+| 06 / HORIZON | New: a black hole turning off the platform toward the upper right, with its own page |
+| Core | Seated at a console as part of its own drawing. Types; now and then sweeps an arm, after which the blank panes go twice round it and stop. Still a button that only shows its state |
+
+**The floor.** The background grid and its movement are gone. The court now stands two steps
+above a dark floor that is lit around the platform. Its specks do not move; coloured streaks,
+curved swishes and sparks cross it occasionally, each on its own cycle length.
+
+**Private art.** File names changed: `name-pose` for a pose, `name-prop` for the cat tree, and
+`@N` before the extension for a strip of N frames (see `PRIVATE_SPRITES.md`). On this PC all
+figures were redrawn as pixel strips by scripts kept inside the Git-ignored private folder. A
+fresh clone shows the older built-in drawings, each standing in for every pose, plus the built-in
+black hole, which is worked out in code.
+
+No native command, backend operation, schema or dependency changed.
+
+Verification: 143 frontend tests pass. They cover the timeline maths on a synthetic routine
+(pace by distance, jump peak, facing, one-shot spans), that every real routine closes into a
+loop with exactly one pose showing at a time, which elements are animated and that they halt
+under the pointer, one strip per pose, the core's routine, the still floor, and the stylesheet
+guards. In a component preview, single moments were viewed: the beam, the star shower, the cat
+mid-jump and in the cubby, the timers turning, the core mid-sweep, the steps and the black hole.
+The owner was given the same preview and sent changes, which are included. Nothing was watched
+running in real time by the coding session. Installed as desktop `9d121010213bfbb7def3a3659ec5e67dccf9ebec62c9c36c1b68bba3837f0601`,
+specific to this PC. Not verified in the installed, unlocked window; in particular the bundled
+strips there have not been seen.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves

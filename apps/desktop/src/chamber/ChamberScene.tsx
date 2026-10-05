@@ -1,5 +1,4 @@
-import { AGENTS, CORE, iso, type Point, SCENE } from "./agents";
-import { overseer, PixelSprite } from "./sprites";
+import { AGENTS, CORE, iso, type Point, SCENE, TIMERS } from "./agents";
 
 function points(corners: readonly Point[], drop = 0): string {
   return corners
@@ -27,26 +26,51 @@ const court: readonly Point[] = [
   [-3, 4],
   [0, 4],
 ];
+/** The court's outline pushed outward by `by` grid squares on every side. */
+function widened(by: number): Point[] {
+  // Each edge pushes its corners toward its own outer side; the outline runs clockwise.
+  const push = (dx: number, dy: number) => [Math.sign(dy) * by, -Math.sign(dx) * by] as const;
+  return court.map(([x, y], index) => {
+    const [px, py] = court.at(index - 1) ?? [x, y];
+    const [nx, ny] = court[(index + 1) % court.length] ?? [x, y];
+    const [before, after] = [push(x - px, y - py), push(nx - x, ny - y)];
+    return [x + before[0] + after[0], y + before[1] + after[1]];
+  });
+}
+/**
+ * Two steps lead down from the court to the floor. Each is drawn as a ring around whatever stands
+ * on it (the outline of that, at the foot of its riser), so the see-through layers never pile up.
+ */
+const RISE = 10;
+const foot = (edge: readonly Point[], drop: number) => `M${points(edge, drop + RISE)}Z`;
+const steps = [2, 1].map((step) => {
+  const [edge, drop] = [widened(step * 0.65), step * RISE];
+  const inner = foot(step > 1 ? widened((step - 1) * 0.65) : court, drop - RISE);
+  return { drop, riser: foot(edge, drop) + inner, tread: `M${points(edge, drop)}Z${inner}` };
+});
 const gridLines = Array.from({ length: 20 }, (_, index) => index - 3);
-const standing = AGENTS.filter((agent) => agent.at);
+const padded = AGENTS.filter((agent) => agent.pad);
 const GLASS = { fill: "#9fe8bd14", stroke: "#4f8f69" } as const;
 const FRAME = { fill: "#12241a", stroke: "#32ce74" } as const;
 
 /**
- * A sand timer hung between two posts. The glass is the same at both ends, so when the sand has
- * run out it can turn over and start again without a jump.
+ * A sand timer hung between two posts joined by a bar across the top, high enough for the glass
+ * to turn under it. The glass is the same at both ends, so when the sand has run out it can turn
+ * over and start again without a jump.
  */
-function Hourglass({ x, y, id }: { x: number; y: number; id: string }) {
+function Hourglass({ at: [x, y], id }: { at: Point; id: string }) {
   const [cx, base] = iso(x, y);
   const mid = base - 66;
+  const bar = base - TIMERS.bar;
   return (
     <g>
       <ellipse cx={cx} cy={base} rx="38" ry="17" fill="#07100c" stroke="#376347" />
       <path
-        d={`M${cx - 33} ${base}V${mid}M${cx + 33} ${base}V${mid}`}
+        d={`M${cx - 33} ${base}V${bar}M${cx + 33} ${base}V${bar}`}
         stroke="#376347"
         strokeWidth="3"
       />
+      <rect x={cx - 40} y={bar} width="80" height="5" rx="2" {...FRAME} />
       <g className="chamber-hourglass">
         <clipPath id={`${id}-upper`}>
           <rect x={cx - 19} y={mid - 49} width="38" height="46" rx="17" />
@@ -97,11 +121,11 @@ function Hourglass({ x, y, id }: { x: number; y: number; id: string }) {
 }
 
 /**
- * Decorative chamber drawing. The orb and the console screen are dim, because the Oracle core is
- * not running. Figures, their lines to the orb and the panes around the core are drawn by the
- * chamber on top of this.
+ * Decorative chamber drawing: the court raised two steps above the floor, the sand timers and
+ * the core's dais, dome and dim orb. The core's figure, the other figures, their lines to the
+ * orb and the panes around the core are drawn by the chamber on top of this.
  */
-export default function ChamberScene({ coreSprite }: { coreSprite?: string | undefined }) {
+export default function ChamberScene() {
   const [cx, cy] = iso(CORE.x, CORE.y);
   return (
     <svg
@@ -121,8 +145,14 @@ export default function ChamberScene({ coreSprite }: { coreSprite?: string | und
         </radialGradient>
       </defs>
 
-      {/* The floor is slightly see-through so the space, and what swims in it, shows beneath. */}
-      <polygon points={points(court, 14)} fill="#020403b8" stroke="#1e3528" />
+      {/* Everything is slightly see-through, so what swims under the floor shows beneath. */}
+      {steps.map(({ drop, riser, tread }) => (
+        <g key={drop} stroke="#1e3528" fillRule="evenodd">
+          <path d={riser} fill="#020403b8" />
+          <path d={tread} fill="#0c1b14b8" />
+        </g>
+      ))}
+      <polygon points={points(court, RISE)} fill="#020403b8" stroke="#1e3528" />
       <polygon points={points(court)} fill="#07100cb8" stroke="#376347" strokeWidth="1.5" />
       <g clipPath="url(#chamber-court)" stroke="#32ce7426" strokeWidth="1">
         {gridLines.map((line) => (
@@ -143,31 +173,25 @@ export default function ChamberScene({ coreSprite }: { coreSprite?: string | und
         ))}
       </g>
 
-      {/* A pad where each standing figure starts, and a shadow under one that hovers. */}
-      {standing.map(({ id, at = [0, 0], lift }) => {
-        const [x, y] = at;
-        const [px, py] = iso(x, y);
-        return (
-          <g key={id}>
-            <polygon
-              points={points([
-                [x - 0.9, y - 0.9],
-                [x + 0.9, y - 0.9],
-                [x + 0.9, y + 0.9],
-                [x - 0.9, y + 0.9],
-              ])}
-              fill="#0b1a1366"
-              stroke="#376347"
-              strokeDasharray="5 5"
-            />
-            {lift ? <ellipse cx={px} cy={py} rx="16" ry="6" fill="#00000066" /> : null}
-          </g>
-        );
-      })}
+      {/* The square a figure calls its own. */}
+      {padded.map(({ id, at: [x, y] = [0, 0] }) => (
+        <polygon
+          key={id}
+          points={points([
+            [x - 0.9, y - 0.9],
+            [x + 0.9, y - 0.9],
+            [x + 0.9, y + 0.9],
+            [x - 0.9, y + 0.9],
+          ])}
+          fill="#0b1a1366"
+          stroke="#376347"
+          strokeDasharray="5 5"
+        />
+      ))}
 
-      <Hourglass x={-1.5} y={6.5} id="chamber-glass-a" />
+      <Hourglass at={TIMERS.left} id="chamber-glass-a" />
 
-      {/* The core: a low dais under a wire dome, with a dim orb above a console. */}
+      {/* The core's place: a low dais under a wire dome, with a dim orb at the top. */}
       <ellipse cx={cx} cy={cy + 6} rx="96" ry="48" fill="#03080580" />
       <ellipse cx={cx} cy={cy} rx="92" ry="46" fill="#050c08" stroke="#1e3528" />
       <ellipse cx={cx} cy={cy - 10} rx="92" ry="46" fill="#0b1a13" stroke="#32ce74" />
@@ -177,28 +201,6 @@ export default function ChamberScene({ coreSprite }: { coreSprite?: string | und
         <path d={`M${cx + 46} ${cy + 30}Q${cx + 66} ${cy - 80} ${cx} ${cy - 140}`} />
         <ellipse cx={cx} cy={cy - 78} rx="80" ry="30" />
       </g>
-      <g className="chamber-core-figure">
-        {coreSprite ? (
-          <image
-            href={coreSprite}
-            x={cx - 44}
-            y={cy - 126}
-            width="88"
-            height="106"
-            preserveAspectRatio="xMidYMax meet"
-          />
-        ) : (
-          <PixelSprite rows={overseer} x={cx - 24} y={cy - 72} scale={4} />
-        )}
-      </g>
-      <polygon
-        points={`${cx - 34},${cy - 22} ${cx + 34},${cy - 22} ${cx + 44},${cy - 6} ${cx - 44},${cy - 6}`}
-        fill="#12241a"
-        stroke="#376347"
-      />
-      <rect x={cx - 44} y={cy - 6} width="88" height="7" fill="#07100c" stroke="#376347" />
-      <rect x={cx - 19} y={cy - 46} width="38" height="25" fill="#040706" stroke="#4f8f69" />
-      <path d={`M${cx - 11} ${cy - 33}h22`} stroke="#1e3528" strokeWidth="2" />
       <circle cx={cx} cy={cy - 150} r="15" fill="#32ce7414" />
       <circle
         className="chamber-orb"
@@ -209,7 +211,7 @@ export default function ChamberScene({ coreSprite }: { coreSprite?: string | und
         stroke="#376347"
       />
 
-      <Hourglass x={14.8} y={7.2} id="chamber-glass-b" />
+      <Hourglass at={TIMERS.right} id="chamber-glass-b" />
     </svg>
   );
 }

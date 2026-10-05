@@ -16,7 +16,10 @@
   padding: 20px 24px 16px;
   /* The scene is moved and scaled by the owner; it is clipped, never scrolled. */
   overflow: clip;
-  background: radial-gradient(ellipse 70% 60% at 50% 55%, #0a1c13 0, #030705 60%, #010302 100%);
+  /* A dark floor: lit around the platform, falling away to black at the edges. */
+  background:
+    radial-gradient(ellipse 66% 54% at 50% 60%, #1a4029 0, #10291b 34%, #07130d 66%, #020504 100%),
+    #010302;
 }
 .chamber-void[data-panning="true"] {
   cursor: grabbing;
@@ -29,17 +32,27 @@
   letter-spacing: 6px;
 }
 
-/* Space under the platform: stars and grid lines drifting along the platform's own axes. */
+/* How far through a beat a figure's effect is. A number, so the choreography can run it. */
+@property --cast {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+/*
+ * The floor around the platform. Its specks stay still. Drifters cross it now and then, beneath
+ * the platform.
+ */
 .chamber-space {
   position: absolute;
   inset: 0;
   overflow: hidden;
   pointer-events: none;
 }
-.chamber-stars,
-.chamber-streaks {
+.chamber-stars {
   position: absolute;
-  inset: -340px;
+  inset: 0;
+  opacity: 0.5;
 }
 .chamber-stars {
   background-image:
@@ -55,10 +68,38 @@
     110px 90px,
     250px 20px;
 }
-.chamber-streaks {
-  background-image:
-    repeating-linear-gradient(26.57deg, transparent 0 78px, #32ce7426 78px 79px),
-    repeating-linear-gradient(-26.57deg, transparent 0 78px, #32ce7414 78px 79px);
+.chamber-drift {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  color: var(--tint);
+  opacity: 0;
+  transform: rotate(var(--turn));
+}
+.chamber-drift[data-kind="streak"] {
+  --run: 640px;
+  width: 170px;
+  height: 3px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, currentcolor);
+  box-shadow: 0 0 12px 1px currentcolor;
+}
+.chamber-drift[data-kind="swish"] {
+  --run: 360px;
+  width: 190px;
+  height: 70px;
+  border-top: 2px solid currentcolor;
+  filter: drop-shadow(0 0 5px currentcolor);
+  border-radius: 50%;
+  mask-image: linear-gradient(90deg, transparent, #000 60%, transparent);
+}
+.chamber-drift[data-kind="spark"] {
+  --run: 46px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentcolor;
+  box-shadow: 0 0 7px currentcolor;
 }
 
 /* Everything inside is placed in percentages of the scene drawing, so it scales as one piece. */
@@ -75,6 +116,8 @@
   display: block;
   width: 100%;
   height: 100%;
+  /* The steps round the court reach past the drawing's own box. */
+  overflow: visible;
 }
 
 /* The core: a caption, a press target over the seated figure, and blank panes circling it. */
@@ -118,10 +161,6 @@
   margin: 0;
   color: var(--accent);
 }
-.chamber-core-figure {
-  transform-box: fill-box;
-  transform-origin: 50% 100%;
-}
 .chamber-core-button,
 .chamber-agent {
   position: absolute;
@@ -140,8 +179,7 @@
   background: none;
 }
 .chamber-core-button {
-  width: 9%;
-  aspect-ratio: 68 / 92;
+  width: 13.5%;
   border-radius: 6px;
 }
 .chamber-core-button:is(:hover, [aria-expanded="true"]) {
@@ -149,12 +187,20 @@
 }
 .chamber-holo {
   position: absolute;
-  width: 31%;
+  left: 50%;
+  top: 100%;
+  width: 230%;
   aspect-ratio: 2.1;
   transform: translate(-50%, -64%);
+  pointer-events: none;
 }
-/* Ten panes spaced a tenth of the ring apart; `--at` is each one's place in that order. */
+/*
+ * Ten panes a tenth of the ring apart: `--at` is each one's place, and the core's effect carries
+ * them all twice round. The ring starts at its right-hand end and comes round the front first,
+ * so a pane dims while it is behind the core.
+ */
 .chamber-holo i {
+  --turn: calc(var(--at) * 10 + var(--cast) * 200);
   position: absolute;
   left: 0;
   top: 0;
@@ -165,7 +211,8 @@
   transform: skewY(-8deg);
   offset-path: ellipse(48% 42% at 50% 50%);
   offset-rotate: 0deg;
-  offset-distance: calc(var(--at) * 10%);
+  offset-distance: calc(var(--turn) * 1%);
+  opacity: clamp(0.28, calc(0.64 + sin(calc(var(--turn) * 3.6deg)) * 1.6), 1);
 }
 .chamber-holo i:nth-child(3n) {
   width: 10%;
@@ -182,19 +229,42 @@
   display: contents;
   list-style: none;
 }
-.chamber-body {
+/*
+ * A figure's drawings. Each is a strip of frames in a window one frame wide, so the window's
+ * height follows the art. A figure with several poses stacks them and shows the first.
+ */
+.chamber-actor {
+  position: relative;
   display: block;
-  width: 100%;
-  height: 100%;
+  isolation: isolate;
 }
-/* Owner-supplied art is scaled without smoothing, which keeps pixel art sharp. */
-.chamber-figure {
+.chamber-reel {
   display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: bottom;
+  overflow: hidden;
+}
+.chamber-reel + .chamber-reel {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+.chamber-reel > * {
+  display: block;
+  width: calc(var(--n) * 100%);
+  max-width: none;
+  height: auto;
+  /* Scaled without smoothing, which keeps pixel art sharp. */
   image-rendering: pixelated;
+}
+/* Seconds each frame of a looping strip is held. */
+.chamber-reel[data-pose="sleep"] {
+  --frame: 0.42s;
+}
+.chamber-reel:is([data-pose="sit"], [data-pose="hide"]) {
+  --frame: 0.3s;
+}
+.chamber-reel[data-pose="cast"],
+.chamber-agent:is([data-act="vigil"], [data-act="spin"], [data-act="swim"]) .chamber-reel {
+  --frame: 0.15s;
 }
 .chamber-tag {
   position: absolute;
@@ -222,8 +292,20 @@
   border-color: var(--accent);
   background: var(--active);
 }
-.chamber-step-alternate {
-  opacity: 0;
+/* The watcher stands on a sand timer, so its tag sits beside it rather than over the glass. */
+.chamber-agent[data-act="vigil"] .chamber-tag {
+  top: 46%;
+  left: auto;
+  right: 96%;
+  transform: none;
+}
+
+/* A cat on its tree: the actor is the cat, placed by its paws as a share of the tree drawing. */
+.chamber-agent[data-act="tree"] .chamber-actor {
+  position: absolute;
+  width: 65%;
+  /* Not a transform: the choreography mirrors the cat, and must not mirror this offset. */
+  translate: -48% -94%;
 }
 
 /*
@@ -234,128 +316,97 @@
 .chamber-agent[data-act="swim"] {
   left: 0;
   top: 0;
-  width: clamp(110px, 15vw, 210px);
+  width: clamp(130px, 19vw, 260px);
   font-size: 10px;
-  opacity: 0.8;
+  opacity: 0.85;
   transform: none;
   offset-path: ellipse(44% 36% at 50% 50%);
   offset-rotate: 0deg;
   offset-distance: 8%;
 }
-.chamber-agent[data-act="swim"] .chamber-figure {
-  height: auto;
-  /* The loop starts at its right-hand end heading down; this is the heading at the resting point. */
+/* The loop starts at its right-hand end heading down; this is the heading at the resting point. */
+.chamber-agent[data-act="swim"] .chamber-actor {
   rotate: 209deg;
 }
-
-/* A hovering figure turns to face the side its beam points. */
-.chamber-agent[data-act="beam"] .chamber-body {
-  scale: var(--face, 1) 1;
+/* Rings spreading on the water around a swimmer. */
+.chamber-ripple {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
 }
-.chamber-beam {
+.chamber-ripple i {
   position: absolute;
   left: 50%;
-  top: 46%;
-  width: 0;
-  height: 15%;
-  border-radius: 40% 60% 60% 40%;
-  background: linear-gradient(90deg, #fff 0, #9be4ff 25%, #3aa0ff 70%, #3aa0ff00 100%);
-  box-shadow: 0 0 10px #7fd8ff;
+  top: 52%;
+  width: 62%;
+  aspect-ratio: 1;
+  border: 1.5px solid #9db3ff;
+  border-radius: 50%;
   opacity: 0;
-  translate: 0 -50%;
-  rotate: var(--aim, 0deg);
-  transform-origin: 0 50%;
-  pointer-events: none;
+  translate: -50% -50%;
 }
-/* Something thrown that comes back: it leaves the figure's hand, circles out and returns. */
-.chamber-prop {
+
+/* A beam from the hands of a figure that faces left: it grows quickly, holds, and fades. */
+.chamber-beam {
   position: absolute;
-  left: 0;
-  top: 0;
-  width: 32%;
-  aspect-ratio: 2;
-  background: #cfd6e4;
-  clip-path: polygon(0 20%, 30% 45%, 50% 30%, 70% 45%, 100% 20%, 78% 100%, 50% 70%, 22% 100%);
-  opacity: 0;
-  offset-path: ellipse(190% 55% at 50% 42%);
-  offset-rotate: 0deg;
-  offset-distance: 50%;
+  right: 88%;
+  top: 50%;
+  width: 560%;
+  height: 15%;
+  border-radius: 60% 40% 40% 60%;
+  background: linear-gradient(270deg, #fff 0, #9be4ff 18%, #3aa0ff 75%, #3aa0ff00 100%);
+  box-shadow: 0 0 12px #7fd8ff;
+  opacity: min(1, calc((1 - var(--cast)) * 7));
+  translate: 0 -50%;
+  scale: min(1, calc(var(--cast) * 4)) 1;
+  transform-origin: 100% 50%;
   pointer-events: none;
 }
-/* Falling stars over a walker while it stands still to cast them. */
+
+/*
+ * Stars called down around a figure while it casts. Each part marks where one lands: a slanting
+ * trail of sparks falls to it, then a flare bursts there. Places and timing are scattered from
+ * each part's number.
+ */
 .chamber-starfall {
   position: absolute;
-  inset: -170% -150% 0;
-  opacity: 0;
+  inset: -230% -170% -6%;
+  opacity: min(1, calc(var(--cast) * 14));
   pointer-events: none;
 }
 .chamber-starfall i {
   position: absolute;
-  top: 0;
-  left: calc(var(--star) * 16% + 4%);
-  width: 3px;
-  height: 16%;
-  border-radius: 2px;
-  background: linear-gradient(transparent, #cfe6ff 70%, #fff);
-  box-shadow: 0 6px 8px #9fc4ff;
+  left: calc(mod(var(--i) * 37, 86) * 1% + 7%);
+  bottom: calc(mod(var(--i) * 23, 22) * 1%);
 }
-.chamber-starfall i:nth-child(1) {
-  --star: 0;
-}
-.chamber-starfall i:nth-child(2) {
-  --star: 3;
-}
-.chamber-starfall i:nth-child(3) {
-  --star: 1;
-}
-.chamber-starfall i:nth-child(4) {
-  --star: 5;
-}
-.chamber-starfall i:nth-child(5) {
-  --star: 2;
-}
-.chamber-starfall i:nth-child(6) {
-  --star: 4;
-}
-
-/* A cat on its tree: placed by where its paws are, as a share of the tree drawing. */
-.chamber-cat {
+.chamber-starfall i::before,
+.chamber-starfall i::after {
   position: absolute;
-  left: 68%;
-  top: 17%;
-  width: 46%;
-  aspect-ratio: 12 / 7;
-  transform: translate(-50%, -100%);
-  pointer-events: none;
-}
-.chamber-agent .chamber-cat .chamber-figure {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  height: auto;
-}
-.chamber-awake {
+  content: "";
   opacity: 0;
 }
-.chamber-zzz {
-  position: absolute;
-  left: 78%;
-  bottom: 86%;
-  display: flex;
-  gap: 0.2em;
-  color: var(--accent);
-  font: 700 0.9em / 1 var(--mono);
+.chamber-starfall i::before {
+  left: -4px;
+  bottom: 0;
+  width: 9px;
+  height: 6em;
+  background:
+    linear-gradient(to top, #fff, #cfc2ff 25%, #8f7bff66 60%, transparent) center / 2px 100%
+    no-repeat,
+    radial-gradient(circle, #fff 0 0.8px, transparent 1.3px) 0 0 / 9px 13px;
+  mask-image: linear-gradient(to top, #000 40%, transparent);
+  transform-origin: 50% 100%;
 }
-.chamber-zzz i {
-  font-style: normal;
-}
-.chamber-zzz i:nth-child(2) {
-  translate: 0 -40%;
-  font-size: 1.2em;
-}
-.chamber-zzz i:nth-child(3) {
-  translate: 0 -90%;
-  font-size: 1.45em;
+.chamber-starfall i::after {
+  left: -2.6em;
+  bottom: -2.6em;
+  width: 5.2em;
+  height: 5.2em;
+  background:
+    radial-gradient(circle, #fff 0 7%, #e4dbff 12%, #9f8cff59 28%, transparent 58%),
+    linear-gradient(90deg, transparent, #b9a8ffcc 50%, transparent) center / 100% 2px no-repeat,
+    linear-gradient(transparent, #ffffffaa 50%, transparent) center / 2px 70% no-repeat;
 }
 
 /* Lines from the orb to each figure, drawn over the space in page coordinates. */
@@ -391,11 +442,8 @@
 }
 
 /* Motion runs only when the hub is marked on: by the system preference or the owner's switch. */
-.chamber[data-motion="on"] .chamber-stars {
-  animation: chamber-stars 70s linear infinite;
-}
-.chamber[data-motion="on"] .chamber-streaks {
-  animation: chamber-streaks 9s linear infinite;
+.chamber[data-motion="on"] .chamber-drift {
+  animation: chamber-drift var(--cycle) linear var(--begin) infinite;
 }
 .chamber[data-motion="on"] .chamber-hourglass {
   animation: chamber-flip 30s ease-in-out infinite;
@@ -411,76 +459,51 @@
     chamber-sand-stream 0.6s linear infinite,
     chamber-sand-running 30s linear infinite;
 }
-.chamber[data-motion="on"] .chamber-core-figure {
-  animation: chamber-look 6s ease-in-out infinite alternate;
-}
 .chamber[data-motion="on"] .chamber-holo i {
-  animation:
-    chamber-orbit 36s linear infinite,
-    chamber-orbit-depth 36s linear infinite;
-  animation-delay: calc(var(--at) * -3.6s);
+  animation: chamber-hover 4s ease-in-out infinite alternate;
+  animation-delay: calc(var(--at) * -0.7s);
 }
-.chamber[data-motion="on"] .chamber-agent[data-act="beam"] .chamber-figure {
-  animation: chamber-float 3.2s ease-in-out infinite alternate;
+/* A looping strip shows each of its frames in turn. */
+.chamber[data-motion="on"] .chamber-reel > * {
+  animation: chamber-reel calc(var(--n) * var(--frame, 0.11s)) steps(var(--n)) infinite;
 }
-.chamber[data-motion="on"] .chamber-beam {
-  animation: chamber-beam 9s linear infinite;
+.chamber[data-motion="on"] .chamber-starfall i::before {
+  animation: chamber-star-fall 1.8s linear infinite;
+  animation-delay: calc(mod(var(--i) * 0.47, 1.8) * -1s);
 }
-.chamber[data-motion="on"] .chamber-prop {
-  animation: chamber-throw 8s linear infinite;
-}
-.chamber[data-motion="on"] .chamber-agent[data-act="boomerang"] .chamber-body {
-  animation: chamber-wind-up 8s ease-in-out infinite;
-}
-.chamber[data-motion="on"] .chamber-starfall i {
-  animation: chamber-starfall 0.9s linear infinite;
-  animation-delay: calc(var(--star) * -0.17s);
-}
-.chamber[data-motion="on"] .chamber-cat {
-  animation: chamber-cat-path 60s linear infinite;
-}
-.chamber[data-motion="on"] .chamber-asleep {
-  animation: chamber-cat-asleep 60s linear infinite;
-}
-.chamber[data-motion="on"] .chamber-awake {
-  animation: chamber-cat-awake 60s linear infinite;
-}
-.chamber[data-motion="on"] .chamber-zzz {
-  animation: chamber-cat-asleep 60s linear infinite;
-}
-.chamber[data-motion="on"] .chamber-zzz i {
-  animation: chamber-zzz 2.4s ease-in-out infinite alternate;
+.chamber[data-motion="on"] .chamber-starfall i::after {
+  animation: chamber-star-burst 1.8s ease-out infinite;
+  animation-delay: calc(mod(var(--i) * 0.47, 1.8) * -1s);
 }
 .chamber[data-motion="on"] .chamber-agent[data-act="swim"] {
   animation: chamber-swim 80s linear infinite;
 }
-.chamber[data-motion="on"] .chamber-agent[data-act="swim"] .chamber-body {
-  animation: chamber-sway 2.6s ease-in-out infinite alternate;
-}
-.chamber[data-motion="on"] .chamber-agent[data-act="swim"] .chamber-figure {
+.chamber[data-motion="on"] .chamber-agent[data-act="swim"] .chamber-actor {
   animation: chamber-heading 80s linear infinite;
 }
-.chamber[data-motion="on"] .chamber-step {
-  animation: chamber-step 0.7s steps(1) infinite;
+.chamber[data-motion="on"] .chamber-ripple i {
+  animation: chamber-ripple 3.6s ease-out infinite;
+  animation-delay: calc(var(--i) * -1.2s);
 }
-.chamber[data-motion="on"] .chamber-step-alternate {
-  animation-name: chamber-step-alternate;
-}
-/* A moving target is hard to press: a figure stops while the pointer or keyboard is on it. */
+/* A moving target is hard to press: the swimmer stops while the pointer or keyboard is on it. */
 .chamber[data-motion="on"] .chamber-agent:is(:hover, :focus-visible),
-.chamber[data-motion="on"]
-  .chamber-agent:is(:hover, :focus-visible)
-  :is(.chamber-body, .chamber-figure) {
+.chamber[data-motion="on"] .chamber-agent:is(:hover, :focus-visible) .chamber-actor {
   animation-play-state: paused;
 }
-@keyframes chamber-stars {
-  to {
-    transform: translate(-320px, 160px);
+/* Out of sight for most of its cycle, then one pass along its own heading. */
+@keyframes chamber-drift {
+  0%,
+  82% {
+    opacity: 0;
+    transform: rotate(var(--turn)) translateX(0);
   }
-}
-@keyframes chamber-streaks {
-  to {
-    transform: translate(-88.33px, 44.16px);
+  86%,
+  95% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--turn)) translateX(var(--run));
   }
 }
 /* The sand runs for most of the cycle, then the glass turns over and the sand settles again. */
@@ -528,196 +551,64 @@
     opacity: 0;
   }
 }
-@keyframes chamber-look {
+@keyframes chamber-hover {
   from {
-    rotate: -1.5deg;
+    translate: 0 -7%;
   }
   to {
-    rotate: 1.5deg;
+    translate: 0 7%;
   }
 }
-@keyframes chamber-orbit {
-  from {
-    offset-distance: 0%;
-  }
+/* The strip is as many frames wide as it holds, so one whole width is one pass through them. */
+@keyframes chamber-reel {
   to {
-    offset-distance: 100%;
+    translate: -100% 0;
   }
 }
-/* The ring starts at its right-hand end and comes round the front first; behind the core a pane dims. */
-@keyframes chamber-orbit-depth {
-  0%,
-  48%,
-  100% {
+@keyframes chamber-star-fall {
+  0% {
+    opacity: 0;
+    transform: rotate(14deg) translateY(-13em);
+  }
+  10% {
     opacity: 1;
+  }
+  48% {
+    opacity: 1;
+    transform: rotate(14deg) translateY(0);
   }
   56%,
-  92% {
-    opacity: 0.28;
-  }
-}
-@keyframes chamber-float {
-  to {
-    transform: translateY(-7px);
-  }
-}
-/* Quiet, a short charge, the beam reaching out, then fading. */
-@keyframes chamber-beam {
-  0%,
-  70% {
-    width: 0;
-    opacity: 0;
-  }
-  74%,
-  80% {
-    width: 34%;
-    opacity: 1;
-  }
-  86%,
-  94% {
-    width: 430%;
-    opacity: 1;
-  }
   100% {
-    width: 430%;
     opacity: 0;
+    transform: rotate(14deg) translateY(0) scaleY(0.1);
   }
 }
-@keyframes chamber-throw {
+@keyframes chamber-star-burst {
   0%,
-  56% {
-    offset-distance: 50%;
+  45% {
     opacity: 0;
-    rotate: 0deg;
+    scale: 0;
   }
-  59% {
-    opacity: 1;
-  }
-  94% {
-    opacity: 1;
-  }
-  100% {
-    offset-distance: 150%;
-    opacity: 0;
-    rotate: 1800deg;
-  }
-}
-@keyframes chamber-wind-up {
-  0%,
-  50%,
-  64%,
-  100% {
-    scale: 1 1;
-  }
-  55% {
-    scale: 1.08 0.9;
-  }
-  59% {
-    scale: 0.95 1.06;
-  }
-}
-@keyframes chamber-starfall {
-  from {
-    top: 0;
-    opacity: 0;
-  }
-  15% {
-    opacity: 1;
-  }
-  to {
-    top: 88%;
-    opacity: 0;
-  }
-}
-/* Asleep on the perch, a stretch, down into the cubby, out to the hammock, and back up to sleep. */
-@keyframes chamber-cat-path {
-  0%,
-  58% {
-    left: 68%;
-    top: 17%;
-  }
-  63%,
-  72% {
-    left: 66%;
-    top: 58%;
-  }
-  78%,
-  84% {
-    left: 30%;
-    top: 79%;
-  }
-  94%,
-  100% {
-    left: 68%;
-    top: 17%;
-  }
-}
-@keyframes chamber-cat-asleep {
-  0%,
   54% {
     opacity: 1;
+    scale: 1;
   }
-  55%,
-  96% {
-    opacity: 0;
-  }
-  97%,
-  100% {
-    opacity: 1;
-  }
-}
-@keyframes chamber-cat-awake {
-  0%,
-  54% {
-    opacity: 0;
-    scale: 1 1;
-  }
-  55% {
-    opacity: 1;
-    scale: 1 1;
-  }
-  56.5% {
-    scale: 1.3 0.85;
-  }
-  58%,
-  63% {
-    opacity: 1;
-    scale: 1 1;
-  }
-  /* Out of sight inside the cubby. */
-  64%,
-  70% {
-    opacity: 0;
-    scale: 1 1;
-  }
-  71%,
-  84% {
-    opacity: 1;
-    scale: 1 1;
-  }
-  /* Turned round for the climb back. */
-  84.5%,
-  96% {
-    opacity: 1;
-    scale: -1 1;
-  }
-  97%,
   100% {
     opacity: 0;
-    scale: 1 1;
+    scale: 0.45;
   }
 }
-@keyframes chamber-zzz {
+@keyframes chamber-ripple {
   from {
-    transform: translateY(15%);
-    opacity: 0.35;
+    opacity: 0.55;
+    scale: 0.35;
   }
   to {
-    transform: translateY(-25%);
-    opacity: 1;
+    opacity: 0;
+    scale: 2.1;
   }
 }
-/* Once round the loop, turning a full circle so the head keeps leading, with a slow body sway. */
+/* Once round the loop, turning a full circle so the head keeps leading. */
 @keyframes chamber-swim {
   from {
     offset-distance: 0%;
@@ -732,32 +623,6 @@
   }
   to {
     rotate: 540deg;
-  }
-}
-@keyframes chamber-sway {
-  from {
-    transform: rotate(-5deg);
-  }
-  to {
-    transform: rotate(5deg);
-  }
-}
-@keyframes chamber-step {
-  0% {
-    opacity: 1;
-  }
-  50%,
-  100% {
-    opacity: 0;
-  }
-}
-@keyframes chamber-step-alternate {
-  0% {
-    opacity: 0;
-  }
-  50%,
-  100% {
-    opacity: 1;
   }
 }
 @media (forced-colors: active) {

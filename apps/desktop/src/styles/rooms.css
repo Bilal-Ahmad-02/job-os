@@ -246,3 +246,59 @@
 .room[data-room="deep"] .room-art i:nth-child(6) {
   --depth: 76;
 }
+
+/* THE HORIZON: black, with a lit ring off to the right and the words small beside it. */
+.room[data-room="horizon"] .room-stage {
+  align-items: center;
+  background: #000;
+}
+.room[data-room="horizon"] .room-words {
+  max-width: 30ch;
+}
+.room[data-room="horizon"] h1 {
+  color: #ffcf8a;
+  font: 300 clamp(18px, 2.4vw, 28px) / 1.2 var(--mono);
+  letter-spacing: 14px;
+}
+.room[data-room="horizon"] .eyebrow {
+  color: #7a3cff;
+}
+.room[data-room="horizon"] .room-art i {
+  left: 68%;
+  top: 50%;
+  width: calc(var(--span) * 1vmin);
+  height: calc(var(--span) * 0.36vmin);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--glow);
+  transform: translate(-50%, -50%) rotate(-12deg);
+}
+.room[data-room="horizon"] .room-art i:nth-child(1) {
+  --span: 118;
+  --glow: #3b1f7a66;
+}
+.room[data-room="horizon"] .room-art i:nth-child(2) {
+  --span: 96;
+  --glow: #7a3cff66;
+}
+.room[data-room="horizon"] .room-art i:nth-child(3) {
+  --span: 76;
+  --glow: #ff9d3c99;
+}
+.room[data-room="horizon"] .room-art i:nth-child(4) {
+  --span: 58;
+  --glow: #ffe9b0;
+}
+/* The hole itself, upright in front of the rings, and a thin bright rim around it. */
+.room[data-room="horizon"] .room-art i:nth-child(5) {
+  --span: 30;
+  --glow: #ffe9b0;
+  height: 30vmin;
+  background: #000;
+  transform: translate(-50%, -50%);
+}
+.room[data-room="horizon"] .room-art i:nth-child(6) {
+  --span: 31.5;
+  --glow: #ff9d3c40;
+  height: 31.5vmin;
+  transform: translate(-50%, -50%);
+}

@@ -1,73 +1,98 @@
-import type { Agent } from "./agents";
-import { privateSprite } from "./privateSprites";
-import { catAwake, catCurled, PixelSprite } from "./sprites";
+import type { CSSProperties } from "react";
+import { type Act, type Figure, home } from "./agents";
+import { privateSprite, type Strip } from "./privateSprites";
+import { type Frames, PixelSprite } from "./sprites";
 
-const STARS = [1, 2, 3, 4, 5, 6] as const;
+/** Extra pieces an act draws over its figure: a class name and how many parts it has. */
+const EFFECTS: Partial<Record<Act, readonly [className: string, parts: number]>> = {
+  walk: ["chamber-starfall", 7],
+  fly: ["chamber-beam", 0],
+  swim: ["chamber-ripple", 3],
+};
 
-/** The owner's own image when one was supplied under `name`, otherwise the built-in drawing. */
-function Sprite({
-  name,
-  frames,
-  className = "",
+/**
+ * A strip of frames shown one at a time: the owner's image if one was supplied, otherwise a
+ * built-in pixel drawing. The stylesheet steps through a strip on a loop; the choreography steps
+ * through the ones that play once.
+ */
+function Reel({
+  art,
+  pose,
+  className,
 }: {
-  name: string;
-  frames: readonly (readonly string[])[];
+  art: Strip | Frames;
+  pose?: string | undefined;
   className?: string;
 }) {
-  const custom = privateSprite(name);
-  if (custom) return <img className={`chamber-figure ${className}`} src={custom} alt="" />;
-  const first = frames[0] ?? [];
+  const built = "src" in art ? undefined : art;
+  const count = built ? built.length : (art as Strip).frames;
+  const columns = built?.[0]?.[0]?.length ?? 1;
   return (
-    <svg
-      className={`chamber-figure ${className}`}
-      viewBox={`0 0 ${first[0]?.length ?? 1} ${first.length || 1}`}
-      aria-hidden="true"
-      focusable="false"
+    <span
+      className={className ? `chamber-reel ${className}` : "chamber-reel"}
+      data-pose={pose}
+      data-frames={count}
+      style={{ "--n": count } as CSSProperties}
     >
-      {frames.map((rows, index) => (
-        <PixelSprite
-          // biome-ignore lint/suspicious/noArrayIndexKey: frames are a fixed list.
-          key={index}
-          rows={rows}
-          {...(frames.length > 1
-            ? { className: index ? "chamber-step chamber-step-alternate" : "chamber-step" }
-            : {})}
-        />
-      ))}
-    </svg>
+      {built ? (
+        <svg
+          viewBox={`0 0 ${columns * count} ${built[0]?.length || 1}`}
+          aria-hidden="true"
+          focusable="false"
+        >
+          {built.map((rows, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: frames are a fixed list.
+            <PixelSprite key={index} rows={rows} x={index * columns} />
+          ))}
+        </svg>
+      ) : (
+        <img src={(art as Strip).src} alt="" />
+      )}
+    </span>
   );
 }
 
 /**
- * What is drawn inside a figure's button: its body and whatever its act needs. The extra pieces
- * are still until the stylesheet or the choreography moves them, and none of them means anything.
+ * What is drawn inside a figure's button: the thing it lives on, if any, then an actor holding
+ * one drawing per pose and whatever its act adds. Only the first pose shows until the
+ * choreography says otherwise, and none of it means anything.
  */
-export default function AgentFigure({ agent }: { agent: Agent }) {
+export default function AgentFigure({ agent }: { agent: Figure }) {
+  const { sprite, routine } = agent;
+  const poses = routine ? [...new Set(routine.map((beat) => beat.pose))] : [undefined];
+  const [effect, parts = 0] = (agent.act && EFFECTS[agent.act]) ?? [];
+  // An actor on a prop starts where its routine ends, which is where the loop begins.
+  const [left, top] = (agent.prop && home(routine)) || [];
   return (
     <>
-      <span className="chamber-body">
-        <Sprite name={agent.sprite} frames={agent.frames} />
-      </span>
-      {agent.act === "tree" ? (
-        <span className="chamber-cat">
-          <Sprite name={`${agent.sprite}-asleep`} frames={[catCurled]} className="chamber-asleep" />
-          <Sprite name={`${agent.sprite}-awake`} frames={[catAwake]} className="chamber-awake" />
-          <span className="chamber-zzz">
-            <i>z</i>
-            <i>z</i>
-            <i>z</i>
+      {agent.prop ? (
+        <Reel art={privateSprite(`${sprite}-prop`) ?? agent.prop} className="chamber-prop" />
+      ) : null}
+      <span
+        className="chamber-actor"
+        style={left === undefined ? undefined : { left: `${left}%`, top: `${top}%` }}
+      >
+        {poses.map((pose) => (
+          <Reel
+            key={pose ?? ""}
+            pose={pose}
+            art={
+              privateSprite(pose ? `${sprite}-${pose}` : sprite) ??
+              agent.poses?.[pose ?? ""] ??
+              privateSprite(sprite) ??
+              agent.frames
+            }
+          />
+        ))}
+        {effect ? (
+          <span className={effect}>
+            {Array.from({ length: parts }, (_, part) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: identical parts in a fixed order.
+              <i key={part} style={{ "--i": part } as CSSProperties} />
+            ))}
           </span>
-        </span>
-      ) : null}
-      {agent.act === "beam" ? <i className="chamber-beam" /> : null}
-      {agent.act === "boomerang" ? <i className="chamber-prop" /> : null}
-      {agent.act === "route" ? (
-        <span className="chamber-starfall">
-          {STARS.map((star) => (
-            <i key={star} />
-          ))}
-        </span>
-      ) : null}
+        ) : null}
+      </span>
     </>
   );
 }

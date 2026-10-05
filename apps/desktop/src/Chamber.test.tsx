@@ -3,7 +3,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Chamber from "./Chamber";
-import { AGENTS, SCENE } from "./chamber/agents";
+import { AGENTS, home, ORACLE, SCENE, scenePercent, TIMERS } from "./chamber/agents";
+import { compile } from "./chamber/choreography";
 import * as sprites from "./chamber/sprites";
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
@@ -51,19 +52,19 @@ describe("Oracle chamber", () => {
     expect(within(core).getByText(/No assistant yet/)).toBeVisible();
     expect(screen.queryByTestId("console")).not.toBeInTheDocument();
     expect(document.querySelector(".room")).toBeNull();
-    expect(screen.getByText("5 FIGURES / 1 WITH A FUNCTION")).toBeVisible();
+    expect(screen.getByText("6 FIGURES / 1 WITH A FUNCTION")).toBeVisible();
   });
 
   it("shows every figure as a button that says whether it has a function", () => {
     const { container } = render(<Chamber />);
-    expect(AGENTS.map((agent) => agent.slot)).toEqual(["01", "02", "03", "04", "05"]);
+    expect(AGENTS.map((agent) => agent.slot)).toEqual(["01", "02", "03", "04", "05", "06"]);
     for (const agent of AGENTS) {
       const figure = container.querySelector(`button[data-agent="${agent.id}"]`);
       expect(figure).toHaveTextContent(`${agent.slot} / ${agent.name}`);
       expect(figure).toHaveTextContent(agent.room ? "No function yet" : "manual, no automation");
     }
     const standing = within(
-      screen.getByRole("list", { name: "Agents on the platform" }),
+      screen.getByRole("list", { name: "Figures in the chamber" }),
     ).getAllByRole("listitem");
     expect(standing).toHaveLength(AGENTS.filter((agent) => agent.at).length);
   });
@@ -139,7 +140,7 @@ describe("Oracle chamber", () => {
     expect(container.querySelector(".chamber-leash")).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("stands platform figures inside the drawing and lets the roamer use the whole space", () => {
+  it("places figures inside the drawing and lets the swimmer use the whole space", () => {
     const { container } = render(<Chamber />);
     const { scene, space } = parts(container);
     for (const agent of AGENTS) {
@@ -161,8 +162,14 @@ describe("Oracle chamber", () => {
     const styles = readFileSync("src/styles/chamber.css", "utf8");
     expect(styles).toMatch(/\[data-act="swim"\] \{[^}]*offset-path: ellipse\(/);
     expect(styles).toMatch(/@keyframes chamber-heading \{[^@]*180deg[^@]*540deg/);
-    expect(container.querySelector('[data-agent="jobs"]')).toHaveAttribute("data-act", "route");
-    expect(container.querySelector('[data-agent="summit"]')).toHaveAttribute("data-act", "beam");
+    // The watcher stands on the bar of the left sand timer; the black hole is off the platform.
+    const [barLeft, barTop] = scenePercent(TIMERS.left, TIMERS.bar);
+    const watcher = container.querySelector<HTMLElement>('[data-agent="watch"]');
+    expect(Number.parseFloat(watcher?.style.left ?? "")).toBeCloseTo(barLeft);
+    expect(Number.parseFloat(watcher?.style.top ?? "")).toBeCloseTo(barTop);
+    const hole = AGENTS.find((agent) => agent.act === "spin")?.at ?? [0, 0];
+    expect(hole[1]).toBeLessThan(0);
+    expect(container.querySelector('[data-agent="horizon"]')).toHaveAttribute("data-centred");
   });
 
   it("keeps the hub hideable and every animation behind the motion switch", () => {
@@ -244,10 +251,12 @@ describe("Oracle chamber", () => {
 
   it("keeps every built-in figure a clean rectangle of known colours", () => {
     const figures = [
-      ...AGENTS.flatMap((agent) => agent.frames),
+      ...AGENTS.flatMap((agent) => [
+        ...agent.frames,
+        ...(agent.prop ?? []),
+        ...Object.values(agent.poses ?? {}).flat(),
+      ]),
       sprites.overseer,
-      sprites.catCurled,
-      sprites.catAwake,
     ];
     for (const rows of figures) {
       expect(new Set(rows.map((row) => row.length)).size).toBe(1);
@@ -255,6 +264,9 @@ describe("Oracle chamber", () => {
     }
     // The tree is drawn without its cat, which is a separate piece that moves.
     expect(sprites.catTree.join("")).not.toMatch(/[Nn]/);
+    // The black hole turns: eight frames, no two alike, each with a dark core.
+    expect(new Set(sprites.blackHole.map((rows) => rows.join(""))).size).toBe(8);
+    for (const rows of sprites.blackHole) expect(rows.join("")).toContain("kkkk");
   });
 
   it("shows the core's state when it is pressed and opens no page", () => {
@@ -267,7 +279,7 @@ describe("Oracle chamber", () => {
     const panel = screen.getByRole("region", { name: "ORACLE / MASTER" });
     expect(panel).toHaveTextContent("Master agentNot built");
     expect(panel).toHaveTextContent("Model connectedNone");
-    expect(panel).toHaveTextContent("Figures with a function1 of 5");
+    expect(panel).toHaveTextContent("Figures with a function1 of 6");
     expect(panel).toHaveTextContent("Ask OracleNot possible yet");
     // Still the hub: no room, no console, no input to type a question into, nothing sent.
     expect(screen.getByRole("heading", { name: "THE CHAMBER" })).toBeVisible();
@@ -289,26 +301,95 @@ describe("Oracle chamber", () => {
     expect(new Set(panes.map((pane) => pane.style.getPropertyValue("--at"))).size).toBe(10);
   });
 
-  it("gives each figure the pieces its act needs and nothing it does not", () => {
+  it("gives each figure one strip per pose and only the effect its act has", () => {
     const { container } = render(<Chamber />);
-    const pieces = {
-      route: ".chamber-starfall",
-      tree: ".chamber-cat",
-      beam: ".chamber-beam",
-      boomerang: ".chamber-prop",
+    const effects = {
+      walk: [".chamber-starfall", 7],
+      fly: [".chamber-beam", 0],
+      swim: [".chamber-ripple", 3],
     };
     for (const agent of AGENTS) {
       const figure = container.querySelector(`[data-agent="${agent.id}"]`);
       expect(figure).toHaveAttribute("data-act", agent.act);
-      for (const [act, piece] of Object.entries(pieces))
-        expect(figure?.querySelectorAll(piece)).toHaveLength(agent.act === act ? 1 : 0);
+      for (const [act, [piece, parts]] of Object.entries(effects)) {
+        const found = figure?.querySelectorAll(String(piece)) ?? [];
+        expect(found).toHaveLength(agent.act === act ? 1 : 0);
+        if (agent.act === act) expect(found[0]?.querySelectorAll("i")).toHaveLength(Number(parts));
+      }
+      const reels = [
+        ...(figure?.querySelectorAll<HTMLElement>(".chamber-actor > .chamber-reel") ?? []),
+      ];
+      const poses = agent.routine
+        ? [...new Set(agent.routine.map((beat) => beat.pose))]
+        : [undefined];
+      // The first pose of a routine is the one that shows while the hub is still.
+      expect(reels.map((reel) => reel.dataset.pose)).toEqual(poses);
+      for (const reel of reels) {
+        expect(Number(reel.dataset.frames)).toBeGreaterThan(0);
+        expect(reel.style.getPropertyValue("--n")).toBe(reel.dataset.frames);
+        expect(reel.children).toHaveLength(1);
+      }
+      // Only the cat has something to live on, and it starts where its routine ends.
+      expect(figure?.querySelectorAll(".chamber-prop")).toHaveLength(agent.prop ? 1 : 0);
+      const actor = figure?.querySelector<HTMLElement>(".chamber-actor");
+      expect(actor?.style.left).toBe(agent.prop ? `${home(agent.routine)?.[0]}%` : "");
     }
-    const cat = container.querySelector(".chamber-cat");
-    expect(cat?.querySelectorAll(".chamber-asleep, .chamber-awake")).toHaveLength(2);
-    expect(cat?.querySelector(".chamber-zzz")).toHaveTextContent("zzz");
   });
 
-  it("walks a route at a steady pace only while motion is on, and halts under the pointer", () => {
+  it("works a routine out into a closed loop of keyframes", () => {
+    for (const agent of AGENTS.filter((entry) => entry.routine)) {
+      const line = compile(agent);
+      if (!line) throw new Error(`No timeline for ${agent.id}`);
+      const tracks = [line.left, line.top, line.face, line.cast, ...Object.values(line.show)];
+      for (const track of tracks) {
+        const offsets = track.map((frame) => Number(frame.offset));
+        expect(offsets[0]).toBe(0);
+        expect(offsets.at(-1)).toBe(1);
+        expect(offsets).toEqual([...offsets].sort((x, y) => x - y));
+        expect(offsets.every(Number.isFinite)).toBe(true);
+      }
+      // It ends where it began, so the loop has no jump.
+      expect(line.left.at(-1)?.left).toBe(line.left[0]?.left);
+      expect(line.top.at(-1)?.top).toBe(line.top[0]?.top);
+      // A figure on the platform starts its loop on its own square.
+      if (!agent.prop) expect(home(agent.routine)).toEqual(agent.at);
+      // Exactly one pose shows at any moment.
+      const poses = Object.values(line.show);
+      for (const index of poses[0]?.keys() ?? [])
+        expect(poses.filter((track) => track[index]?.opacity === 1)).toHaveLength(1);
+      for (const spans of Object.values(line.once))
+        for (const [start, end] of spans) expect(start < end && start >= 0 && end <= 1).toBe(true);
+      expect(line.seconds).toBeGreaterThan(40);
+    }
+  });
+
+  it("paces walks by distance, arcs a jump, and turns a figure the way it is told", () => {
+    const base = AGENTS[0];
+    if (!base) throw new Error("No figures");
+    const line = compile({
+      ...base,
+      prop: [["..", ".."]],
+      pace: 10,
+      routine: [
+        { pose: "walk", to: [60, 50] },
+        { pose: "hop", to: [20, 30], seconds: 2, hop: 5, once: true },
+        { pose: "cast", seconds: 3, cast: true, face: "right" },
+        { pose: "walk", to: [20, 50] },
+      ],
+    });
+    if (!line) throw new Error("No timeline");
+    // 40 across at 10 a second, a 2 second jump, a 3 second cast, 20 down at 10 a second.
+    expect(line.seconds).toBeCloseTo(4 + 2 + 3 + 2);
+    expect(line.left.map((frame) => frame.left)).toEqual(["20%", "60%", "20%", "20%", "20%"]);
+    // The jump peaks above the higher of its two ends, half way through.
+    expect(line.top).toContainEqual({ top: "25%", offset: 5 / 11, easing: "ease-in" });
+    // Art faces left: heading right mirrors it, heading left restores it, and a told side holds.
+    expect(line.face.map((frame) => frame.scale)).toEqual(["-1 1", "1 1", "-1 1", "-1 1", "-1 1"]);
+    expect(line.cast.filter((frame) => frame["--cast"] === 1)).toHaveLength(1);
+    expect(line.once).toEqual({ hop: [[4 / 11, 6 / 11]] });
+  });
+
+  it("runs routines only while motion is on, and halts one under the pointer", () => {
     const calls: { target: Element; frames: Keyframe[]; duration: number }[] = [];
     const controls = { pause: vi.fn(), play: vi.fn(), cancel: vi.fn() };
     const animate = vi.fn(function (
@@ -324,51 +405,83 @@ describe("Oracle chamber", () => {
       const { container, unmount } = render(<Chamber />);
       expect(animate).not.toHaveBeenCalled();
       fireEvent.click(screen.getByRole("button", { name: "Motion off" }));
-      const walker = container.querySelector('[data-agent="jobs"]');
-      const [place, face, cast] = calls;
-      if (!place || !face || !cast || !walker) throw new Error("Route was not animated");
-      expect(calls).toHaveLength(3);
-      expect(place.target).toBe(walker);
-      expect(face.target).toHaveClass("chamber-body");
-      expect(cast.target).toHaveClass("chamber-starfall");
-      for (const { frames, duration } of calls) {
-        const offsets = frames.map((frame) => Number(frame.offset));
-        expect(offsets[0]).toBe(0);
-        expect(offsets.at(-1)).toBe(1);
-        expect(offsets).toEqual([...offsets].sort((a, b) => a - b));
-        expect(duration).toBe(place.duration);
-      }
-      // It ends where it began, and the star shower shows only at the three stops.
-      expect(place.frames.at(-1)).toMatchObject({ left: place.frames[0]?.left });
-      expect(cast.frames.filter((frame) => frame.opacity === 1)).toHaveLength(3);
-      // A lap of the platform plus three stops takes a couple of minutes, not seconds.
-      expect(place.duration).toBeGreaterThan(60_000);
-      fireEvent.pointerEnter(walker);
-      expect(controls.pause).toHaveBeenCalledTimes(3);
-      fireEvent.pointerLeave(walker);
-      expect(controls.play).toHaveBeenCalledTimes(3);
+      const of = (id: string) => {
+        const figure = container.querySelector(`[data-agent="${id}"]`);
+        if (!figure) throw new Error(`Missing figure ${id}`);
+        return { figure, mine: calls.filter(({ target }) => figure.contains(target)) };
+      };
+      const walker = of("jobs");
+      const cat = of("perch");
+      // Place (two tracks), effect, facing, and one track per pose.
+      expect(walker.mine).toHaveLength(4 + 2);
+      expect(walker.mine.slice(0, 3).every(({ target }) => target === walker.figure)).toBe(true);
+      expect(new Set(walker.mine.map(({ duration }) => duration)).size).toBe(1);
+      expect(walker.mine[0]?.duration).toBeGreaterThan(60_000);
+      // The cat moves inside its tree, so the tree and its tag stay put.
+      expect(cat.mine.slice(0, 3).every(({ target }) => target !== cat.figure)).toBe(true);
+      expect(cat.mine[0]?.target).toHaveClass("chamber-actor");
+      // Poses that play once are stepped through frame by frame.
+      const stepped = cat.mine.filter(({ frames }) =>
+        frames.some((frame) => String(frame.easing).startsWith("steps(")),
+      );
+      expect(stepped).toHaveLength(4);
+      // Figures without a routine are left to the stylesheet.
+      expect(of("watch").mine).toHaveLength(0);
+      expect(of("deep").mine).toHaveLength(0);
+      fireEvent.pointerEnter(walker.figure);
+      expect(controls.pause).toHaveBeenCalledTimes(walker.mine.length);
+      fireEvent.pointerLeave(walker.figure);
+      expect(controls.play).toHaveBeenCalledTimes(walker.mine.length);
       unmount();
-      expect(controls.cancel).toHaveBeenCalledTimes(3);
+      expect(controls.cancel).toHaveBeenCalledTimes(calls.length);
     } finally {
       Reflect.deleteProperty(Element.prototype, "animate");
     }
   });
 
-  it("aims the beam somewhere new each cycle, in steps, and faces that side", () => {
-    const random = vi.spyOn(Math, "random").mockReturnValue(0.5);
+  it("seats the core at its console and turns the panes only when its routine sweeps an arm", () => {
     const { container } = render(<Chamber />);
-    const figure = container.querySelector<HTMLElement>('[data-agent="summit"]');
-    const beam = figure?.querySelector(".chamber-beam");
-    if (!figure || !beam) throw new Error("Beam figure is missing");
-    expect(figure.style.getPropertyValue("--aim")).toBe("");
-    fireEvent.click(screen.getByRole("button", { name: "Motion off" }));
-    expect(figure.style.getPropertyValue("--aim")).toBe("180deg");
-    expect(figure.style.getPropertyValue("--face")).toBe("1");
-    random.mockReturnValue(0.01);
-    fireEvent.animationIteration(beam);
-    expect(figure.style.getPropertyValue("--aim")).toBe("0deg");
-    expect(figure.style.getPropertyValue("--face")).toBe("-1");
-    random.mockRestore();
+    const core = screen.getByRole("button", { name: "Oracle master agent" });
+    // The figure and its panes are inside the press target; the first pose is the one at rest.
+    const reels = [...core.querySelectorAll<HTMLElement>(".chamber-actor > .chamber-reel")];
+    expect(reels.map((reel) => reel.dataset.pose)).toEqual(["type", "swipe"]);
+    expect(core.querySelector(".chamber-holo")).not.toBeNull();
+    expect(container.querySelectorAll(".chamber-art image, .chamber-core-figure")).toHaveLength(0);
+    const line = compile(ORACLE);
+    if (!line) throw new Error("No timeline for the core");
+    // It never leaves its seat, sweeps once a loop, and the panes turn once, after the sweep.
+    expect(line.left).toEqual([]);
+    expect(line.top).toEqual([]);
+    expect(line.once.swipe).toHaveLength(1);
+    const turns = line.cast.filter((frame) => frame["--cast"] === 1);
+    expect(turns).toHaveLength(1);
+    expect(Number(turns[0]?.offset)).toBeGreaterThan(line.once.swipe?.[0]?.[1] ?? 1);
+    const styles = readFileSync("src/styles/chamber.css", "utf8");
+    expect(styles).toMatch(/--turn: calc\(var\(--at\) \* 10 \+ var\(--cast\) \* 200\);/);
+    expect(styles).not.toContain("chamber-orbit");
+  });
+
+  it("keeps the floor still and lets a few drifters cross it beneath the platform", () => {
+    const { container } = render(<Chamber />);
+    const space = container.querySelector(".chamber-space");
+    expect(space).toHaveAttribute("aria-hidden", "true");
+    // The only grid is the one drawn on the platform itself.
+    expect(space?.firstElementChild).toHaveClass("chamber-stars");
+    expect(container.querySelector(".chamber-grid")).toBeNull();
+    const drifts = [...container.querySelectorAll<HTMLElement>(".chamber-drift")];
+    expect(drifts.length).toBeGreaterThan(8);
+    expect(new Set(drifts.map((drift) => drift.dataset.kind))).toEqual(
+      new Set(["streak", "swish", "spark"]),
+    );
+    // No two share a cycle length, so they never fall into step.
+    expect(new Set(drifts.map((drift) => drift.style.getPropertyValue("--cycle"))).size).toBe(
+      drifts.length,
+    );
+    const styles = readFileSync("src/styles/chamber.css", "utf8");
+    expect(styles).not.toMatch(/\.chamber-stars[^{]*\{[^}]*animation/);
+    expect(styles).not.toContain("chamber-grid");
+    // A drifter is out of sight for most of its cycle.
+    expect(styles).toMatch(/@keyframes chamber-drift \{\s*0%,\s*82% \{\s*opacity: 0;/);
   });
 
   it("turns each sand timer over after the sand has run instead of jumping back", () => {

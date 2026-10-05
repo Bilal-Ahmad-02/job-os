@@ -2,12 +2,12 @@ import { type CSSProperties, useEffect, useRef, useState } from "react";
 import App from "./App";
 import AgentFigure from "./chamber/AgentFigure";
 import AgentRoom from "./chamber/AgentRoom";
-import { AGENTS, type Agent, CORE, SCENE, scenePercent } from "./chamber/agents";
+import { AGENTS, type Agent, CORE, ORACLE, SCENE, scenePercent } from "./chamber/agents";
 import ChamberScene from "./chamber/ChamberScene";
+import ChamberSpace from "./chamber/ChamberSpace";
 import { MAX_SCALE, MIN_SCALE, useCamera } from "./chamber/camera";
-import { useAim, useRoute } from "./chamber/choreography";
+import { useRoutine } from "./chamber/choreography";
 import { useMotion } from "./chamber/motion";
-import { privateSprite } from "./chamber/privateSprites";
 import { useLeash } from "./chamber/useLeash";
 import ShellHeader from "./ShellHeader";
 
@@ -16,17 +16,11 @@ const PANES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
 const WITH_A_FUNCTION = AGENTS.filter((agent) => !agent.room).length;
 const [CORE_LEFT, CORE_TOP] = scenePercent([CORE.x, CORE.y], 10);
 
-/** Where a platform figure stands and how big it is. */
+/** Where a figure in the scene stands and how wide it is. Its height follows its drawing. */
 function placement(agent: Agent): CSSProperties | undefined {
   if (!agent.at) return undefined;
   const [left, top] = scenePercent(agent.at, agent.lift);
-  const frame = agent.frames[0] ?? [];
-  return {
-    left: `${left}%`,
-    top: `${top}%`,
-    width: `${(agent.width / SCENE.width) * 100}%`,
-    aspectRatio: `${frame[0]?.length ?? 1} / ${frame.length || 1}`,
-  };
+  return { left: `${left}%`, top: `${top}%`, width: `${(agent.width / SCENE.width) * 100}%` };
 }
 
 /** A pressable figure with its tag. Its act runs only while the hub's motion is on. */
@@ -40,8 +34,7 @@ function AgentButton({
   onOpen: (id: string) => void;
 }) {
   const button = useRef<HTMLButtonElement>(null);
-  useRoute(button, agent, moving);
-  useAim(button, agent, moving);
+  useRoutine(button, agent, moving);
   return (
     <button
       type="button"
@@ -49,6 +42,7 @@ function AgentButton({
       ref={button}
       data-agent={agent.id}
       data-act={agent.act}
+      data-centred={agent.centred}
       aria-label={agent.room ? `Open ${agent.room.title}` : `Open ${agent.name} console`}
       style={placement(agent)}
       onClick={() => onOpen(agent.id)}
@@ -59,6 +53,42 @@ function AgentButton({
           {agent.slot} / {agent.name}
         </span>
         <span className="chamber-detail">{agent.note}</span>
+      </span>
+    </button>
+  );
+}
+
+/**
+ * The core: pressing it shows or hides its state and opens nothing. The panes round it are blank
+ * because nothing is running; they turn only as decoration, when its routine sweeps an arm.
+ */
+function Core({
+  moving,
+  open,
+  onToggle,
+}: {
+  moving: boolean;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const button = useRef<HTMLButtonElement>(null);
+  useRoutine(button, ORACLE, moving);
+  return (
+    <button
+      type="button"
+      className="chamber-core-button"
+      ref={button}
+      aria-label="Oracle master agent"
+      aria-expanded={open}
+      aria-controls="chamber-core"
+      style={{ left: `${CORE_LEFT}%`, top: `${CORE_TOP}%` }}
+      onClick={onToggle}
+    >
+      <AgentFigure agent={ORACLE} />
+      <span className="chamber-holo" aria-hidden="true">
+        {PANES.map((pane) => (
+          <i key={pane} style={{ "--at": pane } as CSSProperties} />
+        ))}
       </span>
     </button>
   );
@@ -145,10 +175,7 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
           onMouseDown={camera.startPan}
           onContextMenu={(event) => event.preventDefault()}
         >
-          <div className="chamber-space" aria-hidden="true">
-            <div className="chamber-stars" />
-            <div className="chamber-streaks" />
-          </div>
+          <ChamberSpace />
           {/* A figure with no place on the platform swims beneath the whole space. */}
           {AGENTS.filter((agent) => !agent.at).map((agent) => (
             <AgentButton key={agent.id} agent={agent} moving={motion} onOpen={open} />
@@ -158,26 +185,8 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
             className="chamber-scene"
             style={{ transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})` }}
           >
-            <ChamberScene coreSprite={privateSprite("oracle")} />
-            {/* Blank panes circling the core. They show nothing because nothing is running. */}
-            <div
-              className="chamber-holo"
-              aria-hidden="true"
-              style={{ left: `${CORE_LEFT}%`, top: `${CORE_TOP}%` }}
-            >
-              {PANES.map((pane) => (
-                <i key={pane} style={{ "--at": pane } as CSSProperties} />
-              ))}
-            </div>
-            <button
-              type="button"
-              className="chamber-core-button"
-              aria-label="Oracle master agent"
-              aria-expanded={coreOpen}
-              aria-controls="chamber-core"
-              style={{ left: `${CORE_LEFT}%`, top: `${CORE_TOP}%` }}
-              onClick={() => setCoreOpen(!coreOpen)}
-            />
+            <ChamberScene />
+            <Core moving={motion} open={coreOpen} onToggle={() => setCoreOpen(!coreOpen)} />
             <section
               className="chamber-core"
               id="chamber-core"
@@ -201,7 +210,7 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
                 </dl>
               ) : null}
             </section>
-            <ul className="chamber-agents" aria-label="Agents on the platform">
+            <ul className="chamber-agents" aria-label="Figures in the chamber">
               {AGENTS.filter((agent) => agent.at).map((agent) => (
                 <li key={agent.id}>
                   <AgentButton agent={agent} moving={motion} onOpen={open} />

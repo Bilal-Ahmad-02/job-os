@@ -265,6 +265,15 @@ Tauri builds; installed bytes verified and the process reopened responsive. Stil
 act were viewed in a browser preview; no act was watched running in real time, and the cat
 routine was seen only at small size. Not verified in the unlocked window.
 
+### Desktop update — routines, pose strips, floor and sixth figure, October 5, 2026
+
+Desktop SHA-256 is now `9d121010213bfbb7def3a3659ec5e67dccf9ebec62c9c36c1b68bba3837f0601`,
+frontend only; backend `380671a6...` and schema `0012` are unchanged. The build bundles
+Git-ignored local images. Checks: TypeScript, Biome, 143 frontend tests across 19 files, Vite and
+Tauri builds; installed bytes verified and the process reopened responsive. Single moments of
+each animation were viewed in a browser preview. Not verified: any of it running in real time,
+and the chamber in the installed, unlocked window.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was
