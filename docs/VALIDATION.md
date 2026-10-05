@@ -53,12 +53,27 @@ only the owner can perform, and the hub's narrow-window layout.
 
 ### Step 14 source state — October 5, 2026
 
-Manual listing intake is committed locally in both checkouts and is not deployed. Checks run:
-290 Linux tests with Ruff clean; TypeScript, Biome, 100 frontend tests across 18 files and the Vite
-build on Windows. Not run: native Rust tests (no native change) and the WSL native probes, which
-need an installed `0009` release. Not done: backend release build/install, live migration to
-`0009`, release selection, desktop install. The installed desktop above and backend `bda6f25...`
-with schema `0008` are still what runs. The new module has not been seen in a running app.
+Source checks: 290 Linux tests with Ruff clean; TypeScript, Biome, 100 frontend tests across 18
+files and the Vite build on Windows; 33 ordinary native tests.
+
+### Step 14 deployment — October 5, 2026
+
+Backend release: `dd8f41728b147c3e544e4ea1e227a21fdae36c8e54327f341398867d20513c91`.
+Desktop SHA-256: `1b579d1f5ea1c34bb08359563e269b8e71ca072295230fd460be3f1c3eca2734`.
+Schema: `0009`. Previous backend and desktop releases are retained.
+
+| Check | Result |
+| --- | --- |
+| Installed-release probe | Passed offline install, dependency check and synthetic storage/IPC/PDF probe |
+| Windows/WSL native integration | Both opt-in tests passed against the new release |
+| Live migration | `prepare` succeeded; integrity-checked pre-migration copy present |
+| Table comparison | All 12 pre-existing data tables and the identity marker identical; `alembic_version` changed; `job_listings` added with 0 rows |
+| Post-deploy read | Installed release returned 0 listings, 23 applications, 3 documents, 0 tasks (counts only) |
+| Desktop | Install script verified bytes; process reopened responsive at the locked seal |
+
+Not run: fault and cross-platform recovery probes, cold-start probe. Not verified: anything in the
+unlocked app, including the INGRESS module and the chamber hub with this build. No encrypted backup
+has been taken since the migration.
 
 ### Backup repository change — October 5, 2026
 

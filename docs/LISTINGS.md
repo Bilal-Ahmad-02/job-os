@@ -1,8 +1,7 @@
 # Manual job-listing intake (step 14)
 
-Status on 2026-10-05: implemented and tested in source. **Not deployed.** The installed Oracle does
-not have this module until a backend release with schema `0009` is installed, the live workspace is
-migrated and a matching desktop build is installed. See "Deployment" below.
+Status on 2026-10-05: implemented, tested and deployed. The live workspace is at schema `0009`.
+The module has not been seen in the unlocked installed app by the coding session; see "Verification".
 
 ## What it does
 
@@ -58,12 +57,20 @@ cannot contain them.
 
 ## Deployment
 
-Not yet done. It requires, in order: closing Oracle; building and installing a new backend release;
-running the explicit Linux `prepare` step, which takes an integrity-checked local copy and then
-migrates the live workspace to `0009`; comparing every existing table before and after; selecting
-the release; installing the desktop build; reopening Oracle. After the migration the previous
-backend release can no longer open the workspace, so a code rollback means restoring the
-pre-migration copy. A confirmed fresh encrypted backup beforehand is strongly preferable.
+Deployed on 2026-10-05 on the owner's instruction, after the owner confirmed a new encrypted backup
+repository (see BACKUP.md). Backend release `dd8f41728b147c3e544e4ea1e227a21fdae36c8e54327f341398867d20513c91`
+was built and installed offline from hash-checked wheels, passed its synthetic install probe and
+both Windows/WSL native integration tests, and is now selected. Oracle was closed, the release's
+explicit Linux `prepare` step took an integrity-checked local copy
+(`migration-backups/before-0009-*.sqlite3`) and migrated the workspace. Typed-row hashes of all 12
+pre-existing data tables and the workspace identity marker were identical before and after; only
+`alembic_version` changed and `job_listings` was added empty. Desktop
+`1b579d1f5ea1c34bb08359563e269b8e71ca072295230fd460be3f1c3eca2734` was installed and reopened.
+
+The previous backend release `bda6f25...` cannot open a `0009` workspace. A code rollback therefore
+means restoring the pre-migration copy and losing later writes; prefer fixing forward. The
+encrypted snapshot the owner took earlier on 2026-10-05 predates the migration, so take a new one
+to protect listings and the upgraded schema.
 
 ## Verification
 
@@ -75,4 +82,7 @@ and snapshot round-trip. Frontend: 100 tests pass, 11 of them new, covering requ
 response validation, save-on-request, read-only display of the original as text, archive/restore,
 error redaction and draft retention across modules. All test data is synthetic.
 
-Not verified: the module in the installed app, its appearance, and the live migration.
+After deployment the installed release answered `listings_list` on the live workspace with zero
+listings and still reported 23 applications and 3 documents (counts only; no record was read out).
+The 33 ordinary native tests also pass. Not verified: the module's appearance and behaviour in the
+unlocked installed app, which only the owner can open. No real listing was created by the session.

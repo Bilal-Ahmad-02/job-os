@@ -4,14 +4,15 @@ Owner instruction, 2026-10-05: the roadmap is resumed ("focus on finishing the 4
 earlier pause notes below are historical. Work proceeds one scoped step at a time; later steps are
 still not authorized in bulk, and frontend redesign beyond the chamber hub is deferred.
 
-Source checkpoint, 2026-10-05: step 14's manual intake is implemented in source and **not
-deployed**. Schema `0009` adds `job_listings`; pasted text, its hash and collection time are
+Implementation checkpoint, 2026-10-05: step 14's manual intake is implemented and deployed. Schema `0009` adds `job_listings`; pasted text, its hash and collection time are
 write-once, owner fields and an archive flag are editable with revision checks, and creation is
 idempotent. Four pipe operations and a **06 / INGRESS** console module were added; no native
 command, dependency, network access, parsing, matching or model call. 290 Linux and 100 frontend
-tests pass. The installed backend `bda6f25...`, schema `0008` and the live workspace are unchanged.
-Deployment needs the explicit Linux `prepare` migration with a before/after table comparison; see
-LISTINGS.md. External listing sources, normalization and deduplication (steps 14b-16) are next.
+tests pass. Backend release `dd8f41728b147c3e544e4ea1e227a21fdae36c8e54327f341398867d20513c91` is selected and
+the live workspace is at `0009`; all pre-existing tables and the identity marker were identical
+across the migration. Desktop `1b579d1f5ea1c34bb08359563e269b8e71ca072295230fd460be3f1c3eca2734`. The unlocked
+module was not visually inspected and no listing was created by the session. See LISTINGS.md.
+External listing sources, normalization and deduplication (steps 14b-16) are next.
 
 Owner priority, 2026-10-01 / handoff work 2026-10-02: pause new roadmap features after step 13.
 Stabilize the implemented scope, preserve source on GitHub, verify recovery, and prepare a Claude

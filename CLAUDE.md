@@ -5,8 +5,8 @@ For backend work also read `docs/WSL_DEVELOPMENT.md`. `docs/DEVELOPMENT.md` cont
 `docs/VALIDATION.md` records what was actually verified and what remains unverified.
 
 - Oracle is a personal Windows desktop app, with its record backend in Ubuntu WSL2. Not a website.
-- The owner resumed the roadmap on 2026-10-05. Step 14 manual listing intake is in source but not
-  deployed (see `docs/LISTINGS.md`). Take one scoped step at a time; do not start external
+- The owner resumed the roadmap on 2026-10-05. Step 14 manual listing intake is deployed
+  (see `docs/LISTINGS.md`). Take one scoped step at a time; do not start external
   sources, scraping, matching, chat or agents ahead of the owner's instruction.
 - Preserve the black/green console and circular opening seal. Do not redesign them unasked.
 - Develop/test Python in `~/projects/oracle` under Ubuntu with `.venv/bin/python`.
