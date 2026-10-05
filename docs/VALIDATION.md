@@ -256,6 +256,15 @@ Git-ignored local images. Checks: TypeScript, Biome, 133 frontend tests across 1
 Tauri builds; installed bytes verified and the process reopened responsive. Viewed in a browser
 preview. Not verified in the unlocked window.
 
+### Desktop update — figure acts and pressable core, October 5, 2026
+
+Desktop SHA-256 is now `2b563ae11256fe02a5e3fb7a93e0caf85292daefc5ba45e6216b85b2ce18eb7a`,
+frontend only; backend `380671a6...` and schema `0012` are unchanged. The build bundles
+Git-ignored local images. Checks: TypeScript, Biome, 139 frontend tests across 19 files, Vite and
+Tauri builds; installed bytes verified and the process reopened responsive. Still frames of each
+act were viewed in a browser preview; no act was watched running in real time, and the cat
+routine was seen only at small size. Not verified in the unlocked window.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

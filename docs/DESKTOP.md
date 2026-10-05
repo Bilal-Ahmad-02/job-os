@@ -322,6 +322,52 @@ its head leading and its line attached. Installed as desktop
 `aad0bae068b79d3f381a88dadb4d09f9643d30098f877f478709895b5a34b893`, specific to this PC. Not verified
 in the unlocked window.
 
+### Figures that do something, and a pressable core (2026-10-05)
+
+Each figure now has one small act of its own, chosen by an `act` field in `chamber/agents.ts`.
+All of it is decoration and runs only while the Motion switch is on.
+
+| Slot | Act | What is seen |
+| --- | --- | --- |
+| 01 / JOB.OS | `route` | Walks straight lines round the whole platform. At three corners it stands still for seven seconds under a shower of falling stars, then walks on. A lap takes about two minutes |
+| 02 / PERCH | `tree` | A one-minute routine: asleep on the top perch with drifting z's, a stretch, down into the cubby and out of sight, out to the hammock shelf, back up, asleep again |
+| 03 / SUMMIT | `beam` | Hovers, and every nine seconds charges and fires a beam. Each shot picks a new direction in steps of 30 degrees and the figure turns to face it |
+| 04 / WATCH | `boomerang` | Every eight seconds winds up and throws something that circles out and returns |
+| 05 / DEEP | `swim` | Unchanged: swims beneath the floor |
+
+The walker's route and the beam's aim depend on data and on chance, so they are set from
+`chamber/choreography.ts` (the Web Animations API for the route, a custom property for the aim).
+Everything else is stylesheet keyframes. `chamber/AgentFigure.tsx` draws a figure and only the
+extra pieces its act needs. A figure still pauses under the pointer or keyboard focus so it can
+be pressed.
+
+The core in the middle is now a button. It opens no page. Pressing it shows or hides four lines
+in the caption above it: **Master agent: Not built**, **Model connected: None**, **Figures with a
+function: 1 of 5**, **Ask Oracle: Not possible yet**. It reads nothing and calls nothing. Ten
+blank panes circle the core and dim as they pass behind it; they are empty because nothing is
+running, and the caption still says DORMANT. The core figure sways slightly. The orb moved to the
+top of the dome so a taller core figure fits beneath it.
+
+The sand timers no longer jump back to full. The glass is drawn the same at both ends; when the
+upper bulb is empty it turns half a circle and the sand runs again.
+
+Private artwork: the cat is now two extra optional files (`slot-2-asleep`, `slot-2-awake`) and
+`slot-2` is the tree alone; `.svg` is accepted and preferred. On this PC all figures, including
+the core, were redrawn for the owner as vector images in the Git-ignored private folder. They are
+not in this repository; a fresh clone shows the built-in pixel figures doing the same acts.
+
+No native command, backend operation, schema or dependency changed.
+
+Verification: 139 frontend tests pass, covering the core button and its wording, the blank panes,
+which pieces each act gets, the route's keyframes (closed loop, stars only at the stops, a lap
+measured in minutes), the beam re-aiming, and stylesheet guards for the timer turn and the motion
+switch. In a component preview with the private images, single frames were viewed at chosen
+points: the beam in two directions, the star shower at a stop, the thrown piece in flight, the
+timers mid-turn, the open status lines, and the cat at seven points of its routine. The preview
+pane was unreliable for close-ups, so the cat frames were small and the routine was not watched
+running in real time. Installed as desktop `2b563ae11256fe02a5e3fb7a93e0caf85292daefc5ba45e6216b85b2ce18eb7a`, specific to this PC. Not verified in the
+installed, unlocked window.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves

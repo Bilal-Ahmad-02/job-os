@@ -34,7 +34,7 @@ export function useLeash(
         line.setAttribute("x1", String(x1));
         line.setAttribute("y1", String(y1));
         // Standing figures are held by the feet; the swimmer, seen from above, by its middle.
-        const hold = (figure as HTMLElement).dataset.move === "roam" ? box.height / 2 : box.height;
+        const hold = (figure as HTMLElement).dataset.act === "swim" ? box.height / 2 : box.height;
         line.setAttribute("x2", String(box.left + box.width / 2 - frame.left));
         line.setAttribute("y2", String(box.top + hold - frame.top));
       }

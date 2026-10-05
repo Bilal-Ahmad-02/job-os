@@ -62,17 +62,14 @@ export const overseer = [
   "..sss..sss..",
 ];
 
-/**
- * A slim dark cat curled asleep on the top perch of a grey cat tree with a cubby, a side
- * platform, a hammock shelf and sisal posts. Decoration for a slot that has no agent yet.
- */
-export const sleepingCat = [
-  "...................Z..",
-  ".................Z....",
-  ".............NNNN.....",
-  "...........NnNNNNNN...",
-  "..........eNNNnNNNNN..",
-  "..........LNNNNNNNNNL.",
+/** A grey cat tree with a cubby, a side platform, a hammock shelf and sisal posts. */
+export const catTree = [
+  "......................",
+  "......................",
+  "......................",
+  "......................",
+  "......................",
+  "..........L.........L.",
   "..........LLLLLLLLLLL.",
   "...........lllllllll..",
   "..............YY......",
@@ -101,6 +98,26 @@ export const sleepingCat = [
   "...YY.LL.....LL...LL..",
   ".LLLLLLLLLLLLLLLLLLLL.",
   "LLLLLLLLLLLLLLLLLLLLLL",
+];
+
+/** A slim dark cat curled up asleep. */
+export const catCurled = [
+  "....NNNNN...",
+  "..NnNNNNNNN.",
+  ".eNNNnNNNNNN",
+  ".NNNNNNNNNNN",
+  "..NNNNNNNNN.",
+];
+
+/** The same cat on its feet, facing left. */
+export const catAwake = [
+  "e.e.......N.",
+  "NNN.......N.",
+  "NnNNNNNNNNN.",
+  "NNNNNNNNNN..",
+  ".NNNNNNNNN..",
+  ".N.N...N.N..",
+  ".N.N...N.N..",
 ];
 
 /** A hovering fighter inside a glow. An original figure, not a likeness of any character. */

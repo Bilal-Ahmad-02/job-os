@@ -7,15 +7,17 @@ desktop executable when you build it on this PC.
 
 | File name | Replaces |
 | --- | --- |
-| `job-os.png` | 01 / JOB.OS, the walking figure that opens the job-search console |
-| `slot-2.png` | 02 / PERCH (built in: a cat asleep on a cat tree) |
-| `slot-3.png` | 03 / SUMMIT (built in: a hovering fighter; it floats above its pad) |
-| `slot-4.png` | 04 / WATCH (built in: a cloaked watcher) |
-| `slot-5.png` | 05 / DEEP, which swims beneath the whole space (built in: a ray). Draw it from above with its head at the top; it is turned to face the way it swims |
-| `oracle.png` | The seated figure at the console in the middle |
+| `job-os` | 01 / JOB.OS, the figure that walks the platform and opens the job-search console |
+| `slot-2` | 02 / PERCH: the cat tree, without the cat |
+| `slot-2-asleep` | The cat curled up asleep |
+| `slot-2-awake` | The cat on its feet, facing left |
+| `slot-3` | 03 / SUMMIT, the hovering figure that fires a beam |
+| `slot-4` | 04 / WATCH, the figure that throws something that comes back |
+| `slot-5` | 05 / DEEP, which swims beneath the whole space. Draw it from above with its head at the top |
+| `oracle` | The seated figure at the console in the middle |
 
-`.png`, `.gif` and `.webp` are accepted, for example `job-os.gif`. If more than one format exists
-for a name, PNG wins, then GIF, then WebP.
+Add an extension: `.svg`, `.png`, `.gif` or `.webp`, for example `job-os.svg`. If more than one
+format exists for a name, that is the order of choice. Vector art (`.svg`) stays sharp at any zoom.
 
 Drawing notes:
 
