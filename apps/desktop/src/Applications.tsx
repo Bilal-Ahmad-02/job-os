@@ -231,6 +231,7 @@ export default function Applications({
                           {item.deadline_date < today() ? " (passed)" : ""}
                         </span>
                       ) : null}
+                      {item.open_todos ? <span>{item.open_todos} to do</span> : null}
                       {item.follow_up_date ? (
                         <span>
                           Follow up {item.follow_up_date}

@@ -9,6 +9,7 @@ import {
   statuses,
 } from "../api/applications";
 import Icon from "../Icon";
+import ApplicationWork from "./ApplicationWork";
 import SourceTrace from "./SourceTrace";
 
 const sections: { label: string; fields: readonly FieldName[] }[] = [
@@ -40,6 +41,7 @@ export default function ApplicationEditor({
   const [discard, setDiscard] = useState(false);
   const baseline = useRef(initial.data);
   const dirty = JSON.stringify(record.data) !== JSON.stringify(baseline.current);
+  const untitled = record.data.todos.some((todo) => !todo.title.trim());
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => {
     form.current?.querySelector("input")?.focus();
@@ -166,6 +168,13 @@ export default function ApplicationEditor({
             </div>
           </section>
         ))}
+        <ApplicationWork
+          data={record.data}
+          onChange={(change) => {
+            setRecord((current) => ({ ...current, data: { ...current.data, ...change } }));
+            setSaved("");
+          }}
+        />
       </fieldset>
       {record.imported ? <SourceTrace source={record.imported} /> : null}
       {record.listing_id ? (
@@ -193,7 +202,9 @@ export default function ApplicationEditor({
             </p>
           ) : null}
           <p className="save-status" role="status">
-            {saved || (dirty ? "Unsaved changes" : "No unsaved changes")}
+            {untitled
+              ? "Give every to-do a title, or remove it, before saving."
+              : saved || (dirty ? "Unsaved changes" : "No unsaved changes")}
           </p>
         </div>
         <button
@@ -201,6 +212,7 @@ export default function ApplicationEditor({
           disabled={
             busy ||
             !(record.data.title.trim() || record.data.company.trim()) ||
+            untitled ||
             (record.version > 0 && !dirty)
           }
         >

@@ -416,6 +416,7 @@ describe("Listing intake", () => {
           resume_sent: "",
           deadline_date: "",
           follow_up_date: "",
+          open_todos: 0,
         },
       ],
     });

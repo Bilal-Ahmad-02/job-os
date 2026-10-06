@@ -177,3 +177,36 @@ link surviving edits, a real migration from `0011` that preserves an existing do
 an updated legacy-upgrade test that writes its 2026-09 row as that release stored it, strict
 response validation, save-on-request, the index labels and guarded navigation to the listing.
 Not seen in the running app.
+
+## To-do items, preparation notes and documents used (step 20, part 2)
+
+Built on 2026-10-06. **Not deployed**: it needs schema `0013`, so the backend and desktop must be
+installed together after the owner approves the migration.
+
+What the owner gets in a dossier:
+
+- **05 / TO DO**: up to 30 items, each with a title, an optional due date and a tick. The index
+  shows how many are unticked ("2 to do"). Oracle never adds or ticks an item, and a due date is
+  only displayed. Nothing reminds or notifies; that belongs to step 28.
+- **06 / INTERVIEW PREPARATION**: one free-text note, up to 10,000 characters, written by the
+  owner. Nothing is generated or suggested.
+- **07 / DOCUMENTS USED**: ticks against stored document versions, up to 10. A tick records the
+  owner's statement that this exact file was used. It is not evidence that anything was sent. A
+  link names one immutable stored version, so adding a newer version later does not move it; the
+  list marks each as current or superseded.
+
+How it is stored and saved: `applications.preparation`, and two small tables,
+`application_todos` and `application_documents`, each keyed by dossier and position. They travel
+inside the existing dossier record, so there is no new desktop operation: a save replaces the
+dossier's whole to-do list and link list under the same version check as its other fields, and a
+stale save changes nothing. A link to a document that is not stored is refused with `invalid` and
+nothing is saved. Unticking removes only the link. The spreadsheet import's provenance never
+includes these fields.
+
+Verification: 366 Linux tests (14 more) and 148 frontend tests (3 more) pass. They cover order
+and state of items, replacement and clearing, isolation between dossiers, stale saves, every
+malformed item, the limits, a link surviving a newer version, refusal of an unknown document
+without partial writes, the JSON request shape, a real migration from `0012` that preserves an
+existing dossier's values, strict response validation in the desktop, and the screen's wording
+and behaviour. Not run: the native tests, the two Windows/WSL integration tests, the migration on
+the real workspace, and the running app.

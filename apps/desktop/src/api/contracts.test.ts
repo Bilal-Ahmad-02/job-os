@@ -28,6 +28,36 @@ it.each([
   await expect(listApplications("", 0)).rejects.toThrow("Invalid application response");
 });
 
+it("carries to-do items, preparation notes and document links, and counts open items", async () => {
+  const record = { ...blankApplication(), version: 2, updated_at: "2026-10-06T00:00:00Z" };
+  record.data.company = "Synthetic";
+  record.data.preparation = "Notes";
+  record.data.todos = [{ title: "Call", due_date: "2026-10-20", done: false }];
+  record.data.document_ids = [crypto.randomUUID()];
+  invoke.mockResolvedValue(record);
+  expect((await getApplication(record.id)).data).toEqual(record.data);
+  await saveApplication(record);
+  expect(invoke).toHaveBeenLastCalledWith("applications", {
+    payload: { action: "update", id: record.id, version: 2, data: record.data },
+  });
+  const item = {
+    id: record.id,
+    title: "",
+    company: "Synthetic",
+    status: "Saved",
+    resume_sent: "",
+    deadline_date: "",
+    follow_up_date: "",
+    open_todos: 1,
+  };
+  invoke.mockResolvedValue({ total: 1, items: [item] });
+  expect((await listApplications("", 0)).items[0]?.open_todos).toBe(1);
+  for (const open_todos of [undefined, -1, 31, "1"]) {
+    invoke.mockResolvedValue({ total: 1, items: [{ ...item, open_todos }] });
+    await expect(listApplications("", 0)).rejects.toThrow("Invalid application response");
+  }
+});
+
 it("rejects incomplete records and malformed import provenance", async () => {
   const record = { ...blankApplication(), version: 1 };
   for (const value of [
@@ -38,6 +68,25 @@ it("rejects incomplete records and malformed import provenance", async () => {
     { ...record, listing_id: undefined },
     { ...record, data: { ...record.data, deadline_date: "2026-02-30" } },
     { ...record, data: { ...record.data, follow_up_date: "soon" } },
+    { ...record, data: { ...record.data, preparation: 5 } },
+    { ...record, data: { ...record.data, todos: undefined } },
+    { ...record, data: { ...record.data, todos: [{ title: " ", due_date: "", done: false }] } },
+    { ...record, data: { ...record.data, todos: [{ title: "Call", due_date: "", done: 1 }] } },
+    { ...record, data: { ...record.data, todos: [{ title: "Call", due_date: "x", done: true }] } },
+    {
+      ...record,
+      data: { ...record.data, todos: [{ title: "Call", due_date: "", done: true, by: "x" }] },
+    },
+    {
+      ...record,
+      data: { ...record.data, todos: Array(31).fill({ title: "t", due_date: "", done: false }) },
+    },
+    { ...record, data: { ...record.data, document_ids: ["not-a-uuid"] } },
+    { ...record, data: { ...record.data, document_ids: [record.id, record.id] } },
+    {
+      ...record,
+      data: { ...record.data, document_ids: Array.from({ length: 11 }, () => crypto.randomUUID()) },
+    },
   ]) {
     invoke.mockResolvedValue(value);
     await expect(getApplication(record.id)).rejects.toThrow("Invalid application response");

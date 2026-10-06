@@ -37,9 +37,20 @@ export const dateFields = [
   ["follow_up_date", "Follow up on"],
 ] as const;
 export type DateField = (typeof dateFields)[number][0];
+/** Something the owner means to do. A due date is only shown; nothing fires on it. */
+export type Todo = { title: string; due_date: string; done: boolean };
+export const TODO_LIMIT = 30;
+export const DOCUMENT_LIMIT = 10;
 export type ApplicationData = Record<FieldName | DateField, string> & {
   status: (typeof statuses)[number];
+  /** Interview preparation notes, in the owner's words. */
+  preparation: string;
+  todos: Todo[];
+  /** Stored document versions the owner says were used; each names one exact file. */
+  document_ids: string[];
 };
+/** Fields added after the spreadsheet import, so never part of its provenance. */
+const laterFields = ["preparation", "todos", "document_ids"] as const;
 /** An ISO calendar day that really exists, or empty. */
 export function validDay(value: unknown): value is string {
   if (value === "") return true;
@@ -55,6 +66,8 @@ export type ApplicationSummary = {
   resume_sent: string;
   deadline_date: string;
   follow_up_date: string;
+  /** How many of its to-do items are not ticked. */
+  open_todos: number;
 };
 export type ApplicationPage = { total: number; items: ApplicationSummary[] };
 export type ApplicationRecord = {
@@ -96,6 +109,9 @@ export function blankApplication(): ApplicationRecord {
       follow_up: "",
       notes: "",
       status: "Unspecified",
+      preparation: "",
+      todos: [],
+      document_ids: [],
     },
   };
 }
@@ -103,14 +119,37 @@ export function blankApplication(): ApplicationRecord {
 function status(value: unknown): boolean {
   return statuses.some((candidate) => candidate === value);
 }
+function todo(value: unknown): boolean {
+  return (
+    object(value) &&
+    keys(value, ["title", "due_date", "done"]) &&
+    text(value.title, 200) &&
+    value.title.trim() !== "" &&
+    validDay(value.due_date) &&
+    typeof value.done === "boolean"
+  );
+}
+function work(value: Record<string, unknown>): boolean {
+  const { todos, document_ids: documents } = value;
+  return (
+    text(value.preparation, 10000) &&
+    Array.isArray(todos) &&
+    todos.length <= TODO_LIMIT &&
+    todos.every(todo) &&
+    Array.isArray(documents) &&
+    documents.length <= DOCUMENT_LIMIT &&
+    documents.every(uuid) &&
+    new Set(documents).size === documents.length
+  );
+}
 function sourceFields(value: unknown, withStatus: boolean): boolean {
   return (
     object(value) &&
     keys(value, [
       ...fields.map(([key]) => key),
-      ...(withStatus ? ["status", ...dateFields.map(([key]) => key)] : []),
+      ...(withStatus ? ["status", ...dateFields.map(([key]) => key), ...laterFields] : []),
     ]) &&
-    (!withStatus || dateFields.every(([key]) => validDay(value[key]))) &&
+    (!withStatus || (dateFields.every(([key]) => validDay(value[key])) && work(value))) &&
     fields.every(([key]) =>
       text(
         value[key],
@@ -169,7 +208,9 @@ export async function listApplications(query: string, offset: number): Promise<A
           "resume_sent",
           "deadline_date",
           "follow_up_date",
+          "open_todos",
         ]) &&
+        integer(item.open_todos, 0, TODO_LIMIT) &&
         validDay(item.deadline_date) &&
         validDay(item.follow_up_date) &&
         uuid(item.id) &&
@@ -207,7 +248,7 @@ const safeErrors = new Set([
   "Oracle could not safely open the workspace. Close Oracle and check database access or restore a verified backup.",
   "This entry changed. Reload it before saving again.",
   "This application could not be found. Refresh the list.",
-  "Check your entry: a job title or company is required, and fields have length limits.",
+  "Check your entry: a job title or company is required, every to-do needs a title, linked documents must still be stored, and fields have length limits.",
   "Application details are too large.",
 ]);
 

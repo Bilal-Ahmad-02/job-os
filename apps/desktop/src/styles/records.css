@@ -156,6 +156,33 @@
 .application-dates .input-help {
   margin: 0;
 }
+.todo-list,
+.document-links {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+.todo-list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: center;
+}
+.todo-list li[data-done="true"] input:not([type]) {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.document-links label {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.document-links small {
+  display: block;
+  color: var(--muted);
+}
 .editor-section {
   margin-bottom: 28px;
 }

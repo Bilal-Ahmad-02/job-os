@@ -9,6 +9,7 @@ import {
   listApplications,
   saveApplication,
 } from "./api/applications";
+import { listDocuments } from "./api/documents";
 
 vi.mock("./api/applications", async (original) => ({
   ...(await original<typeof import("./api/applications")>()),
@@ -42,6 +43,7 @@ beforeEach(() => {
           resume_sent: "",
           deadline_date: "",
           follow_up_date: "",
+          open_todos: 0,
         },
       ],
     });
@@ -97,6 +99,7 @@ describe("Application history", () => {
           resume_sent: "",
           deadline_date: "",
           follow_up_date: "",
+          open_todos: 0,
         },
       ],
     };
@@ -241,6 +244,7 @@ describe("Application history", () => {
           resume_sent: "",
           deadline_date: "2000-01-02",
           follow_up_date: "2999-12-31",
+          open_todos: 2,
         },
       ],
     });
@@ -255,5 +259,78 @@ describe("Application history", () => {
     expect(entry).toHaveTextContent("Deadline 2000-01-02 (passed)");
     expect(entry).toHaveTextContent("Follow up 2999-12-31");
     expect(entry).not.toHaveTextContent("(due)");
+    expect(entry).toHaveTextContent("2 to do");
+  });
+
+  it("keeps the owner's to-do list, preparation notes and exact document links", async () => {
+    const stored = {
+      id: "0b2f6c1e-5f0a-4a57-9f0a-2a3a1f2c9d11",
+      family_id: "0b2f6c1e-5f0a-4a57-9f0a-2a3a1f2c9d11",
+      version: 1,
+      previous_id: null,
+      is_latest: false,
+      filename: "synthetic-cv.pdf",
+      kind: "cv" as const,
+      byte_size: 10,
+      page_count: 1,
+      sha256: "a".repeat(64),
+      imported_at: "2026-10-01T00:00:00Z",
+      evidence_status: "source_only" as const,
+    };
+    vi.mocked(listDocuments).mockResolvedValueOnce([stored]);
+    render(<Applications />);
+    fireEvent.click(await screen.findByRole("button", { name: /Example company/ }));
+    // The wording says who does what: nothing is added, ticked, reminded, generated or sent.
+    expect(await screen.findByText(/does not add items, tick them or remind you/)).toBeVisible();
+    expect(screen.getByText(/does not generate or suggest/)).toBeVisible();
+    expect(screen.getByText(/has not sent it anywhere and cannot check/)).toBeVisible();
+    const save = screen.getByRole("button", { name: "Save application" });
+    fireEvent.click(screen.getByRole("button", { name: "Add to-do" }));
+    // An untitled item cannot be saved, and the reason is stated.
+    expect(save).toBeDisabled();
+    expect(screen.getByRole("status")).toHaveTextContent("Give every to-do a title");
+    fireEvent.change(screen.getByLabelText("To-do 1"), { target: { value: "Ask a referee" } });
+    fireEvent.change(screen.getByLabelText("Due date for to-do 1"), {
+      target: { value: "2026-10-12" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Add to-do" }));
+    fireEvent.change(screen.getByLabelText("To-do 2"), { target: { value: "Send the form" } });
+    fireEvent.click(screen.getByLabelText("Done: Send the form"));
+    fireEvent.click(screen.getByRole("button", { name: "Add to-do" }));
+    fireEvent.click(screen.getByRole("button", { name: "Remove to-do 3" }));
+    fireEvent.change(screen.getByLabelText("Preparation notes"), {
+      target: { value: "Revise queues." },
+    });
+    const link = await screen.findByLabelText(/synthetic-cv\.pdf/);
+    expect(link.closest("li")).toHaveTextContent("cv / version 1 / superseded by a newer version");
+    fireEvent.click(link);
+    expect(saveApplication).not.toHaveBeenCalled();
+    expect(save).toBeEnabled();
+    fireEvent.click(save);
+    await screen.findByText("Saved on this computer.");
+    expect(vi.mocked(saveApplication).mock.calls[0]?.[0].data).toMatchObject({
+      preparation: "Revise queues.",
+      todos: [
+        { title: "Ask a referee", due_date: "2026-10-12", done: false },
+        { title: "Send the form", due_date: "", done: true },
+      ],
+      document_ids: [stored.id],
+    });
+    // Unticking only removes the link from this dossier.
+    fireEvent.click(screen.getByLabelText(/synthetic-cv\.pdf/));
+    fireEvent.click(screen.getByRole("button", { name: "Save application" }));
+    await waitFor(() => expect(saveApplication).toHaveBeenCalledTimes(2));
+    expect(vi.mocked(saveApplication).mock.calls[1]?.[0].data.document_ids).toEqual([]);
+  });
+
+  it("keeps existing document links visible when the documents cannot be listed", async () => {
+    record.data.document_ids = ["0b2f6c1e-5f0a-4a57-9f0a-2a3a1f2c9d11"];
+    vi.mocked(listDocuments).mockRejectedValueOnce("secret path");
+    render(<Applications />);
+    fireEvent.click(await screen.findByRole("button", { name: /Example company/ }));
+    const alert = await screen.findByText(/could not be listed\. Existing links are kept/);
+    expect(alert).not.toHaveTextContent("secret path");
+    expect(screen.getByLabelText(/Stored document/)).toBeChecked();
+    expect(screen.getByRole("button", { name: "Save application" })).toBeDisabled();
   });
 });
