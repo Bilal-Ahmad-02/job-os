@@ -5,6 +5,7 @@ import subprocess
 import sys
 from typing import get_args
 from unittest.mock import Mock
+from uuid import UUID
 
 import pytest
 
@@ -89,6 +90,11 @@ ROUTES = [
             "decision": "rejected",
         },
         "save_review",
+        True,
+    ),
+    (
+        {"action": "application_draft", "id": str(UUID(int=7)), "kind": "cv"},
+        "draft_application",
         True,
     ),
 ]
