@@ -352,6 +352,11 @@ describe("Oracle chamber", () => {
     for (const colour of ["#f4f1ea", "#e8eff4", "#e0ae3a", "#c24e8e", "#8ee0a6", "#2f3b45"])
       expect(light).toContain(colour);
     expect(light).toMatch(/--shadow-filter: [^;]*brightness\(0\.\d+\)/);
+    // `--frame` is how long a strip holds each frame. A colour under that name once stopped
+    // every looping strip that had no time of its own, so it may only ever be a time.
+    for (const [, value] of styles.matchAll(/--frame:\s*([^;]+);/g))
+      expect(value).toMatch(/^[\d.]+s$/);
+    expect(styles).toMatch(/var\(--frame, [\d.]+s\)/);
   });
 
   it("keeps the hub hideable and every animation behind the motion switch", () => {

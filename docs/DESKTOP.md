@@ -516,6 +516,25 @@ every token it uses is defined for both modes. The owner approved the look from 
 preview. The coding session saw one early still. Installed as desktop `4c2345dc...` together with
 step 21's screen. Not verified in the unlocked window.
 
+### Fix: looping strips frozen by light mode (2026-10-06)
+
+Light mode introduced a colour token named `--frame` for the sand timers' frames. The strips
+already used `--frame` for how long each frame is held, with a fallback of 0.11 seconds. Inside
+the chamber the colour won, the time became invalid, and the browser dropped the whole looping
+animation for every strip that had no time of its own. In desktop `4c2345dc...` the walker, the
+flyer, the cat's walk and the core's typing still moved about, but their frames did not cycle.
+
+The colour tokens are now `--timer` and `--timer-line`. A test requires every `--frame` in the
+stylesheet to be a time. The component tests could not see this, because they do not apply
+stylesheets, and the coding session had only looked at still frames. It was found by reading the
+computed animation of each strip in a running preview after the owner said a figure's legs never
+moved.
+
+Verification: 153 frontend tests pass. In a running preview of the corrected stylesheet, the
+computed animation of the walker, flyer, cat and core strips is `chamber-reel` again with a real
+duration. Installed as desktop `613570fd4d4b5912ae8154f8c752d77545be35880033895b5aff700283ece7ed`. Not
+watched in the installed, unlocked window.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves

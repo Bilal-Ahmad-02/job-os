@@ -348,6 +348,15 @@ Not verified: the 33 ordinary native tests were not rerun, the workspace was not
 (no write path changed), and neither the drafts section nor light mode has been seen in the
 unlocked app by the coding session.
 
+### Desktop update — frozen strips fixed, October 6, 2026
+
+Desktop SHA-256 is now `613570fd4d4b5912ae8154f8c752d77545be35880033895b5aff700283ece7ed`,
+frontend only; backend `b7f11583...` and schema `0013` are unchanged. Checks: TypeScript, Biome,
+153 frontend tests, Vite and Tauri builds; installed bytes verified and the process reopened
+responsive. This replaces desktop `4c2345dc...`, in which a token name clash stopped several
+figures' frames from cycling (see DESKTOP.md). Not verified: the figures animating in the
+installed, unlocked window.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

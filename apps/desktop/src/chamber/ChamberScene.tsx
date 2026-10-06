@@ -52,7 +52,7 @@ const gridLines = Array.from({ length: 20 }, (_, index) => index - 3);
 const padded = AGENTS.filter((agent) => agent.pad);
 // Colours are the chamber's theme tokens, so the drawing follows its dark and light modes.
 const GLASS = { fill: "var(--glass)", stroke: "var(--glass-line)" } as const;
-const FRAME = { fill: "var(--frame)", stroke: "var(--frame-line)" } as const;
+const FRAME = { fill: "var(--timer)", stroke: "var(--timer-line)" } as const;
 
 /**
  * A sand timer hung between two posts joined by a bar across the top, high enough for the glass
@@ -205,7 +205,7 @@ export default function ChamberScene() {
       {/* The core's place: a low dais under a wire dome, with a dim orb at the top. */}
       <ellipse cx={cx} cy={cy + 6} rx="96" ry="48" fill="var(--dais-shadow)" />
       <ellipse cx={cx} cy={cy} rx="92" ry="46" fill="var(--dais-side)" stroke="var(--edge)" />
-      <ellipse cx={cx} cy={cy - 10} rx="92" ry="46" fill="var(--dais)" stroke="var(--frame-line)" />
+      <ellipse cx={cx} cy={cy - 10} rx="92" ry="46" fill="var(--dais)" stroke="var(--timer-line)" />
       <g fill="none" stroke="var(--dome)" strokeWidth="1.2">
         <path d={`M${cx - 92} ${cy - 10}A92 130 0 0 1 ${cx + 92} ${cy - 10}`} />
         <path d={`M${cx - 46} ${cy + 30}Q${cx - 66} ${cy - 80} ${cx} ${cy - 140}`} />

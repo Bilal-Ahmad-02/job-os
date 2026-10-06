@@ -24,8 +24,8 @@
   --grid: #32ce7426;
   --pad: #0b1a1366;
   --plinth: #07100c;
-  --frame: #12241a;
-  --frame-line: #32ce74;
+  --timer: #12241a;
+  --timer-line: #32ce74;
   --glass: #9fe8bd14;
   --glass-line: #4f8f69;
   --sand: #32ce74;
@@ -76,8 +76,8 @@
   --grid: #5da7c859;
   --pad: #ffffff8c;
   --plinth: #d3dee7;
-  --frame: #f7da7e;
-  --frame-line: #e0ae3a;
+  --timer: #f7da7e;
+  --timer-line: #e0ae3a;
   --glass: #5da7c826;
   --glass-line: #5da7c8;
   --sand: #8ee0a6;
