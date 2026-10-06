@@ -1,3 +1,105 @@
+/*
+ * The chamber's own colours. Dark is the default; light mode replaces them all, and with them
+ * the shared interface colours, for the chamber only. The job console is never themed.
+ */
+.chamber {
+  --void:
+    radial-gradient(ellipse 66% 54% at 50% 60%, #1a4029 0, #10291b 34%, #07130d 66%, #020504 100%),
+    #010302;
+  --speck-a: #70ee9ccc;
+  --speck-b: #32ce7499;
+  --speck-c: #b7f5cf;
+  --water: #020a0773;
+  --shadow-filter: blur(0.8px);
+  --panel: #040706e6;
+  --ring: #70ee9c66;
+  --pane: #0b1a13a6;
+  --pane-line: #70ee9c99;
+  --pane-rule: #70ee9c24;
+  --riser: #020403b8;
+  --tread: #0c1b14b8;
+  --court: #07100c99;
+  --edge: #1e3528;
+  --edge-strong: #376347;
+  --grid: #32ce7426;
+  --pad: #0b1a1366;
+  --plinth: #07100c;
+  --frame: #12241a;
+  --frame-line: #32ce74;
+  --glass: #9fe8bd14;
+  --glass-line: #4f8f69;
+  --sand: #32ce74;
+  --sand-stream: #70ee9c;
+  --dais: #0b1a13;
+  --dais-side: #050c08;
+  --dais-shadow: #03080580;
+  --dome: #32ce7455;
+  --orb-light: #b7f5cf;
+  --orb: #2a8f57;
+  --orb-dark: #0b1a13;
+  --orb-glow: #32ce7414;
+  --star: #fff;
+  --star-trail: #cfc2ff;
+  --star-glow: #8f7bff66;
+}
+/* Daylight: warm paper, icy blue floors, a gold dome, pink and magenta trim, mint sand. */
+.chamber[data-theme="light"] {
+  color-scheme: light;
+  --canvas: #f4f1ea;
+  --surface: #fbf9f4;
+  --active: #fbe9c4;
+  --hover: #f7da7e;
+  --border: #d3dee7;
+  --border-strong: #bcc7d1;
+  --text: #2f3b45;
+  --muted: #5b6a77;
+  --accent: #c24e8e;
+  --icon: #c24e8e;
+  --warning: #a8741a;
+  --void: radial-gradient(ellipse 66% 54% at 50% 60%, #fff 0, #f4f1ea 45%, #e7e2d6 100%), #f4f1ea;
+  --speck-a: #ee9cc499;
+  --speck-b: #5da7c880;
+  --speck-c: #c24e8e66;
+  --water: #e8eff466;
+  /* Under pale water a shape reads darker, not lighter. */
+  --shadow-filter: blur(0.8px) brightness(0.62) saturate(0.8);
+  --panel: #fffffff0;
+  --ring: #c24e8e80;
+  --pane: #ffffffb3;
+  --pane-line: #5da7c8cc;
+  --pane-rule: #5da7c833;
+  --riser: #bcc7d199;
+  --tread: #d3dee7a6;
+  --court: #e8eff480;
+  --edge: #bcc7d1;
+  --edge-strong: #8fa3b5;
+  --grid: #5da7c859;
+  --pad: #ffffff8c;
+  --plinth: #d3dee7;
+  --frame: #f7da7e;
+  --frame-line: #e0ae3a;
+  --glass: #5da7c826;
+  --glass-line: #5da7c8;
+  --sand: #8ee0a6;
+  --sand-stream: #4fbf7c;
+  --dais: #fbf9f4;
+  --dais-side: #d3dee7;
+  --dais-shadow: #bcc7d180;
+  --dome: #e0ae3acc;
+  --orb-light: #fdf0bd;
+  --orb: #e0ae3a;
+  --orb-dark: #a8741a;
+  --orb-glow: #f7da7e73;
+  --star: #c24e8e;
+  --star-trail: #ee9cc4;
+  --star-glow: #c24e8e59;
+  color: var(--text);
+  background: var(--canvas);
+}
+/* The shared header paints its own dark bar; in daylight it takes the chamber's surface. */
+.chamber[data-theme="light"] .console-header {
+  background: var(--surface);
+}
 .chamber {
   height: 100dvh;
   display: grid;
@@ -17,9 +119,7 @@
   /* The scene is moved and scaled by the owner; it is clipped, never scrolled. */
   overflow: clip;
   /* A dark floor: lit around the platform, falling away to black at the edges. */
-  background:
-    radial-gradient(ellipse 66% 54% at 50% 60%, #1a4029 0, #10291b 34%, #07130d 66%, #020504 100%),
-    #010302;
+  background: var(--void);
 }
 .chamber-void[data-panning="true"] {
   cursor: grabbing;
@@ -56,9 +156,9 @@
 }
 .chamber-stars {
   background-image:
-    radial-gradient(circle, #70ee9ccc 0 1px, transparent 1.6px),
-    radial-gradient(circle, #32ce7499 0 1px, transparent 1.6px),
-    radial-gradient(circle, #b7f5cf 0 1.2px, transparent 2px);
+    radial-gradient(circle, var(--speck-a) 0 1px, transparent 1.6px),
+    radial-gradient(circle, var(--speck-b) 0 1px, transparent 1.6px),
+    radial-gradient(circle, var(--speck-c) 0 1.2px, transparent 2px);
   background-size:
     160px 80px,
     320px 160px,
@@ -156,7 +256,7 @@
   margin: 0.7em 0 0;
   padding: 0.7em 1em;
   border: 1px solid var(--border-strong);
-  background: #040706e6;
+  background: var(--panel);
   font-size: 0.9em;
   text-align: left;
 }
@@ -189,7 +289,7 @@
   border-radius: 6px;
 }
 .chamber-core-button:is(:hover, [aria-expanded="true"]) {
-  box-shadow: inset 0 0 0 1px #70ee9c66;
+  box-shadow: inset 0 0 0 1px var(--ring);
 }
 .chamber-holo {
   position: absolute;
@@ -212,8 +312,8 @@
   top: 0;
   width: 14%;
   aspect-ratio: 1.5;
-  border: 1px solid #70ee9c99;
-  background: repeating-linear-gradient(#70ee9c24 0 2px, transparent 2px 5px), #0b1a13a6;
+  border: 1px solid var(--pane-line);
+  background: repeating-linear-gradient(var(--pane-rule) 0 2px, transparent 2px 5px), var(--pane);
   transform: skewY(-8deg);
   offset-path: ellipse(48% 42% at 50% 50%);
   offset-rotate: 0deg;
@@ -285,7 +385,7 @@
   padding: 3px 7px;
   transform: translateX(-50%);
   border: 1px solid var(--border-strong);
-  background: #040706d9;
+  background: var(--panel);
   white-space: nowrap;
 }
 .chamber-code {
@@ -333,7 +433,7 @@
 }
 /* Its colours are its own; depth only softens its edges. The water over it does the dimming. */
 .chamber-agent[data-act="swim"] .chamber-reel {
-  filter: blur(0.8px);
+  filter: var(--shadow-filter);
 }
 /*
  * The water's surface: a dark sheet over the swimmer and under the platform, so whatever is
@@ -342,7 +442,7 @@
 .chamber-surface {
   position: absolute;
   inset: 0;
-  background: #020a0773;
+  background: var(--water);
   pointer-events: none;
 }
 .chamber-surface::before {
@@ -442,9 +542,9 @@
   width: 9px;
   height: 6em;
   background:
-    linear-gradient(to top, #fff, #cfc2ff 25%, #8f7bff66 60%, transparent) center / 2px 100%
-    no-repeat,
-    radial-gradient(circle, #fff 0 0.8px, transparent 1.3px) 0 0 / 9px 13px;
+    linear-gradient(to top, var(--star), var(--star-trail) 25%, var(--star-glow) 60%, transparent)
+    center / 2px 100% no-repeat,
+    radial-gradient(circle, var(--star) 0 0.8px, transparent 1.3px) 0 0 / 9px 13px;
   mask-image: linear-gradient(to top, #000 40%, transparent);
   transform-origin: 50% 100%;
 }
@@ -454,9 +554,16 @@
   width: 5.2em;
   height: 5.2em;
   background:
-    radial-gradient(circle, #fff 0 7%, #e4dbff 12%, #9f8cff59 28%, transparent 58%),
-    linear-gradient(90deg, transparent, #b9a8ffcc 50%, transparent) center / 100% 2px no-repeat,
-    linear-gradient(transparent, #ffffffaa 50%, transparent) center / 2px 70% no-repeat;
+    radial-gradient(
+      circle,
+      var(--star) 0 7%,
+      var(--star-trail) 12%,
+      var(--star-glow) 28%,
+      transparent 58%
+    ),
+    linear-gradient(90deg, transparent, var(--star-trail) 50%, transparent) center / 100% 2px
+    no-repeat,
+    linear-gradient(transparent, var(--star) 50%, transparent) center / 2px 70% no-repeat;
 }
 
 /* Lines from the orb to each figure, drawn over the space in page coordinates. */

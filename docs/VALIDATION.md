@@ -327,6 +327,27 @@ Not verified: the 33 ordinary native tests were not rerun (no native code change
 20 part 2 screen has been seen in the unlocked app. The newest encrypted snapshot predates this
 migration.
 
+### Step 21 and chamber light mode deployment — October 6, 2026
+
+Backend release: `b7f115839d691cc05c48ac9bd2cb474b7a3ba47c1d05d7f4e403370e069ba3ee`.
+Desktop SHA-256: `4c2345dc7e7b9bb486ecb4d631af28230e6745765b616758e0e7d8853f53300a`. Schema: `0013`, unchanged.
+Earlier releases are retained.
+
+Checks before deployment: 379 Linux tests with Ruff clean; TypeScript, Biome and 153 frontend
+tests across 19 files; Vite and Tauri builds.
+
+| Check | Result |
+| --- | --- |
+| Installed-release probe | Passed, reporting schema `0013` |
+| Windows/WSL native integration | Both opt-in tests passed against the new release |
+| Migration | None; step 21 stores nothing |
+| Runtime selection | `runtime.json` pins the new release; workspace not moved |
+| Desktop | Install script verified bytes; process reopened responsive |
+
+Not verified: the 33 ordinary native tests were not rerun, the workspace was not fingerprinted
+(no write path changed), and neither the drafts section nor light mode has been seen in the
+unlocked app by the coding session.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

@@ -216,8 +216,8 @@ the 33 ordinary native tests (no native code changed). Not seen: the screens in 
 
 ## Template-built CV and cover-letter drafts (step 21, template-only)
 
-Built on 2026-10-06. **Not deployed.** No schema change: it needs a new backend release and a
-new desktop build, installed together.
+Built and deployed on 2026-10-06 on the owner's instruction: backend `b7f11583...`, desktop
+`4c2345dc...`. No schema change and no migration; the workspace stays at `0013`.
 
 The owner chose to build step 21 with fixed templates first rather than wait for the AI provider
 boundary of step 22. No model takes part and nothing leaves the computer.
@@ -255,6 +255,6 @@ text of both templates on a synthetic profile, ordering, the skill reordering an
 removes nothing, that every source names a real profile field or entry, that template wording
 contains no profile fact, an empty profile, wording that follows the recorded study state,
 verbatim copying of hostile-looking text, that building twice changes neither record, request
-and response validation, and the review, untick, confirm and copy behaviour on screen. Not run:
-the native tests and the Windows/WSL tests. Not seen: the screen in the running app, or a draft
-built from the real profile.
+and response validation, and the review, untick, confirm and copy behaviour on screen. Both
+Windows/WSL integration tests passed against the installed release. Not run: the 33 ordinary
+native tests. Not seen: the screen in the running app, or a draft built from the real profile.

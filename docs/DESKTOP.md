@@ -491,6 +491,31 @@ its preview window was not drawing frames. Installed as desktop
 `c03e46009d61d1149ea883d8412c44dd66772bcae99d39ac69dc9e6c5ed8d0f9`. Not verified in the unlocked window
 by the coding session.
 
+### Light mode for the chamber (2026-10-06, approved by the owner from a preview)
+
+A **Light on / off** button beside the Motion switch changes the chamber's colours, and the
+choice is remembered on this computer (`oracle.chamber.theme`). Dark stays the default. Only the
+chamber hub is themed: the job console, the rooms behind the figures and the opening seal keep
+the black and green console look.
+
+The palette follows the owner's reference picture: warm paper background, icy blue floors and
+steps, a gold dome, dais and timer frames, magenta labels and lines, mint sand, teal panes, slate
+text. The swimmer is darkened under pale water, and the falling stars turn magenta and pink so
+they show on a pale floor.
+
+How it works: every colour of the scene is a token defined on `.chamber` and redefined under
+`.chamber[data-theme="light"]`, which also overrides the shared interface colours inside the
+chamber. `ChamberScene.tsx` holds no fixed colour. The motion switch and the theme switch share
+one remembered-choice hook in `chamber/motion.ts`.
+
+Known rough edges: the watcher is a black silhouette made for a dark sky, and the black hole is
+stark on a pale background.
+
+Verification: 153 frontend tests pass, including that the scene has no fixed colour and that
+every token it uses is defined for both modes. The owner approved the look from a running
+preview. The coding session saw one early still. Installed as desktop `4c2345dc...` together with
+step 21's screen. Not verified in the unlocked window.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves

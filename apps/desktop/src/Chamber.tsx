@@ -7,7 +7,7 @@ import ChamberScene from "./chamber/ChamberScene";
 import ChamberSpace from "./chamber/ChamberSpace";
 import { MAX_SCALE, MIN_SCALE, useCamera } from "./chamber/camera";
 import { useRoutine } from "./chamber/choreography";
-import { useMotion } from "./chamber/motion";
+import { useMotion, useTheme } from "./chamber/motion";
 import { useLeash } from "./chamber/useLeash";
 import { useWander } from "./chamber/wander";
 import ShellHeader from "./ShellHeader";
@@ -107,6 +107,7 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
   const [jobsOpened, setJobsOpened] = useState(false);
   const [coreOpen, setCoreOpen] = useState(false);
   const [motion, toggleMotion] = useMotion();
+  const [theme, toggleTheme] = useTheme();
   const space = useRef<HTMLElement>(null);
   const camera = useCamera(space);
   const { view } = camera;
@@ -130,7 +131,12 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
 
   return (
     <>
-      <div className="chamber" hidden={!atHub} data-motion={motion ? "on" : "off"}>
+      <div
+        className="chamber"
+        hidden={!atHub}
+        data-motion={motion ? "on" : "off"}
+        data-theme={theme}
+      >
         <ShellHeader caption="THE CHAMBER" onLock={onLock}>
           <button
             className="quiet-button"
@@ -166,6 +172,15 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
             onClick={toggleMotion}
           >
             Motion {motion ? "on" : "off"}
+          </button>
+          <button
+            className="quiet-button"
+            type="button"
+            aria-pressed={theme === "light"}
+            title="Colours of the chamber only. The job console stays dark."
+            onClick={toggleTheme}
+          >
+            Light {theme === "light" ? "on" : "off"}
           </button>
         </ShellHeader>
         {/* Mouse-only camera; the header buttons do the same by keyboard. */}

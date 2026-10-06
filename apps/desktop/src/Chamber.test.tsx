@@ -185,8 +185,9 @@ describe("Oracle chamber", () => {
     const styles = readFileSync("src/styles/chamber.css", "utf8");
     expect(styles).toMatch(/\.chamber-art \{[^}]*position: relative;/);
     expect(styles).toMatch(
-      /\[data-act="swim"\] \.chamber-reel \{\s*filter: blur\([\d.]+px\);\s*\}/,
+      /\[data-act="swim"\] \.chamber-reel \{\s*filter: var\(--shadow-filter\);\s*\}/,
     );
+    expect(styles).toMatch(/\.chamber \{[^}]*--shadow-filter: blur\([\d.]+px\);/);
     expect(styles).not.toMatch(/offset-path: ellipse\(3|chamber-swim|chamber-ripple/);
     // The watcher stands on the bar of the left sand timer; the black hole is off the platform.
     const [barLeft, barTop] = scenePercent(TIMERS.left, TIMERS.bar);
@@ -309,6 +310,48 @@ describe("Oracle chamber", () => {
     for (const cell of ["0,0", "1,0", "2,0", "0,1", "1,1", "2,1", "0,2", "1,2", "2,2"])
       expect(visited).toContain(cell);
     expect(swim.speed).toBeGreaterThan(10);
+  });
+
+  it("switches the chamber alone between dark and light and remembers the choice", () => {
+    const { container, unmount } = render(<Chamber />);
+    const hub = container.querySelector(".chamber");
+    const toggle = screen.getByRole("button", { name: "Light off" });
+    // Dark is the default, and the switch sits with the other view controls.
+    expect(hub).toHaveAttribute("data-theme", "dark");
+    expect(toggle).toHaveAttribute("aria-pressed", "false");
+    fireEvent.click(toggle);
+    expect(hub).toHaveAttribute("data-theme", "light");
+    expect(screen.getByRole("button", { name: "Light on" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    // Only the hub carries the theme: the console is outside it.
+    fireEvent.click(openJobs());
+    expect(screen.getByTestId("console").closest("[data-theme]")).toBeNull();
+    unmount();
+    render(<Chamber />);
+    fireEvent.click(screen.getByRole("button", { name: "Light on" }));
+    expect(screen.getByRole("button", { name: "Light off" })).toBeVisible();
+  });
+
+  it("draws the scene from theme tokens that light mode redefines", () => {
+    const styles = readFileSync("src/styles/chamber.css", "utf8");
+    const scene = readFileSync("src/chamber/ChamberScene.tsx", "utf8");
+    // No colour is fixed in the drawing, so nothing stays dark in daylight.
+    expect(scene).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+    const used = new Set([...scene.matchAll(/var\((--[a-z-]+)\)/g)].map(([, name]) => name));
+    expect(used.size).toBeGreaterThan(15);
+    const block = (selector: string) =>
+      styles.slice(styles.indexOf(`${selector} {`)).split("}")[0] ?? "";
+    const [dark, light] = [block(".chamber"), block('.chamber[data-theme="light"]')];
+    for (const name of used) {
+      expect(dark).toContain(`${name}:`);
+      expect(light).toContain(`${name}:`);
+    }
+    // The palette of the owner's reference: paper, icy floor, gold, magenta, mint, slate text.
+    for (const colour of ["#f4f1ea", "#e8eff4", "#e0ae3a", "#c24e8e", "#8ee0a6", "#2f3b45"])
+      expect(light).toContain(colour);
+    expect(light).toMatch(/--shadow-filter: [^;]*brightness\(0\.\d+\)/);
   });
 
   it("keeps the hub hideable and every animation behind the motion switch", () => {

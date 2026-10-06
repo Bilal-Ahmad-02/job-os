@@ -50,8 +50,9 @@ const steps = [2, 1].map((step) => {
 });
 const gridLines = Array.from({ length: 20 }, (_, index) => index - 3);
 const padded = AGENTS.filter((agent) => agent.pad);
-const GLASS = { fill: "#9fe8bd14", stroke: "#4f8f69" } as const;
-const FRAME = { fill: "#12241a", stroke: "#32ce74" } as const;
+// Colours are the chamber's theme tokens, so the drawing follows its dark and light modes.
+const GLASS = { fill: "var(--glass)", stroke: "var(--glass-line)" } as const;
+const FRAME = { fill: "var(--frame)", stroke: "var(--frame-line)" } as const;
 
 /**
  * A sand timer hung between two posts joined by a bar across the top, high enough for the glass
@@ -64,10 +65,10 @@ function Hourglass({ at: [x, y], id }: { at: Point; id: string }) {
   const bar = base - TIMERS.bar;
   return (
     <g>
-      <ellipse cx={cx} cy={base} rx="38" ry="17" fill="#07100c" stroke="#376347" />
+      <ellipse cx={cx} cy={base} rx="38" ry="17" fill="var(--plinth)" stroke="var(--edge-strong)" />
       <path
         d={`M${cx - 33} ${base}V${bar}M${cx + 33} ${base}V${bar}`}
-        stroke="#376347"
+        stroke="var(--edge-strong)"
         strokeWidth="3"
       />
       <rect x={cx - 40} y={bar} width="80" height="5" rx="2" {...FRAME} />
@@ -85,7 +86,7 @@ function Hourglass({ at: [x, y], id }: { at: Point; id: string }) {
             y={mid - 49}
             width="38"
             height="46"
-            fill="#32ce74"
+            fill="var(--sand)"
           />
         </g>
         <g clipPath={`url(#${id}-lower)`}>
@@ -95,7 +96,7 @@ function Hourglass({ at: [x, y], id }: { at: Point; id: string }) {
             y={mid + 3}
             width="38"
             height="46"
-            fill="#32ce74"
+            fill="var(--sand)"
           />
         </g>
         <line
@@ -104,7 +105,7 @@ function Hourglass({ at: [x, y], id }: { at: Point; id: string }) {
           y1={mid - 4}
           x2={cx}
           y2={mid + 46}
-          stroke="#70ee9c"
+          stroke="var(--sand-stream)"
           strokeWidth="2"
           strokeDasharray="3 4"
         />
@@ -139,27 +140,32 @@ export default function ChamberScene() {
           <polygon points={points(court)} />
         </clipPath>
         <radialGradient id="chamber-orb" cx="40%" cy="35%" r="70%">
-          <stop offset="0" stopColor="#b7f5cf" />
-          <stop offset="0.45" stopColor="#2a8f57" />
-          <stop offset="1" stopColor="#0b1a13" />
+          <stop offset="0" stopColor="var(--orb-light)" />
+          <stop offset="0.45" stopColor="var(--orb)" />
+          <stop offset="1" stopColor="var(--orb-dark)" />
         </radialGradient>
       </defs>
 
       {/* Everything is slightly see-through, so what swims under the floor shows beneath. */}
       {steps.map(({ drop, riser, tread }) => (
-        <g key={drop} stroke="#1e3528" fillRule="evenodd">
-          <path d={riser} fill="#020403b8" />
-          <path d={tread} fill="#0c1b14b8" />
+        <g key={drop} stroke="var(--edge)" fillRule="evenodd">
+          <path d={riser} fill="var(--riser)" />
+          <path d={tread} fill="var(--tread)" />
         </g>
       ))}
       <path
         d={`${foot(court, 0)}M${points(court)}Z`}
         fillRule="evenodd"
-        fill="#020403b8"
-        stroke="#1e3528"
+        fill="var(--riser)"
+        stroke="var(--edge)"
       />
-      <polygon points={points(court)} fill="#07100c99" stroke="#376347" strokeWidth="1.5" />
-      <g clipPath="url(#chamber-court)" stroke="#32ce7426" strokeWidth="1">
+      <polygon
+        points={points(court)}
+        fill="var(--court)"
+        stroke="var(--edge-strong)"
+        strokeWidth="1.5"
+      />
+      <g clipPath="url(#chamber-court)" stroke="var(--grid)" strokeWidth="1">
         {gridLines.map((line) => (
           <g key={line}>
             <polyline
@@ -188,8 +194,8 @@ export default function ChamberScene() {
             [x + 0.9, y + 0.9],
             [x - 0.9, y + 0.9],
           ])}
-          fill="#0b1a1366"
-          stroke="#376347"
+          fill="var(--pad)"
+          stroke="var(--edge-strong)"
           strokeDasharray="5 5"
         />
       ))}
@@ -197,23 +203,23 @@ export default function ChamberScene() {
       <Hourglass at={TIMERS.left} id="chamber-glass-a" />
 
       {/* The core's place: a low dais under a wire dome, with a dim orb at the top. */}
-      <ellipse cx={cx} cy={cy + 6} rx="96" ry="48" fill="#03080580" />
-      <ellipse cx={cx} cy={cy} rx="92" ry="46" fill="#050c08" stroke="#1e3528" />
-      <ellipse cx={cx} cy={cy - 10} rx="92" ry="46" fill="#0b1a13" stroke="#32ce74" />
-      <g fill="none" stroke="#32ce7455" strokeWidth="1.2">
+      <ellipse cx={cx} cy={cy + 6} rx="96" ry="48" fill="var(--dais-shadow)" />
+      <ellipse cx={cx} cy={cy} rx="92" ry="46" fill="var(--dais-side)" stroke="var(--edge)" />
+      <ellipse cx={cx} cy={cy - 10} rx="92" ry="46" fill="var(--dais)" stroke="var(--frame-line)" />
+      <g fill="none" stroke="var(--dome)" strokeWidth="1.2">
         <path d={`M${cx - 92} ${cy - 10}A92 130 0 0 1 ${cx + 92} ${cy - 10}`} />
         <path d={`M${cx - 46} ${cy + 30}Q${cx - 66} ${cy - 80} ${cx} ${cy - 140}`} />
         <path d={`M${cx + 46} ${cy + 30}Q${cx + 66} ${cy - 80} ${cx} ${cy - 140}`} />
         <ellipse cx={cx} cy={cy - 78} rx="80" ry="30" />
       </g>
-      <circle cx={cx} cy={cy - 150} r="15" fill="#32ce7414" />
+      <circle cx={cx} cy={cy - 150} r="15" fill="var(--orb-glow)" />
       <circle
         className="chamber-orb"
         cx={cx}
         cy={cy - 150}
         r="10"
         fill="url(#chamber-orb)"
-        stroke="#376347"
+        stroke="var(--edge-strong)"
       />
 
       <Hourglass at={TIMERS.right} id="chamber-glass-b" />
