@@ -215,6 +215,22 @@ export const blackHole: Frames = Array.from({ length: 8 }, (_, frame) =>
   ),
 );
 
+/**
+ * A plain outlined box with a mark in the middle, in the proportions of the art it stands in
+ * for. Shown for a figure whose drawing only exists as owner-supplied art.
+ */
+export function placeholder(columns: number, rows: number): Frames {
+  return [
+    Array.from({ length: rows }, (_, row) =>
+      Array.from({ length: columns }, (_, column) => {
+        const edge = row === 0 || row === rows - 1 || column === 0 || column === columns - 1;
+        const middle = Math.hypot(column - (columns - 1) / 2, row - (rows - 1) / 2) < 2;
+        return edge ? "W" : middle ? "G" : ".";
+      }).join(""),
+    ),
+  ];
+}
+
 /** Draws one frame, merging each horizontal run of a colour into a single rectangle. */
 export function PixelSprite({
   rows,

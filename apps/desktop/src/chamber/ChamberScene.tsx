@@ -1,4 +1,5 @@
-import { AGENTS, CORE, iso, type Point, SCENE, TIMERS } from "./agents";
+import { memo } from "react";
+import { AGENTS, CORE, iso, LAKE, type Point, SCENE, TIMERS } from "./agents";
 
 function points(corners: readonly Point[], drop = 0): string {
   return corners
@@ -121,12 +122,157 @@ function Hourglass({ at: [x, y], id }: { at: Point; id: string }) {
   );
 }
 
+/** Trees and bushes round the lake: how far along it, how far behind (or in front), and size. */
+const GROVE = [
+  ["tree", -0.86, -52, 1.1],
+  ["pine", -0.62, -66, 1.25],
+  ["tree", -0.3, -72, 1.4],
+  ["bush", -0.08, -50, 1],
+  ["pine", 0.2, -70, 1.15],
+  ["tree", 0.52, -62, 1.2],
+  ["bush", 0.8, -46, 0.9],
+  ["bush", -0.5, 46, 1],
+  ["bush", 0.1, 50, 1.2],
+  ["bush", 0.42, 44, 0.8],
+] as const;
+
+/** Stepping stones near one end of the lake: how far along it, how far down, and how big. */
+const STONES = [
+  [0.52, 22, 9],
+  [0.62, 12, 11],
+  [0.7, 0, 8],
+  [0.78, -10, 10],
+  [0.86, -19, 7],
+] as const;
+
+/**
+ * A lake seen almost from the side: a long low oval on a pale shore. The water runs from deep
+ * green at one end to bright blue at the other, with a warm reflection lying in the middle, a
+ * line of stepping stones, bands of light that slide along it, and a grove round it. Scenery,
+ * drawn under the figures.
+ */
+function Lake() {
+  const { x, y, reach, depth } = LAKE;
+  return (
+    <g>
+      <defs>
+        <linearGradient id="chamber-lake">
+          <stop offset="0" stopColor="var(--lake-green)" />
+          <stop offset="0.55" stopColor="var(--lake-teal)" />
+          <stop offset="1" stopColor="var(--lake-blue)" />
+        </linearGradient>
+        <radialGradient id="chamber-lake-glow">
+          <stop offset="0" stopColor="var(--lake-warm)" />
+          <stop offset="1" stopColor="var(--lake-warm)" stopOpacity="0" />
+        </radialGradient>
+        <clipPath id="chamber-lake-edge">
+          <ellipse cx={x} cy={y} rx={reach} ry={depth} />
+        </clipPath>
+      </defs>
+      <ellipse cx={x} cy={y + 3} rx={reach + 14} ry={depth + 9} fill="var(--shore)" />
+      <ellipse cx={x} cy={y} rx={reach} ry={depth} fill="url(#chamber-lake)" />
+      <g clipPath="url(#chamber-lake-edge)">
+        <ellipse
+          cx={x - reach * 0.55}
+          cy={y + 14}
+          rx={reach * 0.5}
+          ry={depth}
+          fill="var(--lake-deep)"
+        />
+        <ellipse
+          className="chamber-lake-glow"
+          cx={x + reach * 0.12}
+          cy={y + 6}
+          rx={reach * 0.42}
+          ry={depth * 0.75}
+          fill="url(#chamber-lake-glow)"
+        />
+        <g
+          className="chamber-lake-light"
+          stroke="var(--lake-light)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeDasharray="16 20"
+        >
+          {[-26, -14, -2, 10, 22].map((row, line) => (
+            <path key={row} d={`M${x - reach + line * 9} ${y + row}h${reach * 2}`} />
+          ))}
+        </g>
+      </g>
+      {STONES.map(([along, down, size]) => (
+        <g key={along}>
+          <ellipse
+            cx={x + along * reach}
+            cy={y + down + 2}
+            rx={size}
+            ry={size * 0.5}
+            fill="var(--stone)"
+          />
+          <ellipse
+            cx={x + along * reach - 1}
+            cy={y + down}
+            rx={size * 0.8}
+            ry={size * 0.36}
+            fill="var(--stone-top)"
+          />
+        </g>
+      ))}
+      {GROVE.map(([kind, along, behind, size]) => {
+        const [gx, gy] = [x + along * reach, y + behind];
+        const leaf = (dx: number, dy: number, r: number, dark = false) => (
+          <circle
+            cx={gx + dx * size}
+            cy={gy + dy * size}
+            r={r * size}
+            fill={dark ? "var(--leaf-dark)" : "var(--leaf)"}
+          />
+        );
+        return (
+          <g key={`${kind}${along}`}>
+            {kind === "bush" ? null : (
+              <rect
+                x={gx - 3 * size}
+                y={gy - 22 * size}
+                width={6 * size}
+                height={22 * size}
+                fill="var(--trunk)"
+              />
+            )}
+            {kind === "pine" ? (
+              [0, 1, 2].map((tier) => (
+                <polygon
+                  key={tier}
+                  points={`${gx - (20 - tier * 5) * size},${gy - (14 + tier * 14) * size} ${gx + (20 - tier * 5) * size},${gy - (14 + tier * 14) * size} ${gx},${gy - (40 + tier * 14) * size}`}
+                  fill={tier === 1 ? "var(--leaf)" : "var(--leaf-dark)"}
+                />
+              ))
+            ) : kind === "tree" ? (
+              <>
+                {leaf(-9, -30, 13, true)}
+                {leaf(9, -32, 14, true)}
+                {leaf(0, -42, 15)}
+              </>
+            ) : (
+              <>
+                {leaf(-9, -6, 9, true)}
+                {leaf(8, -7, 10, true)}
+                {leaf(0, -11, 10)}
+              </>
+            )}
+          </g>
+        );
+      })}
+    </g>
+  );
+}
+
 /**
  * Decorative chamber drawing: the court raised two steps above the floor, the sand timers and
  * the core's dais, dome and dim orb. The core's figure, the other figures, their lines to the
- * orb and the panes around the core are drawn by the chamber on top of this.
+ * orb and the panes around the core are drawn by the chamber on top of this. It never changes,
+ * so it is drawn once.
  */
-export default function ChamberScene() {
+export default memo(function ChamberScene() {
   const [cx, cy] = iso(CORE.x, CORE.y);
   return (
     <svg
@@ -145,6 +291,8 @@ export default function ChamberScene() {
           <stop offset="1" stopColor="var(--orb-dark)" />
         </radialGradient>
       </defs>
+
+      <Lake />
 
       {/* Everything is slightly see-through, so what swims under the floor shows beneath. */}
       {steps.map(({ drop, riser, tread }) => (
@@ -225,4 +373,4 @@ export default function ChamberScene() {
       <Hourglass at={TIMERS.right} id="chamber-glass-b" />
     </svg>
   );
-}
+});

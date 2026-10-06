@@ -357,6 +357,14 @@ responsive. This replaces desktop `4c2345dc...`, in which a token name clash sto
 figures' frames from cycling (see DESKTOP.md). Not verified: the figures animating in the
 installed, unlocked window.
 
+### Desktop update — eighteen chamber figures, October 6, 2026
+
+Desktop SHA-256 is now `596bac9ac9c7f0fe6fa71436d34234f2661ff801f9b5a85b348cc652cf254dbe`,
+frontend only; backend `b7f11583...` and schema `0013` are unchanged. Checks: TypeScript, Biome,
+165 frontend tests, Vite and Tauri builds; installed bytes verified and the process reopened
+responsive. Not verified: the new figures in the installed, unlocked window. The coding session
+examined still frames only; the owner approved the motion from a running preview.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

@@ -302,3 +302,52 @@
   height: 31.5vmin;
   transform: translate(-50%, -50%);
 }
+
+/*
+ * Rooms without a block of their own share this one and differ by three colours each: a flat
+ * field, a row of bars in the trim colour along the foot, and the words set low on the left.
+ */
+.room[data-look="plain"] .room-stage {
+  align-items: end;
+  background: var(--back);
+  color: var(--ink);
+}
+.room[data-look="plain"] h1 {
+  color: var(--ink);
+  font: 600 clamp(26px, 4.4vw, 54px) / 1.05 var(--mono);
+  letter-spacing: 6px;
+}
+.room[data-look="plain"] :is(.eyebrow, .room-status) {
+  color: var(--trim);
+}
+.room[data-look="plain"] .room-art i {
+  bottom: 0;
+  width: 9%;
+  height: calc(var(--rise) * 1%);
+  background: var(--trim);
+  opacity: 0.35;
+}
+.room[data-look="plain"] .room-art i:nth-child(1) {
+  --rise: 22;
+  right: 4%;
+}
+.room[data-look="plain"] .room-art i:nth-child(2) {
+  --rise: 46;
+  right: 15%;
+}
+.room[data-look="plain"] .room-art i:nth-child(3) {
+  --rise: 31;
+  right: 26%;
+}
+.room[data-look="plain"] .room-art i:nth-child(4) {
+  --rise: 64;
+  right: 37%;
+}
+.room[data-look="plain"] .room-art i:nth-child(5) {
+  --rise: 18;
+  right: 48%;
+}
+.room[data-look="plain"] .room-art i:nth-child(6) {
+  --rise: 39;
+  right: 59%;
+}

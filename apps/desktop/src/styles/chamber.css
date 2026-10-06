@@ -41,6 +41,18 @@
   --star: #fff;
   --star-trail: #cfc2ff;
   --star-glow: #8f7bff66;
+  --shore: #16241d;
+  --lake-green: #0a5a48;
+  --lake-teal: #0c7f84;
+  --lake-blue: #1aa7c4;
+  --lake-deep: #06352c99;
+  --lake-warm: #c2327a;
+  --lake-light: #b9f3ff66;
+  --stone: #3d3a37;
+  --stone-top: #7d766c;
+  --leaf: #2a6b45;
+  --leaf-dark: #17442c;
+  --trunk: #3d2c1d;
 }
 /* Daylight: warm paper, icy blue floors, a gold dome, pink and magenta trim, mint sand. */
 .chamber[data-theme="light"] {
@@ -93,6 +105,18 @@
   --star: #c24e8e;
   --star-trail: #ee9cc4;
   --star-glow: #c24e8e59;
+  --shore: #e2dcc6;
+  --lake-green: #2f9c7d;
+  --lake-teal: #35b8b4;
+  --lake-blue: #62d2e6;
+  --lake-deep: #1c7a6399;
+  --lake-warm: #e0559a;
+  --lake-light: #ffffffb3;
+  --stone: #8d867c;
+  --stone-top: #c9c2b6;
+  --leaf: #7cc48d;
+  --leaf-dark: #4f9a66;
+  --trunk: #9a7a55;
   color: var(--text);
   background: var(--canvas);
 }
@@ -205,7 +229,8 @@
 /* Everything inside is placed in percentages of the scene drawing, so it scales as one piece. */
 .chamber-scene {
   position: relative;
-  width: min(100%, calc((100dvh - 170px) * 1.557));
+  /* Smaller than the space, to leave open ground and sky round the platform. */
+  width: min(72%, calc((100dvh - 170px) * 1.12));
   aspect-ratio: 872 / 560;
   container-type: inline-size;
   font-size: clamp(9px, 1.05cqw, 13px);
@@ -620,6 +645,17 @@
   animation: chamber-hover 4s ease-in-out infinite alternate;
   animation-delay: calc(var(--at) * -0.7s);
 }
+/* Something that hangs in the air rides up and down a little. */
+.chamber[data-motion="on"] .chamber-agent[data-act="float"] .chamber-actor {
+  animation: chamber-bob 5s ease-in-out infinite alternate;
+}
+/* The lake's bands of light slide along it, and the warm reflection swells and drifts. */
+.chamber[data-motion="on"] .chamber-lake-light {
+  animation: chamber-lake-flow 7s linear infinite;
+}
+.chamber[data-motion="on"] .chamber-lake-glow {
+  animation: chamber-lake-swell 9s ease-in-out infinite alternate;
+}
 /* A looping strip shows each of its frames in turn. */
 .chamber[data-motion="on"] .chamber-reel > * {
   animation: chamber-reel calc(var(--n) * var(--frame, 0.11s)) steps(var(--n)) infinite;
@@ -705,6 +741,29 @@
   88%,
   100% {
     opacity: 0;
+  }
+}
+@keyframes chamber-bob {
+  from {
+    translate: 0 -4%;
+  }
+  to {
+    translate: 0 4%;
+  }
+}
+@keyframes chamber-lake-flow {
+  to {
+    stroke-dashoffset: -72;
+  }
+}
+@keyframes chamber-lake-swell {
+  from {
+    opacity: 0.55;
+    translate: -10px 0;
+  }
+  to {
+    opacity: 0.95;
+    translate: 12px 2px;
   }
 }
 @keyframes chamber-hover {

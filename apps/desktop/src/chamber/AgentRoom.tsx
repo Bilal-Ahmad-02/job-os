@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { type CSSProperties, useEffect, useRef } from "react";
 import Icon from "../Icon";
 import ShellHeader from "../ShellHeader";
 import type { Agent, Room } from "./agents";
@@ -23,7 +23,15 @@ export default function AgentRoom({
   const back = useRef<HTMLButtonElement>(null);
   useEffect(() => back.current?.focus(), []);
   return (
-    <div className="room" data-room={agent.id}>
+    <div
+      className="room"
+      data-room={agent.id}
+      data-look={room.look && "plain"}
+      style={
+        room.look &&
+        ({ "--back": room.look[0], "--ink": room.look[1], "--trim": room.look[2] } as CSSProperties)
+      }
+    >
       <ShellHeader caption={room.title} onLock={onLock}>
         <button
           className="quiet-button"

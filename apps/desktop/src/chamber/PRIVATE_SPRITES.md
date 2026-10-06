@@ -23,6 +23,18 @@ in more than one. A pose with no image of its own uses the figure's main drawing
 | 04 / WATCH, on the sand timer | `slot-4` | none: one looping strip |
 | 05 / DEEP, swims under the floor | `slot-5` | none: one looping strip, drawn from above with the head at the top |
 | 06 / HORIZON, the black hole | `slot-6` | none: one looping strip |
+| 07 / PROWL, by the lake | `slot-7` | `lurk`, `walk`, `wade`, `swim`, `rise`, `shake` |
+| 08 / THIRST | `slot-8` | none: one looping strip |
+| 09 / COURT | `slot-9` | none: one looping strip |
+| 10 / CLOUD, drifts in the sky | `slot-10` | none: one looping strip |
+| 11 / GAMBIT | `slot-11` | none: one looping strip |
+| 12 / THROTTLE, the motorcycle | `slot-12` | `rev`, `ride`, `gone` (an empty frame while it is put back) |
+| 13 / DRIFT | `slot-13` | none: one looping strip |
+| 14 / POND | `slot-14` | none: one looping strip |
+| 15 / GROTTO | `slot-15` | none: one looping strip |
+| 16 / PILGRIM | `slot-16` | none: one looping strip |
+| 17 / WRATH | `slot-17` | none: one looping strip |
+| 18 / STARE | `slot-18` | none: one looping strip |
 | The core at its console | `oracle` | `type`, `swipe` |
 
 ## Drawing notes

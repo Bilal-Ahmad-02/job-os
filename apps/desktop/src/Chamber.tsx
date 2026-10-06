@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useRef, useState } from "react";
+import { type CSSProperties, memo, useCallback, useEffect, useRef, useState } from "react";
 import App from "./App";
 import AgentFigure from "./chamber/AgentFigure";
 import AgentRoom from "./chamber/AgentRoom";
@@ -21,11 +21,19 @@ const [CORE_LEFT, CORE_TOP] = scenePercent([CORE.x, CORE.y], 10);
 function placement(agent: Agent): CSSProperties | undefined {
   if (!agent.at) return undefined;
   const [left, top] = scenePercent(agent.at, agent.lift);
-  return { left: `${left}%`, top: `${top}%`, width: `${(agent.width / SCENE.width) * 100}%` };
+  return {
+    left: `${left}%`,
+    top: `${top}%`,
+    width: `${(agent.width / SCENE.width) * 100}%`,
+    ...(agent.tempo && { "--frame": `${agent.tempo}s` }),
+  };
 }
 
-/** A pressable figure with its tag. Its act runs only while the hub's motion is on. */
-function AgentButton({
+/**
+ * A pressable figure with its tag. Its act runs only while the hub's motion is on. Remembered,
+ * so moving the camera does not redraw every figure.
+ */
+const AgentButton = memo(function AgentButton({
   agent,
   moving,
   onOpen,
@@ -58,13 +66,13 @@ function AgentButton({
       </span>
     </button>
   );
-}
+});
 
 /**
  * The core: pressing it shows or hides its state and opens nothing. The panes round it are blank
  * because nothing is running; they turn only as decoration, when its routine sweeps an arm.
  */
-function Core({
+const Core = memo(function Core({
   moving,
   open,
   onToggle,
@@ -94,7 +102,7 @@ function Core({
       </span>
     </button>
   );
-}
+});
 
 /**
  * Hub shown after unlock. Every figure opens its own page; pressing the core shows its state
@@ -121,11 +129,12 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
       space.current?.querySelector<HTMLElement>(`[data-agent="${lastOpened.current}"]`)?.focus();
   }, [atHub]);
 
-  function open(id: string) {
+  const open = useCallback((id: string) => {
     lastOpened.current = id;
     if (id === JOBS) setJobsOpened(true);
     setPlace(id);
-  }
+  }, []);
+  const toggleCore = useCallback(() => setCoreOpen((shown) => !shown), []);
   const back = () => setPlace("chamber");
   const visited = AGENTS.find((agent) => agent.id === place);
 
@@ -206,7 +215,7 @@ export default function Chamber({ onLock }: { onLock?: () => void }) {
           <h1 id="chamber-title">THE CHAMBER</h1>
           <div className="chamber-scene" style={{ transform: camera.transform }}>
             <ChamberScene />
-            <Core moving={motion} open={coreOpen} onToggle={() => setCoreOpen(!coreOpen)} />
+            <Core moving={motion} open={coreOpen} onToggle={toggleCore} />
             <section
               className="chamber-core"
               id="chamber-core"

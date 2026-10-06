@@ -535,6 +535,52 @@ computed animation of the walker, flyer, cat and core strips is `chamber-reel` a
 duration. Installed as desktop `613570fd4d4b5912ae8154f8c752d77545be35880033895b5aff700283ece7ed`. Not
 watched in the installed, unlocked window.
 
+### Twelve more figures and a larger space (2026-10-06, approved by the owner from previews)
+
+The owner asked for more figures and then sent corrections figure by figure from a running
+preview. The chamber now has eighteen. Still only **01 / QUEST** has a function: every other
+figure is scenery with a page that says it does nothing, and the footer reads
+"18 FIGURES / 1 WITH A FUNCTION".
+
+| Slot | Name | What it shows |
+| --- | --- | --- |
+| 07 | PROWL | A large sail-backed animal that keeps to a lake left of the platform: walks the shore, wades in, swims with only the sail showing, climbs out and shakes |
+| 08 | THIRST | A kneeling figure among crystals, at the far left edge of the space |
+| 09 | COURT | A half court seen at an angle; a player dribbles, shoots from behind the long line, collects the ball and walks back |
+| 10 | CLOUD | A cloud-winged bird drifting high above the platform |
+| 11 | GAMBIT | A chess table at an angle playing a whole short game by itself |
+| 12 | THROTTLE | A riderless motorcycle that idles, pulls away along the bottom of the space and is put back unseen |
+| 13 | DRIFT | A cardboard pod on small flames with a knitted doll walking about inside |
+| 14 | POND | Someone in a hoodie on a jetty, fishing a lagoon |
+| 15 | GROTTO | A blossom tree on a rock in a cave pool; only water and petals move |
+| 16 | PILGRIM | A staff routine: spin, overhead, slam, look out; a long cape on the wind |
+| 17 | WRATH | A still, dark figure looking at a raised hand, with a little rising aura |
+| 18 | STARE | An iron owl on a street lamp in a patch of night, its head following a small thief on distant roofs |
+
+Other changes in this round:
+
+- **A lake** is drawn into the scene for 07: moving light bands, stones, trees and bushes.
+- **The space is larger.** Zoomed out, figures stand well beyond the platform on every side;
+  06 moved to the far right and 10 and 13 are high above the view.
+- **`tempo`** on a figure sets the frame time of its strips, and act **`float`** gives a slow bob.
+  A figure with one strip and no routine uses act `loop`.
+- **Rooms** for 07-18 share one plain layout coloured by three values on the figure (`look`).
+- **Camera cost.** The scene drawing, the figure buttons and the core are memoized so moving the
+  camera does not redraw them.
+- **Built-in art.** For 07-18 a fresh clone shows a plain placeholder block of the right shape;
+  the drawings exist only as private strips on this PC (`slot-7` to `slot-18`), made by scripts
+  inside the Git-ignored private folder. Several are the owner's choice of named characters and
+  are not described further here.
+
+No native command, backend operation, schema or dependency changed.
+
+Verification: 165 frontend tests pass, TypeScript and Biome are clean. The overlap test now
+covers every mover against every standing figure, and a bounds test keeps every figure within
+the reach of the camera. Enlarged still frames of each strip were examined by the coding
+session; the owner watched the running preview and approved it. The coding session did not see
+any of it move. Installed as desktop `596bac9ac9c7f0fe6fa71436d34234f2661ff801f9b5a85b348cc652cf254dbe`,
+specific to this PC. Not verified in the installed, unlocked window.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves
