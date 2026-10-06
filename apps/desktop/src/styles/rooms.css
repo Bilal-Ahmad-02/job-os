@@ -80,31 +80,31 @@
   color: #b9a063;
 }
 
-/* THE ZENITH: bright, tilted and loud, with peaks along the foot of the page. */
-.room[data-room="zenith"] .room-stage {
+/* KI: bright, tilted and loud, with peaks along the foot of the page. */
+.room[data-room="ki"] .room-stage {
   align-items: start;
   background:
     repeating-linear-gradient(115deg, transparent 0 46px, #f2c23012 46px 48px),
     linear-gradient(160deg, #1b1705 0, #060602 60%);
 }
-.room[data-room="zenith"] .room-words {
+.room[data-room="ki"] .room-words {
   max-width: none;
   transform: skewY(-4deg);
   transform-origin: 0 0;
 }
-.room[data-room="zenith"] h1 {
+.room[data-room="ki"] h1 {
   color: #f2c230;
   font: 800 clamp(48px, 11vw, 132px) / 0.9 var(--body);
   letter-spacing: -3px;
   text-transform: uppercase;
 }
-.room[data-room="zenith"] :is(.room-line, .room-status) {
+.room[data-room="ki"] :is(.room-line, .room-status) {
   max-width: 46ch;
 }
-.room[data-room="zenith"] .eyebrow {
+.room[data-room="ki"] .eyebrow {
   color: #f08a24;
 }
-.room[data-room="zenith"] .room-art i {
+.room[data-room="ki"] .room-art i {
   bottom: calc(var(--peak) * -0.5vmin);
   left: calc(var(--from) * 1%);
   width: calc(var(--peak) * 1vmin);
@@ -114,27 +114,27 @@
   background: #0c0a03;
   transform: rotate(45deg);
 }
-.room[data-room="zenith"] .room-art i:nth-child(1) {
+.room[data-room="ki"] .room-art i:nth-child(1) {
   --from: -4;
   --peak: 34;
 }
-.room[data-room="zenith"] .room-art i:nth-child(2) {
+.room[data-room="ki"] .room-art i:nth-child(2) {
   --from: 16;
   --peak: 52;
 }
-.room[data-room="zenith"] .room-art i:nth-child(3) {
+.room[data-room="ki"] .room-art i:nth-child(3) {
   --from: 38;
   --peak: 30;
 }
-.room[data-room="zenith"] .room-art i:nth-child(4) {
+.room[data-room="ki"] .room-art i:nth-child(4) {
   --from: 52;
   --peak: 70;
 }
-.room[data-room="zenith"] .room-art i:nth-child(5) {
+.room[data-room="ki"] .room-art i:nth-child(5) {
   --from: 74;
   --peak: 40;
 }
-.room[data-room="zenith"] .room-art i:nth-child(6) {
+.room[data-room="ki"] .room-art i:nth-child(6) {
   --from: 90;
   --peak: 26;
 }

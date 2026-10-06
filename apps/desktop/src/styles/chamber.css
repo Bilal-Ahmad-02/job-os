@@ -112,7 +112,13 @@
   /* The drawing must not swallow presses meant for a figure passing beneath it. */
   pointer-events: none;
 }
+/* The scene and the depths under it share one cell, so the camera moves them as one. */
+.chamber-void > .chamber-scene {
+  grid-area: 2 / 1;
+}
 .chamber-art {
+  /* Placed, so that it is painted in document order with the figures round it. */
+  position: relative;
   display: block;
   width: 100%;
   height: 100%;
@@ -312,25 +318,43 @@
 }
 
 /*
- * The one figure with no place on the platform swims a loop beneath its floor, seen from above
- * like a shadow. The loop is a path in the scene's own box that stays under the court, so the
- * figure is held at the origin and placed along the path by its middle.
+ * The one figure with no place on the platform lives under everything, like something large in
+ * deep water seen from above. It is placed by its middle. This is where it rests; with motion
+ * on it wanders the whole space, and the script moves and turns it.
  */
 .chamber-agent[data-act="swim"] {
-  left: 0;
-  top: 0;
-  transform: none;
-  offset-path: ellipse(30% 22% at 50% 56%);
-  offset-rotate: 0deg;
-  offset-distance: 8%;
+  left: 16%;
+  top: 80%;
+  width: 22%;
+  transform: translate(-50%, -50%);
 }
-/* The loop starts at its right-hand end heading down; this is the heading at the resting point. */
 .chamber-agent[data-act="swim"] .chamber-actor {
-  rotate: 209deg;
+  rotate: 215deg;
 }
-/* It is under the floor: dark, dull and a little soft, a shadow more than a figure. */
+/* Its colours are its own; depth only softens its edges. The water over it does the dimming. */
 .chamber-agent[data-act="swim"] .chamber-reel {
-  filter: brightness(0.42) saturate(0.6) blur(0.6px);
+  filter: blur(0.8px);
+}
+/*
+ * The water's surface: a dark sheet over the swimmer and under the platform, so whatever is
+ * beneath reads as a shape below it. Pale patches of light lie on it.
+ */
+.chamber-surface {
+  position: absolute;
+  inset: 0;
+  background: #020a0773;
+  pointer-events: none;
+}
+.chamber-surface::before {
+  position: absolute;
+  inset: -200px;
+  background-image:
+    radial-gradient(ellipse 50% 40% at 50% 50%, #7fe3b012, transparent 70%),
+    radial-gradient(ellipse 45% 35% at 50% 50%, #8fb4ff0f, transparent 70%);
+  background-size:
+    360px 230px,
+    540px 320px;
+  content: "";
 }
 /*
  * The wake it leaves: soft arcs that bow toward the head, each falling back past the tail,
@@ -353,6 +377,24 @@
   filter: blur(1.2px);
   opacity: 0;
   translate: -50% 0;
+}
+/* The water it pushes aside: the later parts are arcs that peel away from each wing in turn. */
+.chamber-wake i:nth-child(n + 4) {
+  --side: 1;
+  top: 30%;
+  width: 38%;
+  rotate: calc(var(--side) * 68deg);
+}
+.chamber-wake i:nth-child(odd):nth-child(n + 4) {
+  --side: -1;
+}
+/* And the water it lifts: a pale swell under the whole body that breathes with the stroke. */
+.chamber-wake::before {
+  position: absolute;
+  inset: -22%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, #8fa4e62e, #8fa4e612 55%, transparent);
+  content: "";
 }
 
 /* A beam from the hands of a figure that faces left: it grows quickly, holds, and fades. */
@@ -483,20 +525,19 @@
   animation: chamber-star-burst 1.8s ease-out infinite;
   animation-delay: calc(mod(var(--i) * 0.47, 1.8) * -1s);
 }
-.chamber[data-motion="on"] .chamber-agent[data-act="swim"] {
-  animation: chamber-swim 80s linear infinite;
-}
-.chamber[data-motion="on"] .chamber-agent[data-act="swim"] .chamber-actor {
-  animation: chamber-heading 80s linear infinite;
+.chamber[data-motion="on"] .chamber-surface::before {
+  animation: chamber-shimmer 46s ease-in-out infinite alternate;
 }
 .chamber[data-motion="on"] .chamber-wake i {
   animation: chamber-wake 3.3s linear infinite;
   animation-delay: calc(var(--i) * -1.1s);
 }
-/* A moving target is hard to press: the swimmer stops while the pointer or keyboard is on it. */
-.chamber[data-motion="on"] .chamber-agent:is(:hover, :focus-visible),
-.chamber[data-motion="on"] .chamber-agent:is(:hover, :focus-visible) .chamber-actor {
-  animation-play-state: paused;
+.chamber[data-motion="on"] .chamber-wake i:nth-child(n + 4) {
+  animation: chamber-wash 2.4s ease-out infinite;
+  animation-delay: calc(var(--i) * -0.6s);
+}
+.chamber[data-motion="on"] .chamber-wake::before {
+  animation: chamber-swell 2.4s ease-in-out infinite alternate;
 }
 /* Out of sight for most of its cycle, then one pass along its own heading. */
 @keyframes chamber-drift {
@@ -621,25 +662,39 @@
     scale: 1.9 1.3;
   }
 }
-/* Once round the loop, turning a full circle so the head keeps leading. */
-@keyframes chamber-swim {
+@keyframes chamber-wash {
   from {
-    offset-distance: 0%;
+    opacity: 0;
+    scale: 0.45;
+    translate: -50% 0;
+  }
+  22% {
+    opacity: 0.3;
   }
   to {
-    offset-distance: 100%;
+    opacity: 0;
+    scale: 1.7 1.2;
+    translate: calc(-50% + var(--side) * 95%) 55%;
   }
 }
-@keyframes chamber-heading {
+@keyframes chamber-swell {
   from {
-    rotate: 180deg;
+    opacity: 0.55;
+    scale: 0.92;
   }
   to {
-    rotate: 540deg;
+    opacity: 1;
+    scale: 1.1 1.04;
+  }
+}
+@keyframes chamber-shimmer {
+  to {
+    translate: 140px 90px;
   }
 }
 @media (forced-colors: active) {
   .chamber-space,
+  .chamber-surface,
   .chamber-leash,
   .chamber-holo {
     display: none;

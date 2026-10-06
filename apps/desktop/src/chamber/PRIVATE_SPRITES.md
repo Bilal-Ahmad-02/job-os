@@ -19,7 +19,7 @@ in more than one. A pose with no image of its own uses the figure's main drawing
 | --- | --- | --- |
 | 01 / QUEST, walks the platform | `job-os` | `walk`, `cast` |
 | 02 / PERCH, the cat | `slot-2` | `sleep`, `wake`, `stretch`, `hop`, `sit`, `walk`, `hide`, `settle`; the tree is `slot-2-prop` |
-| 03 / ZENITH, flies | `slot-3` | `idle`, `fly`, `charge`, `fire` |
+| 03 / KI, flies | `slot-3` | `idle`, `fly`, `charge`, `fire` |
 | 04 / WATCH, on the sand timer | `slot-4` | none: one looping strip |
 | 05 / DEEP, swims under the floor | `slot-5` | none: one looping strip, drawn from above with the head at the top |
 | 06 / HORIZON, the black hole | `slot-6` | none: one looping strip |

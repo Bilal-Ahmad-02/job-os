@@ -31,7 +31,7 @@ export type Room = { title: string; line: string };
  * - `tree`: a cat lives on a cat tree: sleeps, stretches, jumps down, hides, climbs back.
  * - `fly`: roams the whole space in the air, pausing to hover or to fire a beam.
  * - `vigil`: stands watch on top of a sand timer.
- * - `swim`: has no place on the platform and swims a loop beneath its floor.
+ * - `swim`: has no place on the platform and wanders beneath the whole space.
  * - `spin`: turns on the spot, off the platform.
  */
 export type Act = "walk" | "tree" | "fly" | "vigil" | "swim" | "spin";
@@ -78,9 +78,9 @@ export type Agent = {
    * `name-pose` for a pose and `name-prop` for the prop.
    */
   sprite: string;
-  /** Drawn width in scene units. */
+  /** Drawn width in scene units. Unused by the swimmer, which is sized by the space. */
   width: number;
-  /** Where it stands on the platform grid. Absent for the swimmer, which is under the floor. */
+  /** Where it stands on the platform grid. Absent for the swimmer, which roams under it all. */
   at?: Point;
   /** Height above the floor. */
   lift?: number;
@@ -201,9 +201,9 @@ export const AGENTS: readonly Agent[] = [
     },
   },
   {
-    id: "zenith",
+    id: "ki",
     slot: "03",
-    name: "ZENITH",
+    name: "KI",
     note: "No function yet",
     act: "fly",
     frames: [hoveringFighter],
@@ -241,7 +241,7 @@ export const AGENTS: readonly Agent[] = [
       ...flight([[1.7, 7]]),
     ],
     room: {
-      title: "THE ZENITH",
+      title: "KI",
       line: "Thin air and a long way down. The training ground is empty.",
     },
   },
@@ -269,7 +269,7 @@ export const AGENTS: readonly Agent[] = [
     act: "swim",
     frames: [deepRay],
     sprite: "slot-5",
-    width: 190,
+    width: 0,
     centred: true,
     room: {
       title: "THE DEEP",

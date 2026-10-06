@@ -16,6 +16,7 @@ import {
 } from "./chamber/agents";
 import { compile } from "./chamber/choreography";
 import * as sprites from "./chamber/sprites";
+import { drift, type Swim } from "./chamber/wander";
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
 vi.mock("./App", () => ({
@@ -46,7 +47,7 @@ vi.mock("./App", () => ({
 const rooms = AGENTS.flatMap((agent) => (agent.room ? [{ agent, room: agent.room }] : []));
 const openJobs = () => screen.getByRole("button", { name: "Open QUEST console" });
 function parts(container: HTMLElement) {
-  const scene = container.querySelector<HTMLElement>(".chamber-scene");
+  const scene = container.querySelector<HTMLElement>(".chamber-scene:not(.chamber-depths)");
   const space = container.querySelector<HTMLElement>(".chamber-void");
   if (!scene || !space) throw new Error("Chamber scene is missing");
   return { scene, space };
@@ -150,35 +151,43 @@ describe("Oracle chamber", () => {
     expect(container.querySelector(".chamber-leash")).toHaveAttribute("aria-hidden", "true");
   });
 
-  it("places every figure inside the drawing, the swimmer beneath its floor", () => {
+  it("places figures inside the drawing and the swimmer under the surface beneath it all", () => {
     const { container } = render(<Chamber />);
-    const { scene } = parts(container);
+    const { scene, space } = parts(container);
     for (const agent of AGENTS) {
       const figure = container.querySelector<HTMLElement>(`[data-agent="${agent.id}"]`);
       if (!figure) throw new Error(`Missing figure ${agent.id}`);
-      expect(scene.contains(figure)).toBe(true);
-      expect(Number.parseFloat(figure.style.width)).toBeCloseTo((agent.width / SCENE.width) * 100);
       if (!agent.at) {
-        // Drawn before the floor, so the floor covers it; the stylesheet moves it.
-        const order = figure.compareDocumentPosition(
-          container.querySelector(".chamber-art") as Node,
-        );
-        expect(order & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        // In the depths, then the water's surface, then the scene: under everything, yet
+        // moved by the same camera as the scene.
+        const depths = figure.parentElement;
+        expect(depths).toHaveClass("chamber-depths");
+        expect(depths?.parentElement).toBe(space);
+        expect(depths?.style.transform).toBe(scene.style.transform);
+        fireEvent.click(screen.getByRole("button", { name: "Zoom in" }));
+        expect(depths?.style.transform).toBe(scene.style.transform);
+        expect(scene.style.transform).toContain("scale(1.15)");
+        fireEvent.click(screen.getByRole("button", { name: "Reset view" }));
         expect(figure).toHaveAttribute("data-act", "swim");
-        expect(figure.style.left).toBe("");
+        expect(depths?.nextElementSibling).toHaveClass("chamber-surface");
+        const after = figure.compareDocumentPosition(scene);
+        expect(after & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         continue;
       }
+      expect(scene.contains(figure)).toBe(true);
+      expect(Number.parseFloat(figure.style.width)).toBeCloseTo((agent.width / SCENE.width) * 100);
       const left = Number.parseFloat(figure.style.left);
       const top = Number.parseFloat(figure.style.top);
       expect(left > 0 && left < 100 && top > 0 && top < 100).toBe(true);
     }
-    // The swimmer follows a closed path under the floor and turns one full circle per lap.
+    // The drawing is placed, or the figures before it would be painted over it. The swimmer
+    // keeps its own colours and follows no fixed path.
     const styles = readFileSync("src/styles/chamber.css", "utf8");
-    expect(styles).toMatch(/\[data-act="swim"\] \{[^}]*offset-path: ellipse\(/);
-    expect(styles).toMatch(/@keyframes chamber-heading \{[^@]*180deg[^@]*540deg/);
-    // Under the floor it is dimmed to a shadow, and it leaves a wake rather than rings.
-    expect(styles).toMatch(/\[data-act="swim"\] \.chamber-reel \{\s*filter: brightness\(0\.\d+\)/);
-    expect(styles).not.toContain("chamber-ripple");
+    expect(styles).toMatch(/\.chamber-art \{[^}]*position: relative;/);
+    expect(styles).toMatch(
+      /\[data-act="swim"\] \.chamber-reel \{\s*filter: blur\([\d.]+px\);\s*\}/,
+    );
+    expect(styles).not.toMatch(/offset-path: ellipse\(3|chamber-swim|chamber-ripple/);
     // The watcher stands on the bar of the left sand timer; the black hole is off the platform.
     const [barLeft, barTop] = scenePercent(TIMERS.left, TIMERS.bar);
     const watcher = container.querySelector<HTMLElement>('[data-agent="watch"]');
@@ -242,7 +251,7 @@ describe("Oracle chamber", () => {
         (Math.min(Math.max(ring.x, left), right) - ring.x) / ring.rx,
         (Math.min(Math.max(ring.y, top), bottom) - ring.y) / ring.ry,
       ) < 1;
-    const [walker, flyer] = [swept(named("jobs")), swept(named("zenith"))];
+    const [walker, flyer] = [swept(named("jobs")), swept(named("ki"))];
     expect([...walker, ...flyer].filter(meetsRing)).toEqual([]);
     expect(walker.length).toBeGreaterThan(100);
     expect(flyer.length).toBeGreaterThan(100);
@@ -260,22 +269,46 @@ describe("Oracle chamber", () => {
     }
     // The two never share ground, so they cannot meet whatever their timing.
     expect(walker.filter((a) => flyer.some((b) => meet(a, b)))).toEqual([]);
-    // The swimmer's loop stays under the court, away from the black hole.
-    const styles = readFileSync("src/styles/chamber.css", "utf8");
-    const loop = /offset-path: ellipse\(([\d.]+)% ([\d.]+)% at ([\d.]+)% ([\d.]+)%\)/.exec(
-      styles.slice(styles.indexOf('.chamber-agent[data-act="swim"] {')),
-    );
-    const [rx = 0, ry = 0, ox = 0, oy = 0] = (loop ?? []).slice(1).map(Number);
-    expect(rx * ry).toBeGreaterThan(0);
-    const swimmer = named("deep").width;
-    for (let turn = 0; turn < 360; turn += 10) {
-      const x = ((ox + rx * Math.cos((turn * Math.PI) / 180)) / 100) * SCENE.width;
-      const y = ((oy + ry * Math.sin((turn * Math.PI) / 180)) / 100) * SCENE.height;
-      // Inside the court's diamond, which is 13 squares a side.
-      expect(Math.abs(x - cx) / (13 * 32) + Math.abs(y - cy) / (13 * 16)).toBeLessThan(1);
-      const body: Box = [x - swimmer / 2, y - swimmer / 2, x + swimmer / 2, y + swimmer / 2];
-      expect(meet(body, fixed.hole as Box)).toBe(false);
+  });
+
+  it("lets the swimmer wander the whole space smoothly and always come back", () => {
+    const space = { width: 1400, height: 800 };
+    let seed = 7;
+    const random = () => {
+      seed = (seed * 16807) % 2147483647;
+      return seed / 2147483647;
+    };
+    let swim: Swim = {
+      x: 300,
+      y: 600,
+      heading: 0,
+      turn: 0,
+      want: 0,
+      speed: 0,
+      pace: 0.04,
+      clock: 0,
+      until: 0,
+    };
+    const visited = new Set<string>();
+    const step = 1 / 60;
+    // Ten minutes of swimming at sixty frames a second.
+    for (let frame = 0; frame < 36000; frame += 1) {
+      const next = drift(swim, step, space, random);
+      // No jerks: it turns under a radian a second and never lurches forward.
+      expect(Math.abs(next.heading - swim.heading)).toBeLessThan(1.2 * step);
+      expect(Math.hypot(next.x - swim.x, next.y - swim.y)).toBeLessThan(80 * step);
+      swim = next;
+      // It may slip partly out of view, never far.
+      expect(swim.x > -0.5 * space.width && swim.x < 1.5 * space.width).toBe(true);
+      expect(swim.y > -0.5 * space.height && swim.y < 1.5 * space.height).toBe(true);
+      visited.add(
+        `${Math.floor((swim.x / space.width) * 3)},${Math.floor((swim.y / space.height) * 3)}`,
+      );
     }
+    // Not a circuit: over time it has been in every part of the space.
+    for (const cell of ["0,0", "1,0", "2,0", "0,1", "1,1", "2,1", "0,2", "1,2", "2,2"])
+      expect(visited).toContain(cell);
+    expect(swim.speed).toBeGreaterThan(10);
   });
 
   it("keeps the hub hideable and every animation behind the motion switch", () => {
@@ -412,7 +445,7 @@ describe("Oracle chamber", () => {
     const effects = {
       walk: [".chamber-starfall", 7],
       fly: [".chamber-beam", 0],
-      swim: [".chamber-wake", 3],
+      swim: [".chamber-wake", 7],
     };
     for (const agent of AGENTS) {
       const figure = container.querySelector(`[data-agent="${agent.id}"]`);

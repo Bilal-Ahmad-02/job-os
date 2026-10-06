@@ -295,6 +295,14 @@ Also confirmed on this date: steps 17-18 are installed and published. `runtime.j
 `380671a6...`, whose installed package contains `app/services/listing_fit.py`, and commits
 `5a79214`, `2eacf02` and `3f41cc2` are on `origin/main`.
 
+### Desktop update — swimmer in the depths, October 6, 2026
+
+Desktop SHA-256 is now `c03e46009d61d1149ea883d8412c44dd66772bcae99d39ac69dc9e6c5ed8d0f9`,
+frontend only; backend `380671a6...` and schema `0012` are unchanged. Checks: TypeScript, Biome,
+145 frontend tests, Vite and Tauri builds; installed bytes verified and the process reopened
+responsive. The owner approved the behaviour from a running preview of the same source. Not
+verified by the coding session: the motion itself, and the installed, unlocked window.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

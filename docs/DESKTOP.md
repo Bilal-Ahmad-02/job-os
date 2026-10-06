@@ -462,6 +462,35 @@ a running preview; a screenshot could not be taken, so this round was **not seen
 Installed as desktop `53a87baaf966f08a682470d395fb33c4e9c606f7e1649a8417dc22341265e7a3`. Not verified
 in the unlocked window.
 
+### The swimmer in the depths (2026-10-06, approved by the owner from a preview)
+
+This supersedes the section above and the earlier notes that the swimmer follows a loop.
+
+- **Why it looked on top.** The swimmer came before the floor drawing in the page, but it was a
+  placed element and the drawing was not, so the browser painted it over the drawing regardless.
+  The drawing is now placed too, and a test guards that.
+- **Where it lives.** A `chamber-depths` layer the same size as the scene and given the same
+  camera transform (`camera.transform`), so right-drag and zoom move it with the platform. Above
+  it is `chamber-surface`, a dark sheet with slow pale patches; above that, the scene. The
+  swimmer is therefore under the floor, the grid and every figure.
+- **How it moves.** No path. `chamber/wander.ts` steps an aimless swim each frame: every few
+  seconds it picks a new curve and pace and eases into both, never turns faster than a wide arc,
+  faces the way it goes, and leans back toward the middle once it strays past the layer's edge,
+  so it can slip partly out of view. It stops under the pointer so it can be pressed.
+- **How it looks.** Its own colours, edges slightly softened; the surface does the dimming. It
+  trails a wake, sheds arcs from each wing in turn, and rides a pale swell that breathes.
+- It passes beneath the black hole and the other figures. The owner asked for it to be under
+  everything, which replaces the earlier request to keep it away from the black hole.
+- Figure **03** is named **KI** by the owner.
+
+Verification: 145 frontend tests pass. One simulates ten minutes of swimming with a fixed seed
+and checks it reaches every part of the space, never jerks and never strays far; another checks
+that the depths always carry the scene's exact transform. The owner watched the running preview
+twice and approved it. The coding session saw one still and the position numbers only, because
+its preview window was not drawing frames. Installed as desktop
+`c03e46009d61d1149ea883d8412c44dd66772bcae99d39ac69dc9e6c5ed8d0f9`. Not verified in the unlocked window
+by the coding session.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves

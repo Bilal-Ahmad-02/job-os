@@ -75,6 +75,8 @@ export function useCamera(space: RefObject<HTMLElement | null>) {
 
   return {
     view,
+    /** The view as a style, for every layer the camera moves. */
+    transform: `translate(${view.x}px, ${view.y}px) scale(${view.scale})`,
     panning,
     startPan,
     zoom: (direction: 1 | -1) =>

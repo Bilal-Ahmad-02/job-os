@@ -7,7 +7,7 @@ import { type Frames, PixelSprite } from "./sprites";
 const EFFECTS: Partial<Record<Act, readonly [className: string, parts: number]>> = {
   walk: ["chamber-starfall", 7],
   fly: ["chamber-beam", 0],
-  swim: ["chamber-wake", 3],
+  swim: ["chamber-wake", 7],
 };
 
 /**
