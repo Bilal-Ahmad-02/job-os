@@ -303,6 +303,30 @@ frontend only; backend `380671a6...` and schema `0012` are unchanged. Checks: Ty
 responsive. The owner approved the behaviour from a running preview of the same source. Not
 verified by the coding session: the motion itself, and the installed, unlocked window.
 
+### Step 20 part 2 deployment — October 6, 2026
+
+Backend release: `902cdf80c775b296d613193f4e5e0577ed3044904011da849cfa97f022eda6f1`.
+Desktop SHA-256: `80bb4dcc6922e983f1f4c975af70dddbf620737ee8bc0473166b1eca7a3676f5`. Schema: `0013`.
+Earlier releases are retained.
+
+Checks before deployment: 366 Linux tests with Ruff clean; TypeScript, Biome and 148 frontend
+tests across 19 files; Vite and Tauri builds.
+
+| Check | Result |
+| --- | --- |
+| Installed-release probe | Passed, reporting schema `0013` |
+| Windows/WSL native integration | Both opt-in tests passed against the new release |
+| Live migration | `prepare` succeeded; integrity check `ok` before and after; one `before-0013` copy present |
+| Existing dossiers | 23 before and after; every pre-existing column value identical by hash; none has a preparation note |
+| New tables | `application_todos` and `application_documents` exist and are empty |
+| Other tables | 13 identical by typed-row hash, identity marker identical; `alembic_version` changed |
+| Runtime selection | `runtime.json` pins the new release; workspace not moved |
+| Desktop | Install script verified bytes; process reopened responsive |
+
+Not verified: the 33 ordinary native tests were not rerun (no native code changed), and no step
+20 part 2 screen has been seen in the unlocked app. The newest encrypted snapshot predates this
+migration.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

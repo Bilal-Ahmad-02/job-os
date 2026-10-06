@@ -73,7 +73,7 @@ documented threat boundary before expanding capabilities; do not claim hardened 
 
 Selected backend since 2026-10-05: `380671a6f4c9ccc082ceb08dace94761bca85693e4819fcac16f406dec017a0b`
 (previously `bda6f25fbb0f4fdf1efa25b47ebeb0f16b29de16930d6c0086276c1844ef6f25`, which cannot open
-the current schema). The desktop digest is recorded in VALIDATION.md. Schema is `0012`; profile JSON
+the current schema). The desktop digest is recorded in VALIDATION.md. Schema is `0013` (step 20 part 2: to-do items, preparation notes and document links, see APPLICATIONS.md); profile JSON
 includes step-13 exclusions. An older backend can reject that JSON despite sharing the database schema.
 Do not downgrade code or data without checking compatibility and preserving subsequent writes.
 

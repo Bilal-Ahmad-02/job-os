@@ -180,8 +180,11 @@ Not seen in the running app.
 
 ## To-do items, preparation notes and documents used (step 20, part 2)
 
-Built on 2026-10-06. **Not deployed**: it needs schema `0013`, so the backend and desktop must be
-installed together after the owner approves the migration.
+Built and deployed on 2026-10-06 on the owner's instruction: backend `902cdf80...`, desktop
+`80bb4dcc...`, schema `0013`. With Oracle closed, the release's explicit `prepare` took the
+integrity-checked local copy (`migration-backups/before-0013-*.sqlite3`) and migrated. All 23
+existing dossiers kept every earlier column value, and none has a to-do item, a preparation note
+or a document link until the owner adds one.
 
 What the owner gets in a dossier:
 
@@ -208,5 +211,5 @@ and state of items, replacement and clearing, isolation between dossiers, stale 
 malformed item, the limits, a link surviving a newer version, refusal of an unknown document
 without partial writes, the JSON request shape, a real migration from `0012` that preserves an
 existing dossier's values, strict response validation in the desktop, and the screen's wording
-and behaviour. Not run: the native tests, the two Windows/WSL integration tests, the migration on
-the real workspace, and the running app.
+and behaviour. Both Windows/WSL integration tests passed against the installed release. Not run:
+the 33 ordinary native tests (no native code changed). Not seen: the screens in the unlocked app.
