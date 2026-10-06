@@ -176,6 +176,9 @@ describe("Oracle chamber", () => {
     const styles = readFileSync("src/styles/chamber.css", "utf8");
     expect(styles).toMatch(/\[data-act="swim"\] \{[^}]*offset-path: ellipse\(/);
     expect(styles).toMatch(/@keyframes chamber-heading \{[^@]*180deg[^@]*540deg/);
+    // Under the floor it is dimmed to a shadow, and it leaves a wake rather than rings.
+    expect(styles).toMatch(/\[data-act="swim"\] \.chamber-reel \{\s*filter: brightness\(0\.\d+\)/);
+    expect(styles).not.toContain("chamber-ripple");
     // The watcher stands on the bar of the left sand timer; the black hole is off the platform.
     const [barLeft, barTop] = scenePercent(TIMERS.left, TIMERS.bar);
     const watcher = container.querySelector<HTMLElement>('[data-agent="watch"]');
@@ -409,7 +412,7 @@ describe("Oracle chamber", () => {
     const effects = {
       walk: [".chamber-starfall", 7],
       fly: [".chamber-beam", 0],
-      swim: [".chamber-ripple", 3],
+      swim: [".chamber-wake", 3],
     };
     for (const agent of AGENTS) {
       const figure = container.querySelector(`[data-agent="${agent.id}"]`);

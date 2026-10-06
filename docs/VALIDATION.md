@@ -283,6 +283,18 @@ checks every routine's swept area against everything that stands and against the
 Vite and Tauri builds; installed bytes verified and the process reopened responsive. Not
 verified: the chamber running in the installed, unlocked window.
 
+### Desktop update — swimmer shadow and wake, October 6, 2026
+
+Desktop SHA-256 is now `53a87baaf966f08a682470d395fb33c4e9c606f7e1649a8417dc22341265e7a3`,
+frontend only; backend `380671a6...` and schema `0012` are unchanged. Checks: TypeScript, Biome,
+144 frontend tests, Vite and Tauri builds; installed bytes verified and the process reopened
+responsive. Not verified: the look of the change. No screenshot could be taken in the preview,
+and the unlocked window was not seen.
+
+Also confirmed on this date: steps 17-18 are installed and published. `runtime.json` pins backend
+`380671a6...`, whose installed package contains `app/services/listing_fit.py`, and commits
+`5a79214`, `2eacf02` and `3f41cc2` are on `origin/main`.
+
 ## Private backup and remaining manual evidence
 
 The owner initially reported backup success and OneDrive Up to date, but no new handoff receipt was

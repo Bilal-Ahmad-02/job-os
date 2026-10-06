@@ -328,23 +328,31 @@
 .chamber-agent[data-act="swim"] .chamber-actor {
   rotate: 209deg;
 }
-/* Rings spreading on the water around a swimmer. */
-.chamber-ripple {
+/* It is under the floor: dark, dull and a little soft, a shadow more than a figure. */
+.chamber-agent[data-act="swim"] .chamber-reel {
+  filter: brightness(0.42) saturate(0.6) blur(0.6px);
+}
+/*
+ * The wake it leaves: soft arcs that bow toward the head, each falling back past the tail,
+ * widening and fading. The drawing's head is at the top, so behind it is down.
+ */
+.chamber-wake {
   position: absolute;
   inset: 0;
   z-index: -1;
   pointer-events: none;
 }
-.chamber-ripple i {
+.chamber-wake i {
   position: absolute;
   left: 50%;
-  top: 52%;
-  width: 62%;
-  aspect-ratio: 1;
-  border: 1.5px solid #9db3ff;
+  top: 46%;
+  width: 46%;
+  aspect-ratio: 2.4;
+  border-top: 2px solid #8fa4e6;
   border-radius: 50%;
+  filter: blur(1.2px);
   opacity: 0;
-  translate: -50% -50%;
+  translate: -50% 0;
 }
 
 /* A beam from the hands of a figure that faces left: it grows quickly, holds, and fades. */
@@ -481,9 +489,9 @@
 .chamber[data-motion="on"] .chamber-agent[data-act="swim"] .chamber-actor {
   animation: chamber-heading 80s linear infinite;
 }
-.chamber[data-motion="on"] .chamber-ripple i {
-  animation: chamber-ripple 3.6s ease-out infinite;
-  animation-delay: calc(var(--i) * -1.2s);
+.chamber[data-motion="on"] .chamber-wake i {
+  animation: chamber-wake 3.3s linear infinite;
+  animation-delay: calc(var(--i) * -1.1s);
 }
 /* A moving target is hard to press: the swimmer stops while the pointer or keyboard is on it. */
 .chamber[data-motion="on"] .chamber-agent:is(:hover, :focus-visible),
@@ -598,14 +606,19 @@
     scale: 0.45;
   }
 }
-@keyframes chamber-ripple {
+@keyframes chamber-wake {
   from {
-    opacity: 0.55;
-    scale: 0.35;
+    top: 46%;
+    opacity: 0;
+    scale: 0.5;
+  }
+  18% {
+    opacity: 0.34;
   }
   to {
+    top: 118%;
     opacity: 0;
-    scale: 2.1;
+    scale: 1.9 1.3;
   }
 }
 /* Once round the loop, turning a full circle so the head keeps leading. */

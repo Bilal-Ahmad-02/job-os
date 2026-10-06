@@ -447,6 +447,21 @@ Verification: 144 frontend tests pass. The layout was viewed in a component prev
 moments. Installed as desktop `c813bd8fe9d000f31d30f3ac429491acd12ddeceba2ca7ee92a83f04adf2f9ee`, specific
 to this PC. Not watched in real time and not verified in the unlocked window.
 
+### The swimmer as a shadow with a wake (2026-10-06)
+
+The owner said the swimmer looked as if it were on top of the court. It was already drawn before
+the floor, but the previous round had made the court more see-through and left the figure at full
+brightness. The court is back to its earlier opacity, and the swimmer's drawing is dimmed, dulled
+and slightly softened so it reads as a shadow beneath the floor. The rings that spread from its
+middle, which the owner said looked like radar, are replaced by a wake: three soft arcs that bow
+toward the head, fall back past the tail, widen and fade.
+
+Verification: 144 frontend tests pass, including a guard that the swimmer stays dimmed and that
+no rings remain. The computed filter, the three wake parts and the drawing order were read from
+a running preview; a screenshot could not be taken, so this round was **not seen by eye**.
+Installed as desktop `53a87baaf966f08a682470d395fb33c4e9c606f7e1649a8417dc22341265e7a3`. Not verified
+in the unlocked window.
+
 ## Windows icon maintenance
 
 The black-and-green icon master is `src-tauri/icons/oracle.png`; `oracle-emblem.png` preserves
