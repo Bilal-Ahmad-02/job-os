@@ -6,6 +6,7 @@ import {
   saveApplication,
 } from "./applications";
 import { listDocuments } from "./documents";
+import { buildDraft } from "./drafts";
 
 const { invoke } = vi.hoisted(() => ({ invoke: vi.fn() }));
 vi.mock("@tauri-apps/api/core", () => ({ invoke }));
@@ -55,6 +56,55 @@ it("carries to-do items, preparation notes and document links, and counts open i
   for (const open_todos of [undefined, -1, 31, "1"]) {
     invoke.mockResolvedValue({ total: 1, items: [{ ...item, open_todos }] });
     await expect(listApplications("", 0)).rejects.toThrow("Invalid application response");
+  }
+});
+
+it("accepts a draft only in the exact shape asked for, with recognisable sources", async () => {
+  const id = crypto.randomUUID();
+  const entry = crypto.randomUUID();
+  const draft = {
+    kind: "cover_letter",
+    template_version: 1,
+    application_id: id,
+    application_version: 3,
+    profile_version: 0,
+    gaps: ["full_name", "skills"],
+    matched_skills: ["SQL"],
+    blocks: [
+      { heading: "", text: "Dear hiring team,", sources: [], uses_application: false },
+      {
+        heading: "",
+        text: "Work.",
+        sources: [`experience/${entry}`, "summary"],
+        uses_application: true,
+      },
+    ],
+  };
+  invoke.mockResolvedValue(draft);
+  expect(await buildDraft(id, "cover_letter")).toEqual(draft);
+  expect(invoke).toHaveBeenLastCalledWith("applications", {
+    payload: { action: "application_draft", id, kind: "cover_letter" },
+  });
+  const [first, second] = draft.blocks;
+  for (const value of [
+    null,
+    { ...draft, kind: "cv" },
+    { ...draft, application_id: crypto.randomUUID() },
+    { ...draft, template_version: 2 },
+    { ...draft, application_version: 0 },
+    { ...draft, sent_to: "someone" },
+    { ...draft, gaps: ["salary"] },
+    { ...draft, gaps: ["skills", "skills"] },
+    { ...draft, matched_skills: [5] },
+    { ...draft, blocks: [{ ...first, text: "" }] },
+    { ...draft, blocks: [{ ...first, html: "<b>x</b>" }] },
+    { ...draft, blocks: [{ ...second, sources: ["experience/not-a-uuid"] }] },
+    { ...draft, blocks: [{ ...second, sources: ["password"] }] },
+    { ...draft, blocks: [{ ...second, sources: [`experience/${entry}/extra`] }] },
+    { ...draft, blocks: [{ ...second, uses_application: "yes" }] },
+  ]) {
+    invoke.mockResolvedValue(value);
+    await expect(buildDraft(id, "cover_letter")).rejects.toThrow("Invalid draft response");
   }
 });
 

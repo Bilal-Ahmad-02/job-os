@@ -93,7 +93,8 @@ draft entries; they are implemented and deployed, with no schema change. Step 19
 being done in parts: part 1 (deadline and follow-up dates, link from a dossier to its source
 listing) is implemented and deployed with schema `0012`. Part 2 (to-do items, interview
 preparation notes and links to the exact document versions used) is implemented and deployed
-with schema `0013`. Reminders are left to step 28. Step 14's
+with schema `0013`. Step 21 is built in a template-only form (fixed wording, no
+model, copy-only export) and is not deployed; drafting with a model waits for step 22. Reminders are left to step 28. Step 14's
 "selected supported external sources" part is not started. Later steps may
 build on partial foundations already present; provider connection testing is not AI execution,
 source-text extraction is not semantic profile generation, and manual backups are not scheduling.

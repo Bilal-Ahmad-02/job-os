@@ -213,3 +213,48 @@ without partial writes, the JSON request shape, a real migration from `0012` tha
 existing dossier's values, strict response validation in the desktop, and the screen's wording
 and behaviour. Both Windows/WSL integration tests passed against the installed release. Not run:
 the 33 ordinary native tests (no native code changed). Not seen: the screens in the unlocked app.
+
+## Template-built CV and cover-letter drafts (step 21, template-only)
+
+Built on 2026-10-06. **Not deployed.** No schema change: it needs a new backend release and a
+new desktop build, installed together.
+
+The owner chose to build step 21 with fixed templates first rather than wait for the AI provider
+boundary of step 22. No model takes part and nothing leaves the computer.
+
+- **08 / DRAFTS** in a saved dossier has two buttons: build a CV draft, build a cover-letter
+  draft. A draft uses the saved dossier, so unsaved edits disable the buttons.
+- A draft is a list of blocks. A CV block is one profile entry under its section (experience and
+  education newest first, skills one line per category, projects, certifications). A letter is
+  fixed sentences around the owner's own summary, their most recent role and their latest
+  education.
+- **Only stored facts.** Every value is copied from the profile or the dossier without
+  rewording. Each block lists the profile fields and entries it came from, or says it is template
+  wording only, and whether it uses the dossier's job title or company.
+- **The only tailoring is order**: skills whose names appear as whole terms in the dossier's job
+  text are placed first, and the screen names them. Nothing is added, dropped or rephrased to
+  suit a listing.
+- **Review before use.** The owner can untick any block, sees the resulting text in a read-only
+  box, and must tick "I have read this draft and will check and edit it" before the copy button
+  works. Changing which blocks are kept clears that tick.
+- **Export is copy only.** The text goes to the clipboard on this computer, or can be selected
+  by hand if the clipboard is refused. There is no file export, no saved copy of a draft and no
+  record that one was made. Drafts are English only.
+- What the profile or dossier lacks (name, summary, experience, education, skills, job title,
+  company) is listed rather than invented.
+
+"Approved facts" here means the stored profile, which holds what the owner entered or approved in
+review. They are the owner's assertions, not verified qualifications, and a draft does not make
+them more than that.
+
+Backend: one read-only operation, `application_draft`, in `services/application_drafts.py`. It
+opens no write transaction. Template version 1.
+
+Verification: 379 Linux tests (13 more) and 151 frontend tests (3 more) pass. They cover the exact
+text of both templates on a synthetic profile, ordering, the skill reordering and that it adds or
+removes nothing, that every source names a real profile field or entry, that template wording
+contains no profile fact, an empty profile, wording that follows the recorded study state,
+verbatim copying of hostile-looking text, that building twice changes neither record, request
+and response validation, and the review, untick, confirm and copy behaviour on screen. Not run:
+the native tests and the Windows/WSL tests. Not seen: the screen in the running app, or a draft
+built from the real profile.

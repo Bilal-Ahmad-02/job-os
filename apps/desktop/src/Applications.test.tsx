@@ -10,6 +10,7 @@ import {
   saveApplication,
 } from "./api/applications";
 import { listDocuments } from "./api/documents";
+import { buildDraft } from "./api/drafts";
 
 vi.mock("./api/applications", async (original) => ({
   ...(await original<typeof import("./api/applications")>()),
@@ -18,6 +19,7 @@ vi.mock("./api/applications", async (original) => ({
   saveApplication: vi.fn(),
 }));
 vi.mock("./api/documents", () => ({ listDocuments: vi.fn().mockResolvedValue([]) }));
+vi.mock("./api/drafts", () => ({ buildDraft: vi.fn() }));
 vi.mock("./api/health", () => ({ checkHealth: vi.fn().mockResolvedValue(undefined) }));
 
 let record: ApplicationRecord;
@@ -321,6 +323,100 @@ describe("Application history", () => {
     fireEvent.click(screen.getByRole("button", { name: "Save application" }));
     await waitFor(() => expect(saveApplication).toHaveBeenCalledTimes(2));
     expect(vi.mocked(saveApplication).mock.calls[1]?.[0].data.document_ids).toEqual([]);
+  });
+
+  it("builds a template draft for review and copies only what the owner kept and confirmed", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { configurable: true, value: { writeText } });
+    vi.mocked(buildDraft)
+      .mockReset()
+      .mockResolvedValue({
+        kind: "cv",
+        template_version: 1,
+        application_id: record.id,
+        application_version: 1,
+        profile_version: 4,
+        gaps: ["summary"],
+        matched_skills: ["SQL"],
+        blocks: [
+          {
+            heading: "",
+            text: "Synthetic Person",
+            sources: ["full_name"],
+            uses_application: false,
+          },
+          {
+            heading: "SKILLS",
+            text: "Languages: SQL, Python",
+            sources: ["skills/a", "skills/b"],
+            uses_application: false,
+          },
+          {
+            heading: "SKILLS",
+            text: "Other: Presenting",
+            sources: ["skills/c"],
+            uses_application: false,
+          },
+        ],
+      });
+    render(<Applications />);
+    fireEvent.click(await screen.findByRole("button", { name: /Example company/ }));
+    expect(await screen.findByText(/No AI writes any\s+of it, nothing is stored/)).toBeVisible();
+    // A draft comes from the saved dossier, so unsaved edits block it.
+    fireEvent.change(screen.getByLabelText("Company"), { target: { value: "Edited" } });
+    expect(screen.getByRole("button", { name: "Build CV draft" })).toBeDisabled();
+    fireEvent.change(screen.getByLabelText("Company"), { target: { value: "Example company" } });
+    fireEvent.click(screen.getByRole("button", { name: "Build CV draft" }));
+    expect(buildDraft).toHaveBeenCalledWith(record.id, "cv");
+    const box = await screen.findByLabelText("Draft text");
+    expect(box).toHaveAttribute("readonly");
+    expect(box).toHaveValue(
+      "Synthetic Person\n\nSKILLS\nLanguages: SQL, Python\n\nOther: Presenting",
+    );
+    expect(screen.getByText(/from dossier revision 1\s+and profile revision 4/)).toBeVisible();
+    expect(screen.getByText(/job text mentions them: SQL\./)).toBeVisible();
+    expect(screen.getByRole("note")).toHaveTextContent("left out: a summary.");
+    expect(screen.getByText("From your full name")).toBeVisible();
+    expect(screen.getByText("From your skills (2 entries)")).toBeVisible();
+    // Nothing can be copied until the owner says they have read it.
+    const copy = screen.getByRole("button", { name: "Copy draft text" });
+    expect(copy).toBeDisabled();
+    const confirm = screen.getByLabelText(/I have read this draft/);
+    fireEvent.click(confirm);
+    expect(copy).toBeEnabled();
+    // Removing a block changes the text and asks for the confirmation again.
+    fireEvent.click(screen.getByLabelText(/Languages: SQL, Python/));
+    expect(box).toHaveValue("Synthetic Person\n\nSKILLS\nOther: Presenting");
+    expect(confirm).not.toBeChecked();
+    expect(copy).toBeDisabled();
+    fireEvent.click(confirm);
+    fireEvent.click(copy);
+    expect(
+      await screen.findByText(
+        "Copied to the clipboard on this computer. Nothing was sent or saved.",
+      ),
+    ).toBeVisible();
+    expect(writeText).toHaveBeenCalledExactlyOnceWith(
+      "Synthetic Person\n\nSKILLS\nOther: Presenting",
+    );
+    expect(saveApplication).not.toHaveBeenCalled();
+    // A blocked clipboard is reported and the text stays selectable; a failed build says so.
+    writeText.mockRejectedValueOnce(new Error("denied"));
+    fireEvent.click(copy);
+    expect(await screen.findByText(/Copying was blocked\. Select the text/)).toBeVisible();
+    vi.mocked(buildDraft).mockRejectedValueOnce("secret path");
+    fireEvent.click(screen.getByRole("button", { name: "Build cover letter draft" }));
+    const failed = await screen.findByText("The draft could not be built. Nothing was changed.");
+    expect(failed).not.toHaveTextContent("secret path");
+    expect(screen.queryByLabelText("Draft text")).not.toBeInTheDocument();
+    Reflect.deleteProperty(navigator, "clipboard");
+  });
+
+  it("offers no draft for a dossier that has not been saved", async () => {
+    render(<Applications />);
+    fireEvent.click(await screen.findByRole("button", { name: "NEW.DOSSIER" }));
+    expect(await screen.findByLabelText("Company")).toBeVisible();
+    expect(screen.queryByRole("button", { name: "Build CV draft" })).not.toBeInTheDocument();
   });
 
   it("keeps existing document links visible when the documents cannot be listed", async () => {

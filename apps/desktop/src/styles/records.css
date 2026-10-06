@@ -183,6 +183,38 @@
   display: block;
   color: var(--muted);
 }
+.draft-review {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+.draft-blocks {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.draft-blocks label,
+.draft-confirm {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.draft-blocks li[data-left="true"] {
+  opacity: 0.45;
+}
+.draft-blocks strong,
+.draft-blocks small,
+.draft-text {
+  display: block;
+}
+.draft-text {
+  white-space: pre-wrap;
+}
+.draft-blocks small {
+  color: var(--muted);
+}
 .editor-section {
   margin-bottom: 28px;
 }

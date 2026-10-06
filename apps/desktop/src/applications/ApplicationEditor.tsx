@@ -9,6 +9,7 @@ import {
   statuses,
 } from "../api/applications";
 import Icon from "../Icon";
+import ApplicationDrafts from "./ApplicationDrafts";
 import ApplicationWork from "./ApplicationWork";
 import SourceTrace from "./SourceTrace";
 
@@ -176,6 +177,7 @@ export default function ApplicationEditor({
           }}
         />
       </fieldset>
+      {record.version > 0 ? <ApplicationDrafts applicationId={record.id} unsaved={dirty} /> : null}
       {record.imported ? <SourceTrace source={record.imported} /> : null}
       {record.listing_id ? (
         <p className="input-help" role="note">
