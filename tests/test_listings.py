@@ -270,6 +270,9 @@ def test_migration_from_0008_preserves_rows_and_snapshots_include_listings(tmp_p
     database = tmp_path / "oracle.sqlite3"
     engine = initialize_workspace(database)
     with engine.connect().execution_options(oracle_write=True) as connection, connection.begin():
+        connection.exec_driver_sql("DROP TABLE application_documents")
+        connection.exec_driver_sql("DROP TABLE application_todos")
+        connection.exec_driver_sql("ALTER TABLE applications DROP COLUMN preparation")
         connection.exec_driver_sql("ALTER TABLE applications DROP COLUMN deadline_date")
         connection.exec_driver_sql("ALTER TABLE applications DROP COLUMN follow_up_date")
         connection.exec_driver_sql("DROP TABLE listing_searches")
@@ -278,12 +281,12 @@ def test_migration_from_0008_preserves_rows_and_snapshots_include_listings(tmp_p
         before = connection.exec_driver_sql("SELECT workspace_id FROM workspace_metadata").all()
     engine.dispose()
     prepare_workspace(database)
-    assert list((tmp_path / "migration-backups").glob("before-0012-*.sqlite3"))
+    assert list((tmp_path / "migration-backups").glob("before-0013-*.sqlite3"))
     upgraded = open_store(database)
     try:
         with upgraded.connect() as connection:
             assert connection.exec_driver_sql("SELECT version_num FROM alembic_version").all() == [
-                ("0012",)
+                ("0013",)
             ]
             assert (
                 connection.exec_driver_sql("SELECT workspace_id FROM workspace_metadata").all()
@@ -293,7 +296,7 @@ def test_migration_from_0008_preserves_rows_and_snapshots_include_listings(tmp_p
     finally:
         upgraded.dispose()
     snapshot = tmp_path / "snapshot"
-    assert snapshot_workspace(database, snapshot).schema_revision == "0012"
+    assert snapshot_workspace(database, snapshot).schema_revision == "0013"
     verify_snapshot(snapshot)
     restored = open_store(snapshot / "oracle.sqlite3")
     try:

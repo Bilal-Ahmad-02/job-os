@@ -100,17 +100,19 @@ def validate_contents(connection: Connection, revision: str) -> None:
         expected.difference_update({"document_text", "profile_draft"})
     if revision in ("0001", "0002", "0003", "0004", "0005"):
         expected.discard("profile_review")
-    if revision not in ("0011", "0012"):
+    if revision != "0013":
+        expected -= {"application_todos", "application_documents"}
+    if revision not in ("0011", "0012", "0013"):
         expected.discard("listing_searches")
-    if revision not in ("0009", "0010", "0011", "0012"):
+    if revision not in ("0009", "0010", "0011", "0012", "0013"):
         expected.discard("job_listings")
-    if revision not in ("0008", "0009", "0010", "0011", "0012"):
+    if revision not in ("0008", "0009", "0010", "0011", "0012", "0013"):
         expected.discard("background_tasks")
-    if revision not in ("0007", "0008", "0009", "0010", "0011", "0012"):
+    if revision not in ("0007", "0008", "0009", "0010", "0011", "0012", "0013"):
         expected.discard("document_versions")
     if not expected.issubset(tables):
         raise WorkspaceError("workspace_schema")
-    if revision in ("0007", "0008", "0009", "0010", "0011", "0012"):
+    if revision in ("0007", "0008", "0009", "0010", "0011", "0012", "0013"):
         broken = connection.exec_driver_sql("""
             SELECT d.id FROM source_documents d
             LEFT JOIN document_versions v ON v.document_id = d.id
@@ -127,7 +129,7 @@ def validate_contents(connection: Connection, revision: str) -> None:
         # Later revisions add columns the current model cannot select from older tables.
         if table.name == "job_listings" and revision in ("0009", "0010"):
             continue
-        if table.name == "applications" and revision != "0012":
+        if table.name == "applications" and revision != "0013":
             continue
         if table.name in expected:
             connection.execute(select(table).limit(0))

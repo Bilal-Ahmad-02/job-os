@@ -10,6 +10,7 @@ from test_listing_review import workspace_at
 from app.db.store import existing_engine, open_store
 from app.db.workspace import initialize_workspace, prepare_workspace
 from app.schemas.applications import (
+    LATER_FIELDS,
     ApplicationData,
     GetRequest,
     ImportedProvenance,
@@ -70,7 +71,7 @@ def test_spreadsheet_provenance_never_includes_the_later_date_fields():
     original = {name: "" for name in ApplicationData.model_fields if name != "status"}
     with pytest.raises(ValidationError):
         ImportedProvenance(sheet="Sheet", row=2, original=original, links={})
-    for name in ("deadline_date", "follow_up_date"):
+    for name in LATER_FIELDS:
         del original[name]
     assert ImportedProvenance(sheet="Sheet", row=2, original=original, links={}).row == 2
 
@@ -132,7 +133,7 @@ def test_migration_from_0011_keeps_every_application_value_and_adds_empty_dates(
     finally:
         engine.dispose()
     prepare_workspace(database)
-    assert list((tmp_path / "migration-backups").glob("before-0012-*.sqlite3"))
+    assert list((tmp_path / "migration-backups").glob("before-0013-*.sqlite3"))
     upgraded = open_store(database)
     try:
         row = get_application(upgraded, GetRequest(action="get", id=application))

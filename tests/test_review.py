@@ -168,6 +168,9 @@ def test_previous_draft_snapshot_verifies_without_mutation_then_upgrades(tmp_pat
     snapshot_workspace(database, target)
     old = target / DATABASE
     with sqlite3.connect(old) as connection:
+        connection.execute("DROP TABLE application_documents")
+        connection.execute("DROP TABLE application_todos")
+        connection.execute("ALTER TABLE applications DROP COLUMN preparation")
         connection.execute("ALTER TABLE applications DROP COLUMN deadline_date")
         connection.execute("ALTER TABLE applications DROP COLUMN follow_up_date")
         connection.execute("DROP TABLE listing_searches")

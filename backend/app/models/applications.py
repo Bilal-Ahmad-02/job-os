@@ -43,6 +43,38 @@ class Application(Base):
     # Owner-entered ISO dates or empty. Oracle never sets them and nothing fires on them.
     deadline_date: Mapped[str] = mapped_column(String(10), default="")
     follow_up_date: Mapped[str] = mapped_column(String(10), default="")
+    # Owner-written interview preparation notes.
+    preparation: Mapped[str] = mapped_column(Text, default="")
+
+
+class ApplicationTodo(Base):
+    """One thing the owner means to do for an application. Oracle never adds or completes one."""
+
+    __tablename__ = "application_todos"
+    __table_args__ = (
+        CheckConstraint("position BETWEEN 0 AND 29"),
+        CheckConstraint("length(title) BETWEEN 1 AND 200"),
+        CheckConstraint("length(due_date) IN (0, 10)"),
+        CheckConstraint("done IN (0, 1)"),
+    )
+    application_id: Mapped[str] = mapped_column(ForeignKey("applications.id"), primary_key=True)
+    position: Mapped[int] = mapped_column(Integer, primary_key=True)
+    title: Mapped[str] = mapped_column(Text)
+    due_date: Mapped[str] = mapped_column(String(10))
+    done: Mapped[int] = mapped_column(Integer)
+
+
+class ApplicationDocument(Base):
+    """An exact stored document version the owner says was used for an application."""
+
+    __tablename__ = "application_documents"
+    __table_args__ = (
+        CheckConstraint("position BETWEEN 0 AND 9"),
+        UniqueConstraint("application_id", "document_id"),
+    )
+    application_id: Mapped[str] = mapped_column(ForeignKey("applications.id"), primary_key=True)
+    position: Mapped[int] = mapped_column(Integer, primary_key=True)
+    document_id: Mapped[str] = mapped_column(String(36), ForeignKey("source_documents.id"))
 
 
 class ImportBatch(Base):

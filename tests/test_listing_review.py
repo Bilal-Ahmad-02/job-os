@@ -270,7 +270,7 @@ def test_migration_from_earlier_listing_schemas_keeps_rows_and_defaults(tmp_path
     finally:
         engine.dispose()
     prepare_workspace(database)
-    assert list((tmp_path / "migration-backups").glob("before-0012-*.sqlite3"))
+    assert list((tmp_path / "migration-backups").glob("before-0013-*.sqlite3"))
     upgraded = open_store(database)
     try:
         row = listings.get_listing(upgraded, ListingGetRequest(action="listing_get", id=identity))
