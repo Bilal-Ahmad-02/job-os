@@ -4,6 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.schemas.application_drafts import ApplicationDraft, ApplicationDraftRequest
 from app.schemas.applications import (
     ApplicationPage,
     ApplicationRecord,
@@ -56,7 +57,8 @@ DesktopRequest = Annotated[
     | ListingTrackRequest
     | SearchListRequest
     | SearchSaveRequest
-    | SearchDeleteRequest,
+    | SearchDeleteRequest
+    | ApplicationDraftRequest,
     Field(discriminator="action"),
 ]
 
@@ -73,6 +75,7 @@ DesktopResult = (
     | ListingRecord
     | ListingPage
     | SearchPage
+    | ApplicationDraft
 )
 
 

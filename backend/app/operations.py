@@ -7,6 +7,7 @@ This module never opens a database, starts a worker, or invokes maintenance/impo
 
 from sqlalchemy import Engine
 
+from app.schemas.application_drafts import ApplicationDraftRequest
 from app.schemas.applications import GetRequest, ListRequest, SaveRequest
 from app.schemas.desktop import DesktopRequest, DesktopResult
 from app.schemas.documents import DocumentListRequest
@@ -24,6 +25,7 @@ from app.schemas.listings import (
 from app.schemas.profile import ProfileGetRequest, ProfileSaveRequest
 from app.schemas.review import ReviewGetRequest, ReviewSaveRequest
 from app.schemas.tasks import TaskChangeRequest, TaskCreateRequest, TaskListRequest
+from app.services.application_drafts import draft_application
 from app.services.applications import get_application, list_applications, save_application
 from app.services.documents import list_documents
 from app.services.evidence import get_draft
@@ -85,5 +87,7 @@ def execute_operation(engine: Engine, request: DesktopRequest) -> DesktopResult:
             return save_search(engine, request)
         case SearchDeleteRequest():
             return delete_search(engine, request)
+        case ApplicationDraftRequest():
+            return draft_application(engine, request)
         case _:
             raise ValueError("Unsupported operation")
